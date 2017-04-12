@@ -68,6 +68,11 @@
 <script>
     (function() {
         window.global = window;
+        // ************
+        // $URL will be replaced by the URL passed to the AMF requests
+        // to form the final URL for the invocation throught the proxy
+        // window.JS_USE_PROXY="https://mycorsproxy.com/$URL";
+        // ************
         var loadApp = function(cb) {
             var assets = [
                 "./js/amf.js",
