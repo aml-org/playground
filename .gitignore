@@ -28,8 +28,8 @@ package.json
 .idea/
 node_modules/
 public/bower_components/
-public/js/
+public/js/amf.*
+public/js/api_modeller.*
 typings.json
 output/
 
-!public/js/preload.js
