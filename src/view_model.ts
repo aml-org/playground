@@ -66,7 +66,7 @@ export class ViewModel {
     // checks if we need to reparse the document
     public changesFromLastUpdate = 0;
     public documentModelChanged = false;
-    public RELOAD_PERIOD = 3000;
+    public RELOAD_PERIOD = 5000;
 
     private amfPlaygroundWindow = new AmfPlaygroundWindow();
 
