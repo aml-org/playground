@@ -1,10 +1,10 @@
-import {ModelType} from "./api_modeller_window";
+import {ModelType} from "./amf_playground_window";
 import * as jsonld from "jsonld";
 import {UnitModel} from "./units_model";
 import {LexicalInfo} from "./model_utils";
 import {LexicalInfoGenerator} from "./lexical_info_generator";
 
-const apiFramework = window["api_modelling_framework"].core;
+const apiFramework = window["api_modeling_framework"].core;
 
 
 export type ModelLevel = "document" | "domain";

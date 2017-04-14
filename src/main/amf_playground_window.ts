@@ -1,8 +1,8 @@
 import {ModelProxy} from "./model_proxy";
 export type ModelType = "raml" | "open-api" | "api-model";
-export class ApiModellerWindow {
+export class ApiModelerWindow {
 
-    private apiFramework = window['api_modelling_framework'].core;
+    private apiFramework = window['api_modeling_framework'].core;
 
     static functions: string[] = [
         "checkFile", "existsFile", "parseModelFile", "generateString"

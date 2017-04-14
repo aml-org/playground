@@ -1,5 +1,5 @@
 import * as ko from "knockout";
-import { ApiModellerWindow } from "../main/api_modeller_window";
+import { ApiModelerWindow } from "../main/amf_playground_window";
 
 export type ParserType = "raml" | "open-api";
 export class LoadFileEvent {
@@ -85,7 +85,7 @@ export class LoadModal {
 
     public loadLocalFile() {
         /*
-        (remote.getCurrentWindow() as ApiModellerWindow).checkFile((err, fileName) => {
+        (remote.getCurrentWindow() as ApiModelerWindow).checkFile((err, fileName) => {
             if (err == null && fileName != null) {
                 this.fileUrl(fileName);
             }

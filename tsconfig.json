@@ -18,7 +18,7 @@
         "src/view_models/nav.ts",
         "src/view_models/query.ts",
         "src/view_models/ui.ts",
-        "src/main/api_modeller_window.ts",
+        "src/main/amf_playground_window.ts",
         "src/main/domain_model.ts",
         "src/main/model_proxy.ts",
         "src/main/model_utils.ts",

@@ -10,7 +10,7 @@
     <script src="js/preload.js"></script>
 
     <!-- <script src="./js/amf.js"></script> -->
-    <!-- <script src="./js/api_modeller.js"></script> -->
+    <!-- <script src="./js/amf_playground.js"></script> -->
 
     <!-- Loading Monaco -->
     <!-- <script src="bower_components/monaco-editor/release/min/vs/loader.js"></script> -->
@@ -28,12 +28,12 @@
     <link rel="stylesheet" href="bower_components/balloon-css/balloon.css">
     <link rel="stylesheet" href="bower_components/jointjs/dist/joint.css">
     <meta charset="UTF-8">
-    <title>API Modeller</title>
+    <title>API Modeler</title>
 </head>
 <body>
 <!-- Loader view -->
 <div id="preloader" class="container is-marginless is-fluid" style="width: 100%; height: 100%; text-align: center; padding-top: 13%">
-    <h2 class="title is-2">Loading API Modeller</h2>
+    <h2 class="title is-2">Loading API Modeler</h2>
     <progress id="preloader-progress" class="progress is-primary" value="0" max="100" style="margin-left: 25%; max-width: 50%">0%</progress>
     <img src="images/powered_by_mulesoft.png" style="margin-bottom: 1000px"/>
 </div>
@@ -76,7 +76,7 @@
         var loadApp = function(cb) {
             var assets = [
                 "./js/amf.js",
-                "./js/api_modeller.js",
+                "./js/amf_playground.js",
                 "bower_components/monaco-editor/release/min/vs/loader.js"
             ];
             var loaded = 0;
@@ -152,7 +152,7 @@
                         language: 'yaml'
                     });
 
-                    window.appModel = new api_modeller.ViewModel(editor);
+                    window.appModel = new amf_playground.ViewModel(editor);
                     window.appModel.apply(document.getElementById("the-app"));
                     setTimeout(function() {
                         document.getElementById("preloader").style.display = "none";
