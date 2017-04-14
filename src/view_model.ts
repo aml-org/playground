@@ -1,7 +1,7 @@
 import * as ko from "knockout";
 import {LoadModal, LoadFileEvent, ParserType} from "./view_models/load_modal";
 import { ModelProxy, ModelLevel } from "./main/model_proxy";
-import { ApiModellerWindow } from "./main/amf_playground_window";
+import { ApiModelerWindow } from "./main/amf_playground_window";
 import { Nav } from "./view_models/nav";
 // import IStandaloneCodeEditor = monaco.editor.IStandaloneCodeEditor;
 // import createModel = monaco.editor.createModel;
@@ -67,7 +67,7 @@ export class ViewModel {
     public shouldReload = 0;
     public RELOAD_PERIOD = 5000;
 
-    private apiModellerWindow = new ApiModellerWindow();
+    private apiModelerWindow = new ApiModelerWindow();
 
     constructor(public editor: any) {
         window["AMF_LOADING_EVENT"] = (loaded) => {
@@ -102,7 +102,7 @@ export class ViewModel {
 
         // events we are subscribed
         this.loadModal.on(LoadModal.LOAD_FILE_EVENT, (data: LoadFileEvent) => {
-            this.apiModellerWindow.parseModelFile(data.type, data.location, (err, model) => {
+            this.apiModelerWindow.parseModelFile(data.type, data.location, (err, model) => {
                 if (err) {
                     console.log(err);
                     alert(err);
@@ -314,7 +314,7 @@ export class ViewModel {
 
     public doParse() {
         if (this.editorSection() === "raml" || this.editorSection() === "open-api" || this.editorSection() === "api-model") {
-            this.apiModellerWindow.parseString(this.editorSection() as "raml" | "open-api" | "api-model", this.baseUrl(), this.editor.getValue(), (err, model) => {
+            this.apiModelerWindow.parseString(this.editorSection() as "raml" | "open-api" | "api-model", this.baseUrl(), this.editor.getValue(), (err, model) => {
                 if (err) {
                     console.log(err);
                     alert("Error parsing model, see console for details");
