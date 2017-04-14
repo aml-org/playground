@@ -86848,7 +86848,8 @@ class ViewModel {
         this.loadModal = new load_modal_1.LoadModal();
         this.query = new query_1.Query();
         // checks if we need to reparse the document
-        this.shouldReload = 0;
+        this.changesFromLastUpdate = 0;
+        this.documentModelChanged = false;
         this.RELOAD_PERIOD = 5000;
         this.amfPlaygroundWindow = new amf_playground_window_1.AmfPlaygroundWindow();
         this.decorations = [];
@@ -86863,23 +86864,17 @@ class ViewModel {
             })(loaded);
         };
         editor.onDidChangeModelContent(e => {
-            this.shouldReload++;
+            this.changesFromLastUpdate++;
+            this.documentModelChanged = true;
             (number => {
+                var modelLoc = this.model.location();
+                var modelVal = this.editor.getModel().getValue();
                 setTimeout(() => {
-                    if (this.shouldReload === number && this.model && this.documentModel) {
-                        this.documentModel.update(this.model.location(), this.editor.getModel().getValue(), e => {
-                            if (e != null) {
-                                this.resetUnits();
-                                this.resetReferences();
-                                this.resetDiagram();
-                            } else {
-                                console.log(e);
-                                alert(e);
-                            }
-                        });
+                    if (this.changesFromLastUpdate === number && this.model && this.documentModel) {
+                        this.updateDocumentModel(modelLoc, modelVal);
                     }
                 }, this.RELOAD_PERIOD);
-            })(this.shouldReload);
+            })(this.changesFromLastUpdate);
         });
         // events we are subscribed
         this.loadModal.on(load_modal_1.LoadModal.LOAD_FILE_EVENT, data => {
@@ -86936,6 +86931,25 @@ class ViewModel {
         });
         this.editorSection.subscribe(section => this.onEditorSectionChange(section));
         this.selectedReference.subscribe(ref => this.baseUrl(ref.id));
+    }
+    updateDocumentModel(location, value) {
+        if (!this.documentModelChanged) {
+            return;
+        }
+        this.documentModelChanged = false;
+        this.changesFromLastUpdate = 0;
+        location = location || this.model.location();
+        value = value || this.editor.getModel().getValue();
+        this.documentModel.update(location, value, e => {
+            if (e != null) {
+                this.resetUnits();
+                this.resetReferences();
+                this.resetDiagram();
+            } else {
+                console.log(e);
+                alert(e);
+            }
+        });
     }
     selectNavigatorFile(reference) {
         if (this.selectedReference() == null || this.selectedReference().id !== reference.id) {
@@ -87178,6 +87192,9 @@ class ViewModel {
     }
     onEditorSectionChange(section) {
         // Warning, models here mean MONACO EDITOR MODELS, don't get confused with API Models
+        if (section === "raml" || section === "open-api" || section === "api-model") {
+            this.updateDocumentModel();
+        }
         if (section === "raml") {
             if (this.model != null) {
                 if (this.selectedParserType() === "raml" && this.documentLevel === "document" && this.model.text() != null) {

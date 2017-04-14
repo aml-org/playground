@@ -1,7 +1,7 @@
 import * as ko from "knockout";
 import {LoadModal, LoadFileEvent, ParserType} from "./view_models/load_modal";
 import { ModelProxy, ModelLevel } from "./main/model_proxy";
-import { ApiModelerWindow } from "./main/amf_playground_window";
+import { AmfPlaygroundWindow } from "./main/amf_playground_window";
 import { Nav } from "./view_models/nav";
 // import IStandaloneCodeEditor = monaco.editor.IStandaloneCodeEditor;
 // import createModel = monaco.editor.createModel;
@@ -64,10 +64,11 @@ export class ViewModel {
     public query: Query = new Query();
 
     // checks if we need to reparse the document
-    public shouldReload = 0;
+    public changesFromLastUpdate = 0;
+    public documentModelChanged = false;
     public RELOAD_PERIOD = 5000;
 
-    private apiModelerWindow = new ApiModelerWindow();
+    private amfPlaygroundWindow = new AmfPlaygroundWindow();
 
     constructor(public editor: any) {
         window["AMF_LOADING_EVENT"] = (loaded) => {
@@ -81,28 +82,22 @@ export class ViewModel {
             })(loaded);
         };
         editor.onDidChangeModelContent((e) => {
-            this.shouldReload++;
+            this.changesFromLastUpdate++;
+            this.documentModelChanged = true;
             ((number) => {
+                var modelLoc = this.model.location()
+                var modelVal = this.editor.getModel().getValue()
                 setTimeout(() => {
-                    if (this.shouldReload === number && this.model && this.documentModel) {
-                        this.documentModel.update(this.model.location(), this.editor.getModel().getValue(),(e) => {
-                            if (e != null) {
-                                this.resetUnits();
-                                this.resetReferences();
-                                this.resetDiagram();
-                            } else {
-                                console.log(e);
-                                alert(e);
-                            }
-                        });
+                    if (this.changesFromLastUpdate === number && this.model && this.documentModel) {
+                        this.updateDocumentModel(modelLoc, modelVal)
                     }
                 }, this.RELOAD_PERIOD);
-            })(this.shouldReload);
+            })(this.changesFromLastUpdate);
         });
 
         // events we are subscribed
         this.loadModal.on(LoadModal.LOAD_FILE_EVENT, (data: LoadFileEvent) => {
-            this.apiModelerWindow.parseModelFile(data.type, data.location, (err, model) => {
+            this.amfPlaygroundWindow.parseModelFile(data.type, data.location, (err, model) => {
                 if (err) {
                     console.log(err);
                     alert(err);
@@ -154,6 +149,26 @@ export class ViewModel {
         this.editorSection.subscribe((section) => this.onEditorSectionChange(section));
 
         this.selectedReference.subscribe((ref) => this.baseUrl(ref.id));
+    }
+
+    public updateDocumentModel(location?: string, value?: string) {
+        if (!this.documentModelChanged) {
+            return;
+        }
+        this.documentModelChanged = false;
+        this.changesFromLastUpdate = 0
+        location = location || this.model.location()
+        value = value || this.editor.getModel().getValue()
+        this.documentModel.update(location, value, (e) => {
+            if (e != null) {
+                this.resetUnits();
+                this.resetReferences();
+                this.resetDiagram();
+            } else {
+                console.log(e);
+                alert(e);
+            }
+        });
     }
 
     public selectNavigatorFile(reference: ReferenceFile) {
@@ -314,7 +329,7 @@ export class ViewModel {
 
     public doParse() {
         if (this.editorSection() === "raml" || this.editorSection() === "open-api" || this.editorSection() === "api-model") {
-            this.apiModelerWindow.parseString(this.editorSection() as "raml" | "open-api" | "api-model", this.baseUrl(), this.editor.getValue(), (err, model) => {
+            this.amfPlaygroundWindow.parseString(this.editorSection() as "raml" | "open-api" | "api-model", this.baseUrl(), this.editor.getValue(), (err, model) => {
                 if (err) {
                     console.log(err);
                     alert("Error parsing model, see console for details");
@@ -422,6 +437,9 @@ export class ViewModel {
 
     private onEditorSectionChange(section: EditorSection) {
         // Warning, models here mean MONACO EDITOR MODELS, don't get confused with API Models
+        if (section === "raml" || section === "open-api" || section === "api-model") {
+            this.updateDocumentModel()
+        }
         if (section === "raml") {
             if (this.model != null) {
                 if (this.selectedParserType() === "raml" && this.documentLevel === "document" && this.model.text() != null) {
