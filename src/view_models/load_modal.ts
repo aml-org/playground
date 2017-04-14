@@ -1,5 +1,5 @@
 import * as ko from "knockout";
-import { ApiModellerWindow } from "../main/api_modeller_window";
+import { ApiModellerWindow } from "../main/amf_playground_window";
 
 export type ParserType = "raml" | "open-api";
 export class LoadFileEvent {

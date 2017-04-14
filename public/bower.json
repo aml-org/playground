@@ -1,12 +1,12 @@
 {
-  "name": "api-modeller",
+  "name": "amf-playground",
   "description": "",
   "main": "src/main.js",
   "authors": [
     "Mulesoft"
   ],
   "license": "ISC",
-  "homepage": "https://github.com/mulesoft-labs/api-modelling-framework",
+  "homepage": "https://github.com/mulesoft-labs/amf-playground",
   "ignore": [
     "**/.*",
     "node_modules",

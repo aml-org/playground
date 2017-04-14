@@ -1,7 +1,7 @@
 import * as ko from "knockout";
 import {LoadModal, LoadFileEvent, ParserType} from "./view_models/load_modal";
 import { ModelProxy, ModelLevel } from "./main/model_proxy";
-import { ApiModellerWindow } from "./main/api_modeller_window";
+import { ApiModellerWindow } from "./main/amf_playground_window";
 import { Nav } from "./view_models/nav";
 // import IStandaloneCodeEditor = monaco.editor.IStandaloneCodeEditor;
 // import createModel = monaco.editor.createModel;

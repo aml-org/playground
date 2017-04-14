@@ -2,7 +2,7 @@
 
 ## Dependencies
 
-You need the web version of the AMF library. You can get it from the [repository](https://github.com/raml-org/api-modelling-framework) following the instructions for the web build.
+You need the web version of the AMF library. You can get it from the [repository](https://github.com/raml-org/api-modeling-framework) following the instructions for the web build.
 
 ## Building
 

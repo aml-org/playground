@@ -10,7 +10,7 @@
     <script src="js/preload.js"></script>
 
     <!-- <script src="./js/amf.js"></script> -->
-    <!-- <script src="./js/api_modeller.js"></script> -->
+    <!-- <script src="./js/amf_playground.js"></script> -->
 
     <!-- Loading Monaco -->
     <!-- <script src="bower_components/monaco-editor/release/min/vs/loader.js"></script> -->
@@ -76,7 +76,7 @@
         var loadApp = function(cb) {
             var assets = [
                 "./js/amf.js",
-                "./js/api_modeller.js",
+                "./js/amf_playground.js",
                 "bower_components/monaco-editor/release/min/vs/loader.js"
             ];
             var loaded = 0;
@@ -152,7 +152,7 @@
                         language: 'yaml'
                     });
 
-                    window.appModel = new api_modeller.ViewModel(editor);
+                    window.appModel = new amf_playground.ViewModel(editor);
                     window.appModel.apply(document.getElementById("the-app"));
                     setTimeout(function() {
                         document.getElementById("preloader").style.display = "none";
