@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.api_modeller = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.amf_playground = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (global){
 //     Backbone.js 1.3.3
 
@@ -85617,9 +85617,9 @@ function extend() {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const model_proxy_1 = require("./model_proxy");
-class ApiModellerWindow {
+class ApiModelerWindow {
     constructor() {
-        this.apiFramework = window['api_modelling_framework'].core;
+        this.apiFramework = window['api_modeling_framework'].core;
     }
     checkFile(cb) {
         /*
@@ -85700,8 +85700,8 @@ class ApiModellerWindow {
         }
     }
 }
-ApiModellerWindow.functions = ["checkFile", "existsFile", "parseModelFile", "generateString"];
-exports.ApiModellerWindow = ApiModellerWindow;
+ApiModelerWindow.functions = ["checkFile", "existsFile", "parseModelFile", "generateString"];
+exports.ApiModelerWindow = ApiModelerWindow;
 
 },{"./model_proxy":135}],133:[function(require,module,exports){
 (function (process){
@@ -86078,7 +86078,7 @@ exports.DomainModel = DomainModel;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const model_utils_1 = require("./model_utils");
-const apiFramework = window["api_modelling_framework"].core;
+const apiFramework = window["api_modeling_framework"].core;
 const ramlGenerator = new apiFramework.__GT_RAMLGenerator();
 const openAPIGenerator = new apiFramework.__GT_OpenAPIGenerator();
 const apiModelGenerator = new apiFramework.__GT_APIModelGenerator();
@@ -86330,7 +86330,7 @@ const jsonld = require("jsonld");
 const units_model_1 = require("./units_model");
 const model_utils_1 = require("./model_utils");
 const lexical_info_generator_1 = require("./lexical_info_generator");
-const apiFramework = window["api_modelling_framework"].core;
+const apiFramework = window["api_modeling_framework"].core;
 const ramlGenerator = new apiFramework.__GT_RAMLGenerator();
 const openAPIGenerator = new apiFramework.__GT_OpenAPIGenerator();
 const apiModelGenerator = new apiFramework.__GT_APIModelGenerator();
@@ -86802,7 +86802,7 @@ exports.nestedLabel = nestedLabel;
 Object.defineProperty(exports, "__esModule", { value: true });
 const ko = require("knockout");
 const load_modal_1 = require("./view_models/load_modal");
-const api_modeller_window_1 = require("./main/api_modeller_window");
+const amf_playground_window_1 = require("./main/amf_playground_window");
 const nav_1 = require("./view_models/nav");
 const utils_1 = require("./utils");
 const ui_1 = require("./view_models/ui");
@@ -86850,7 +86850,7 @@ class ViewModel {
         // checks if we need to reparse the document
         this.shouldReload = 0;
         this.RELOAD_PERIOD = 5000;
-        this.apiModellerWindow = new api_modeller_window_1.ApiModellerWindow();
+        this.apiModelerWindow = new amf_playground_window_1.ApiModelerWindow();
         this.decorations = [];
         window["AMF_LOADING_EVENT"] = loaded => {
             this.lastLoadedFile(loaded);
@@ -86883,7 +86883,7 @@ class ViewModel {
         });
         // events we are subscribed
         this.loadModal.on(load_modal_1.LoadModal.LOAD_FILE_EVENT, data => {
-            this.apiModellerWindow.parseModelFile(data.type, data.location, (err, model) => {
+            this.apiModelerWindow.parseModelFile(data.type, data.location, (err, model) => {
                 if (err) {
                     console.log(err);
                     alert(err);
@@ -87079,7 +87079,7 @@ class ViewModel {
     }
     doParse() {
         if (this.editorSection() === "raml" || this.editorSection() === "open-api" || this.editorSection() === "api-model") {
-            this.apiModellerWindow.parseString(this.editorSection(), this.baseUrl(), this.editor.getValue(), (err, model) => {
+            this.apiModelerWindow.parseString(this.editorSection(), this.baseUrl(), this.editor.getValue(), (err, model) => {
                 if (err) {
                     console.log(err);
                     alert("Error parsing model, see console for details");
@@ -87420,7 +87420,7 @@ class ViewModel {
 }
 exports.ViewModel = ViewModel;
 
-},{"./main/api_modeller_window":132,"./main/domain_model":133,"./utils":138,"./view_models/diagram":140,"./view_models/load_modal":141,"./view_models/nav":142,"./view_models/query":143,"./view_models/ui":144,"knockout":70}],140:[function(require,module,exports){
+},{"./main/amf_playground_window":132,"./main/domain_model":133,"./utils":138,"./view_models/diagram":140,"./view_models/load_modal":141,"./view_models/nav":142,"./view_models/query":143,"./view_models/ui":144,"knockout":70}],140:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -87837,7 +87837,7 @@ class LoadModal {
     }
     loadLocalFile() {
         /*
-        (remote.getCurrentWindow() as ApiModellerWindow).checkFile((err, fileName) => {
+        (remote.getCurrentWindow() as ApiModelerWindow).checkFile((err, fileName) => {
             if (err == null && fileName != null) {
                 this.fileUrl(fileName);
             }
@@ -88109,4 +88109,4 @@ exports.UI = UI;
 
 },{"../main/domain_model":133,"../utils":138}]},{},[139])(139)
 });
-//# sourceMappingURL=api_modeller.js.map
+//# sourceMappingURL=amf_playground.js.map
