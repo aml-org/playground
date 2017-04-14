@@ -68,3 +68,10 @@
     width: 5px !important;
     left: 3px;
 }
+
+.branded {
+    position: absolute;
+    top: 8px;
+    z-index: 1000;
+    right: 180px;
+}

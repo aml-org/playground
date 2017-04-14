@@ -33,7 +33,7 @@ gulp.task('bower', function() {
     return bower({cwd: "public"})
 });
 
-const options = {"standalone":"api_modeller"};
+const options = {"standalone":"amf_playground"};
 const b = watchify(browserify(options));
 function bundle() {
     return b
@@ -45,7 +45,7 @@ function bundle() {
         .bundle()
         // log errors if they happen
         .on('error', gutil.log.bind(gutil, 'Browserify Error'))
-        .pipe(source('api_modeller.js'))
+        .pipe(source('amf_playground.js'))
         // optional, remove if you don't need to buffer file contents
         .pipe(buffer())
         // optional, remove if you dont want sourcemaps

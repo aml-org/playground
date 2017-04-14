@@ -1,7 +1,7 @@
 import {ModelLevel, ModelProxy} from "./model_proxy";
 import {LexicalInfo} from "./model_utils";
 
-const apiFramework = window["api_modelling_framework"].core;
+const apiFramework = window["api_modeling_framework"].core;
 
 const ramlGenerator = new apiFramework.__GT_RAMLGenerator();
 const openAPIGenerator = new apiFramework.__GT_OpenAPIGenerator();
