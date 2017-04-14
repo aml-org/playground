@@ -85617,7 +85617,7 @@ function extend() {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const model_proxy_1 = require("./model_proxy");
-class ApiModelerWindow {
+class AmfPlaygroundWindow {
     constructor() {
         this.apiFramework = window['api_modeling_framework'].core;
     }
@@ -85700,8 +85700,8 @@ class ApiModelerWindow {
         }
     }
 }
-ApiModelerWindow.functions = ["checkFile", "existsFile", "parseModelFile", "generateString"];
-exports.ApiModelerWindow = ApiModelerWindow;
+AmfPlaygroundWindow.functions = ["checkFile", "existsFile", "parseModelFile", "generateString"];
+exports.AmfPlaygroundWindow = AmfPlaygroundWindow;
 
 },{"./model_proxy":135}],133:[function(require,module,exports){
 (function (process){
@@ -86850,7 +86850,7 @@ class ViewModel {
         // checks if we need to reparse the document
         this.shouldReload = 0;
         this.RELOAD_PERIOD = 5000;
-        this.apiModelerWindow = new amf_playground_window_1.ApiModelerWindow();
+        this.amfPlaygroundWindow = new amf_playground_window_1.AmfPlaygroundWindow();
         this.decorations = [];
         window["AMF_LOADING_EVENT"] = loaded => {
             this.lastLoadedFile(loaded);
@@ -86883,7 +86883,7 @@ class ViewModel {
         });
         // events we are subscribed
         this.loadModal.on(load_modal_1.LoadModal.LOAD_FILE_EVENT, data => {
-            this.apiModelerWindow.parseModelFile(data.type, data.location, (err, model) => {
+            this.amfPlaygroundWindow.parseModelFile(data.type, data.location, (err, model) => {
                 if (err) {
                     console.log(err);
                     alert(err);
@@ -87079,7 +87079,7 @@ class ViewModel {
     }
     doParse() {
         if (this.editorSection() === "raml" || this.editorSection() === "open-api" || this.editorSection() === "api-model") {
-            this.apiModelerWindow.parseString(this.editorSection(), this.baseUrl(), this.editor.getValue(), (err, model) => {
+            this.amfPlaygroundWindow.parseString(this.editorSection(), this.baseUrl(), this.editor.getValue(), (err, model) => {
                 if (err) {
                     console.log(err);
                     alert("Error parsing model, see console for details");
@@ -87837,7 +87837,7 @@ class LoadModal {
     }
     loadLocalFile() {
         /*
-        (remote.getCurrentWindow() as ApiModelerWindow).checkFile((err, fileName) => {
+        (remote.getCurrentWindow() as AmfPlaygroundWindow).checkFile((err, fileName) => {
             if (err == null && fileName != null) {
                 this.fileUrl(fileName);
             }
