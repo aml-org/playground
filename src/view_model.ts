@@ -88,7 +88,6 @@ export class ViewModel {
                 var modelLoc = this.model.location()
                 var modelVal = this.editor.getModel().getValue()
                 setTimeout(() => {
-                    console.log('>>>> timed run')
                     if (this.changesFromLastUpdate === number && this.model && this.documentModel) {
                         this.updateDocumentModel(modelLoc, modelVal)
                     }
@@ -160,8 +159,6 @@ export class ViewModel {
         this.changesFromLastUpdate = 0
         location = location || this.model.location()
         value = value || this.editor.getModel().getValue()
-        console.log('>>>> location ', location)
-        console.log('>>>> updateDocumentModel', this.changesFromLastUpdate, this.documentModelChanged)
         this.documentModel.update(location, value, (e) => {
             if (e != null) {
                 this.resetUnits();
