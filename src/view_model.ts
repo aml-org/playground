@@ -64,8 +64,9 @@ export class ViewModel {
     public query: Query = new Query();
 
     // checks if we need to reparse the document
-    public shouldReload = 0;
-    public RELOAD_PERIOD = 5000;
+    public changesFromLastUpdate = 0;
+    public documentModelChanged = false;
+    public RELOAD_PERIOD = 3000;
 
     private amfPlaygroundWindow = new AmfPlaygroundWindow();
 
@@ -81,23 +82,18 @@ export class ViewModel {
             })(loaded);
         };
         editor.onDidChangeModelContent((e) => {
-            this.shouldReload++;
+            this.changesFromLastUpdate++;
+            this.documentModelChanged = true;
             ((number) => {
+                var modelLoc = this.model.location()
+                var modelVal = this.editor.getModel().getValue()
                 setTimeout(() => {
-                    if (this.shouldReload === number && this.model && this.documentModel) {
-                        this.documentModel.update(this.model.location(), this.editor.getModel().getValue(),(e) => {
-                            if (e != null) {
-                                this.resetUnits();
-                                this.resetReferences();
-                                this.resetDiagram();
-                            } else {
-                                console.log(e);
-                                alert(e);
-                            }
-                        });
+                    console.log('>>>> timed run')
+                    if (this.changesFromLastUpdate === number && this.model && this.documentModel) {
+                        this.updateDocumentModel(modelLoc, modelVal)
                     }
                 }, this.RELOAD_PERIOD);
-            })(this.shouldReload);
+            })(this.changesFromLastUpdate);
         });
 
         // events we are subscribed
@@ -154,6 +150,28 @@ export class ViewModel {
         this.editorSection.subscribe((section) => this.onEditorSectionChange(section));
 
         this.selectedReference.subscribe((ref) => this.baseUrl(ref.id));
+    }
+
+    public updateDocumentModel(location?: string, value?: string) {
+        if (!this.documentModelChanged) {
+            return;
+        }
+        this.documentModelChanged = false;
+        this.changesFromLastUpdate = 0
+        location = location || this.model.location()
+        value = value || this.editor.getModel().getValue()
+        console.log('>>>> location ', location)
+        console.log('>>>> updateDocumentModel', this.changesFromLastUpdate, this.documentModelChanged)
+        this.documentModel.update(location, value, (e) => {
+            if (e != null) {
+                this.resetUnits();
+                this.resetReferences();
+                this.resetDiagram();
+            } else {
+                console.log(e);
+                alert(e);
+            }
+        });
     }
 
     public selectNavigatorFile(reference: ReferenceFile) {
@@ -422,6 +440,9 @@ export class ViewModel {
 
     private onEditorSectionChange(section: EditorSection) {
         // Warning, models here mean MONACO EDITOR MODELS, don't get confused with API Models
+        if (section === "raml" || section === "open-api" || section === "api-model") {
+            this.updateDocumentModel()
+        }
         if (section === "raml") {
             if (this.model != null) {
                 if (this.selectedParserType() === "raml" && this.documentLevel === "document" && this.model.text() != null) {
