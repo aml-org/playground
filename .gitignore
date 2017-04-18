@@ -27,7 +27,6 @@ package.json
 .idea/
 node_modules/
 public/bower_components/
-public/js/amf.*
 public/js/amf_playground.*
 typings.json
 output/
