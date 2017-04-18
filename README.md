@@ -2,7 +2,7 @@
 
 ![AMF Playground Logo](logo_dark.png)
 
-This repository contains the code for the API Modeling Framework (AMF) Playground hosted under [this URL](https://mulesoft-labs.github.io/amf-playground/app/). 
+This repository contains the code for the API Modeling Framework (AMF) Playground hosted under [this URL](https://mulesoft-labs.github.io/amf-playground/).
 
 The playground provides a preview to play with the [API Modeling Framework](https://raml-org.github.io/api-modeling-framework/) and its capabilities like interoperability, introspection, and more.
 
