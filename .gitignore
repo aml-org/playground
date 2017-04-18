@@ -23,7 +23,6 @@ test*.js.map
 .github/
 src/**/*.js
 src/**/*.js.map
-index_package.js
 package.json
 .idea/
 node_modules/

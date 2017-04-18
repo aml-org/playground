@@ -14,21 +14,6 @@ var browserSync = require('browser-sync').create();
 var bower = require('gulp-bower');
 var child = require("child_process");
 
-gulp.task("cljbuild", function() {
-    console.log("* Local NPM deps");
-    child.execSync("npm install");
-
-    console.log("* Local Bower deps");
-    child.execSync("cd public && bower install");
-
-    console.log("* Building Clojurescript dependency");
-    console.log(child.execSync("rm -f ../index_package.js").toString());
-    console.log(child.execSync("cd .. && lein web").toString());
-    console.log(child.execSync("mkdir -p public/js").toString());
-    console.log(child.execSync("cp -rf ../output/web/* public/js/").toString());
-    console.log(child.execSync("cp -rf ../index_package.js public/js/amf.js").toString());
-});
-
 gulp.task('bower', function() {
     return bower({cwd: "public"})
 });
