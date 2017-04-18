@@ -24,6 +24,7 @@
 
     <link rel="stylesheet" href="bower_components/bulma/css/bulma.css">
     <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="bower_components/balloon-css/balloon.css">
     <link rel="stylesheet" href="bower_components/jointjs/dist/joint.css">
@@ -35,7 +36,7 @@
 <div id="preloader" class="container is-marginless is-fluid" style="width: 100%; height: 100%; text-align: center; padding-top: 13%">
     <h2 class="title is-2">Loading AMF Playground</h2>
     <progress id="preloader-progress" class="progress is-primary" value="0" max="100" style="margin-left: 25%; max-width: 50%">0%</progress>
-    <img src="images/powered_by_mulesoft.png" style="margin-bottom: 1000px"/>
+    <img src="./images/powered_by_mulesoft.png">
 </div>
 
 <!-- Load spec modal window -->
@@ -45,25 +46,25 @@
 <div class="section" style="padding: 0px">
     <div id="the-app" class="container is-marginless is-fluid">
         <div class="columns">
-            <div class="column">
+            <div class="column" id="navigator-container">
                 <link rel="import" href="navigator.html">
+                <link rel="import" href="bottom_links.html">
             </div>
             <div class="column is-three-quarters">
                 <link rel="import" href="editor.html">
             </div>
         </div>
         <!-- data-bind="visible: (lastLoadedFile() != null)" -->
-        <div data-bind="visible: (lastLoadedFile() != null)"
+<!--         <div data-bind="visible: (lastLoadedFile() != null)"
              style="position: absolute; width: 100%; padding: 10px; bottom: -20px">
             <i class="fa fa-cog fa-spin fa-3x fa-fw"
                data-bind="visible: (lastLoadedFile() != null)"
                style="float:left; font-size: 22px; margin-right: 10px">
             </i>
             <p data-bind="text: ('Loading ' + lastLoadedFile())"></p>
-        </div>
+        </div> -->
     </div>
 </div>
-<img id="brand" style="display: none" class="branded" src="images/powered_by_mulesoft.png" />
 
 <script>
     (function() {
@@ -133,6 +134,22 @@
                         if (!hidden) {
                             containerDiv.setAttribute("style", "height: " + (height - 200) + "px");
                         }
+                        var navigatorHeight = getHeight("navigator");
+                        var navigatorContainerHeight = getHeight("navigator-container");
+
+                        if(navigatorContainerHeight - navigatorHeight < 154) {
+                            document.getElementById("navigator").style.height = (navigatorContainerHeight - 154) + "px";
+                        } else {
+                            document.getElementById("navigator").style.height = "auto";
+                        }
+                    };
+
+                    var getHeight = function(containerId) {
+                        var containerDiv = document.getElementById(containerId);
+                        var containerStyle = window.getComputedStyle(containerDiv);
+                        var heightString = containerStyle.height;
+                        var heightNumber = heightString.split("px")[0];
+                        return Number(heightNumber);
                     };
 
                     window.onresize = resize;
