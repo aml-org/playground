@@ -6,16 +6,12 @@ This repository contains the code for the API Modeling Framework (AMF) Playgroun
 
 The playground provides a preview to play with the [API Modeling Framework](https://raml-org.github.io/api-modeling-framework/) and its capabilities like interoperability, introspection, and more.
 
-## Dependencies
+## Running this project
 
-The repository already contains all necessary dependencies. It uses the web version of the AMF libraries that you can get from [here](https://github.com/raml-org/api-modeling-framework) by following the instructions for the web build.
-
-## Building
-
-Please make sure that the necessary dependencies are present inside the `public/js` directory. Currently, that should only be a single file.
+This project already contains all necessary dependencies in the `public/js/` folder. It contains the "web" version of the AMF library that you can update to the latest development version from [here](https://github.com/raml-org/api-modeling-framework) by following the instructions for the "web" build.
 
 Execute:
 
-``` bash
+```bash
 $ gulp serve
 ```
