@@ -32,4 +32,4 @@ public/js/amf.*
 public/js/amf_playground.*
 typings.json
 output/
-
+.DS_Store
