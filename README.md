@@ -10,7 +10,7 @@ The repository already contains all necessary dependencies. It uses the web vers
 
 ## Building
 
-Please make sure that the necessary dependencies are present inside the `public/src` directory. Currently, that should only be a single file.
+Please make sure that the necessary dependencies are present inside the `public/js` directory. Currently, that should only be a single file.
 
 Execute:
 
