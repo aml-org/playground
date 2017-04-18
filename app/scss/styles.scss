@@ -1,0 +1,246 @@
+// colors
+
+$primary: #00A2DF;
+$secondary: #506773;
+$danger: #D1344E;
+$success: #17BC65;
+$tertiary: #ffffff;
+$coreBlue3: #00A2DF;
+$coreBlue1: #ABE2F5;
+$coreBlue2: #48C1ED;
+$coreBlue4: #087299;
+$coreBlue5: #114459;
+$robustBlue3: #506773;
+$robustBlue1: #A1B1B8;
+$robustBlue2: #6B8A99;
+$robustBlue4: #32444D;
+$robustBlue5: #272F33;
+$futureGreen3: #17BC65;
+$futureGreen1: #AAF2CB;
+$futureGreen2: #33CC7A;
+$futureGreen4: #0E8C48;
+$futureGreen5: #174D30;
+$aluminum1: #F9FAFB;
+$aluminum2: #F4F5F6;
+$aluminum3: #E8E9EA;
+$aluminum4: #CACBCC;
+$aluminum5: #989A9B;
+$steel1: #6B6C6D;
+$steel2: #58595A;
+$steel3: #3A3B3C;
+$steel4: #262728;
+$steel5: #121314;
+$yellow3: #F2BE24;
+$viridian3: #00B49D;
+$teal3: #00B5D1;
+$navy3: #178BEA;
+$indigo3: #5E66F9;
+$violet3: #9A63F9;
+$red3: #D1344E;
+
+$ramlWhite: #ECECEC;
+$blueHightlight: #14A7DE;
+$notSelected: #999A9B;
+
+// fonts
+$inputMono: "Input Mono, monospace";
+$openSans: "Open Sans";
+
+@media screen and (min-width: 769px) {
+  .column.is-three-quarters {
+    width: 66%;
+    background-color: #fff;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+.nav {
+  background-image: url("../images/header.svg");
+  position: relative;
+  padding: 5px 0;
+  .nav-item  {
+    .select {
+      select {
+        background-color: transparent;
+        color: #fff;
+        border: none;
+        border-radius: 0;
+      }
+      &:after {
+        border-color: #fff;
+      }      
+    }
+
+    a.button {
+      border-radius: 0;
+      color: $primary;
+      border: 1px solid $primary;
+      background-color: transparent;
+      position: absolute;
+      right: 200px;
+    }
+  }
+  .logo-wrapper {
+    color: #fff;
+    font-family: "Open Sans";
+    .nav-logo-text {
+      font-size: 20px;
+      margin: 0 8px 0 13px;
+    }
+    .nav-logo-img {
+      margin-left: 10px;
+    } 
+    .super {
+      margin-bottom: 8px;
+    }
+  }
+
+}
+
+
+.label,.input {
+  color: $steel1;
+  font-family: $openSans;
+  font-weight: normal;
+  margin: 0 20px 0 12px!important;
+}
+.input {
+  background-color: $aluminum2;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+  border-left: 2px solid $aluminum5;
+  border-right: 2px solid $aluminum5;
+  width: 75%;
+}
+.button.is-primary, a.button.is-success {
+  background-color: $primary!important;
+  border-radius: 0;
+  padding: 0 20px;
+  margin-right: 20px;
+  &:hover {
+    color: #fff;
+  }
+}
+
+
+.menu-list {
+  a {
+    &:hover {
+      color: $primary;
+    }
+  }
+}
+#editor-container {
+  border: none;
+  .monaco-editor.vs {
+    .token, .token.comment, .token.comment.block, .token.comment.block.documentation, .token.comment.line, .token.type{ 
+      color: $futureGreen2;
+      // font-family: $inputMono;
+      &.string.value, &.string.yaml {
+        color: $ramlWhite!important;
+      }
+    }
+    .token.number {
+      background-color: $primary;
+      color: #fff;
+      font-size: 1em;
+      padding: 10px 8px;
+      height: 1em;
+    }
+    .line-numbers {
+      color: #fff;
+      padding-right: 9px;
+      text-align: right;
+      background-color: #000;
+    }
+    .current-line {
+      border: none;
+    }
+  }
+  .selected-element-line-decoration {
+    background-color: #000;
+  }
+}
+
+.monaco-editor-background {
+  &.margin-view-overlays {
+    background: $steel5;
+  }
+  &.lines-content {
+    background: $steel4;
+  }
+}
+.column {
+  background-color: $aluminum2;
+  position: relative;
+}
+.tabs {
+  font-family: $openSans;
+  ul {
+    border-bottom: 3px solid $notSelected;
+    color: $notSelected;
+    opacity: 0.9;
+  }
+  a {
+    color: $notSelected;
+    opacity: 0.9;
+    border: none;
+    &:hover {
+      color: $steel3;
+    }
+  }
+  li.is-active a {
+    color: $steel3;
+    border-bottom: 3px solid $blueHightlight;
+    margin-bottom: -3px;
+    opacity: 1;
+  }
+}
+
+.menu-list a.is-active {
+  background-color: $blueHightlight;
+}
+.bottom-links {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  
+  .ms-logo {
+    margin: 0 20px;
+    padding: 30px 0;
+    border-top: 1px solid $aluminum5;
+  }
+}
+.amf-links {
+  display: flex;
+  > a {
+    flex: 1;
+    height: 46px;
+    font-size: 17px;
+    color: $coreBlue4;
+  }
+  .github-logo {
+    img {
+      opacity: 0.6;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+  }
+}
+
+.modal-card-body, #query {
+  .select {
+    select {
+      &:focus, &:active {
+        border-color: $primary;
+      }
+    }
+    &:after {
+      border-color: $primary;
+    }
+  }
+}

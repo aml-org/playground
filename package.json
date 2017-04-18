@@ -4,7 +4,8 @@
   "description": "",
   "main": "build.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-css": "node-sass --include-path scss app/scss/styles.scss  app/css/styles.css"
   },
   "author": "",
   "license": "ISC",
@@ -22,6 +23,7 @@
     "gulp-bower": "0.0.13",
     "gulp-sourcemaps": "^2.5.1",
     "gulp-util": "^3.0.8",
+    "node-sass": "^4.5.2",
     "tsify": "^3.0.1",
     "typescript": "^2.2.2",
     "vinyl-buffer": "^1.0.0",
