@@ -47,14 +47,20 @@
         </p>
     </div>
     <div id="editor-container" data-bind="visible: (editorSection() !== 'diagram' && editorSection() !== 'query')"></div>
-    <form data-bind="visible: canParse()" style="margin-top: 20px">
-        <label class="label" style="float:left; padding-top: 7px; margin-right: 5px">Base URL</label>
-        <input class="input" type="text" data-bind="value: baseUrl" style="float: left; max-width: 90%">
-        <a data-bind="click: doParse"
-           style="float: right"
-           class="button is-primary">
-            Parse
-        </a>
+    <form class="base-url-form" data-bind="visible: canParse()" style="margin-top: 20px">
+        <div>
+            <label class="label" style="padding-top: 7px; margin-right: 5px">Base URL</label>
+        </div>
+        <div class="input-div">
+            <input class="input" type="text" data-bind="value: baseUrl">
+        </div>
+        <div>
+            <a data-bind="click: doParse"
+               class="button is-primary">
+                Parse
+            </a>
+        </div>
+        
     </form>
     <div id="graph-container" style="overflow: auto" data-bind="visible: editorSection() === 'diagram'"></div>
     <div id="query"
