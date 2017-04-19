@@ -173,7 +173,10 @@
                     window.appModel.apply(document.getElementById("the-app"));
                     setTimeout(function() {
                         document.getElementById("preloader").style.display = "none";
-                        document.getElementById("brand").style.display='block';
+                        var brand = document.getElementById("brand");
+                        if (brand) {
+                            brand.style.display='block';
+                        }
                     }, 200);
                 });
             };
