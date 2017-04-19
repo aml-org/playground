@@ -133,6 +133,9 @@
   max-height: calc(100% - 59px);
   overflow-y: scroll; }
 
+.menu-list a.is-active:hover {
+  color: #ffffff; }
+
 .menu-list a:hover {
   color: #00A2DF; }
 

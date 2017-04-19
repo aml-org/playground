@@ -207,6 +207,11 @@ $openSans: Open Sans, sans-serif;
 }
 .menu-list {
   a {
+    &.is-active {
+      &:hover {
+        color: $white;
+      }
+    }
     &:hover {
       color: $primary;
     }
