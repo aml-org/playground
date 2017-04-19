@@ -67,6 +67,10 @@
     color: #ffffff;
     border: none;
     border-radius: 0; }
+    .nav .nav-item .select select option {
+      color: #000; }
+      .nav .nav-item .select select option:hover {
+        color: #ffffff; }
   .nav .nav-item .select:after {
     border-color: #ffffff; }
   .nav .nav-item a.button {

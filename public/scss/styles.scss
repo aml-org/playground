@@ -106,6 +106,12 @@ $openSans: Open Sans, sans-serif;
         color: $white;
         border: none;
         border-radius: 0;
+        option {
+          color: $black;
+          &:hover {
+            color: $white;
+          }
+        }
       }
       &:after {
         border-color: $white;
