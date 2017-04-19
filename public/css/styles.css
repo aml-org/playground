@@ -82,7 +82,7 @@
     right: 200px; }
   .nav .logo-wrapper {
     color: #ffffff;
-    font-family: "Open Sans"; }
+    font-family: Open Sans, sans-serif; }
     .nav .logo-wrapper .nav-logo-text {
       font-size: 20px;
       margin: 0 8px 0 13px; }
