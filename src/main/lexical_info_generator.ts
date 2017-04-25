@@ -113,6 +113,7 @@ export class LexicalInfoGenerator {
         let classKey = null;
         let parser = null;
         let removeIds = true;
+        let tracer = null;
         if (syntax === "raml") {
             idKey = "(amf-id)";
             classKey = "(amf-class)";
@@ -132,7 +133,12 @@ export class LexicalInfoGenerator {
             // This will not follow $refs/!includes
             let parsed = parser(textWithIds);
             let acc = {};
-            let cleanAST = this.traceIds(idKey, classKey, parsed, [], acc, removeIds);
+            let cleanAST = null;
+            if (syntax === "raml") {
+                cleanAST = this.traceIdsRAML(idKey, classKey, parsed, [], acc, removeIds);
+            } else {
+                cleanAST = this.traceIds(idKey, classKey, parsed, [], acc, removeIds);
+            }
             cleanAST = this.removeLocations(cleanAST);
             return {
                 ast: cleanAST,
@@ -172,18 +178,53 @@ export class LexicalInfoGenerator {
         return node;
     }
 
-    removeLocations(node) {
+    traceIdsRAML(idKey, classKey, node, path, acc, removeIds) {
         if (node == null){
             return node;
         } else if (Object.prototype.toString.call(node) === '[object Array]') {
             for (let i = 0; i < node.length ; i++) {
-                this.removeLocations(node[i]);
+                this.traceIdsRAML(idKey, classKey, node[i], path.concat([i]), acc, removeIds);
             }
         } else if (typeof(node) === "object") {
-            delete node["__location__"];
+            if (node[idKey] != null) {
+                acc[node[idKey]["amf-lexical-token"]] = {
+                    path: path.concat([]),
+                    classId: node[classKey]["amf-lexical-token"]
+                };
+                if (removeIds) {
+                    delete node[idKey];
+                    delete node[classKey];
+                } else {
+                    acc[node[idKey]].id = node[idKey]["amf-lexical-token"];
+                }
+            }
             for (let p in node) {
                 if (node.hasOwnProperty(p)) {
-                    this.removeLocations(node[p]);
+                    this.traceIdsRAML(idKey, classKey, node[p], path.concat([p]), acc, removeIds);
+                }
+            }
+        }
+        return node;
+    }
+
+    removeLocations(node) {
+        if (node == null){
+            return node;
+        } else if (Object.prototype.toString.call(node) === '[object Array]') {
+            var acc = [];
+            for (let i = 0; i < node.length ; i++) {
+                acc.push(this.removeLocations(node[i]));
+            }
+            return acc;
+        } else if (typeof(node) === "object") {
+            delete node["__location__"];
+            if (node["amf-lexical-token"] != null) {
+                return node["amf-lexical-token"];
+            } else {
+                for (let p in node) {
+                    if (node.hasOwnProperty(p)) {
+                        node[p] = this.removeLocations(node[p]);
+                    }
                 }
             }
         }

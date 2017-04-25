@@ -141,6 +141,7 @@ export class ModelProxy {
                                 if (err != null) {
                                     console.log("ERROR COMPACTING");
                                     console.log(err);
+                                    console.log(JSON.stringify(parsed,null,2));
                                 }
                                 const finalJson = (err == null) ? compacted : parsed;
                                 if (stringify) {
@@ -201,7 +202,6 @@ export class ModelProxy {
     }
 
     elementLexicalInfo(id: string): LexicalInfo | undefined {
-        console.log("*** Looking for lexical information about " + id);
         const res = apiFramework.lexical_info_for_unit(this.raw, id);
         if (res != null) {
             return new LexicalInfo(
@@ -213,6 +213,7 @@ export class ModelProxy {
                 parseInt(res["end-index"])
             );
         } else {
+            console.log("*** Coud not find lexical info for " + id);
             return undefined;
         }
     }
