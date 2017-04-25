@@ -47,7 +47,7 @@
         </p>
     </div>
     <div id="editor-container" data-bind="visible: (editorSection() !== 'diagram' && editorSection() !== 'query')"></div>
-    <form class="base-url-form" data-bind="visible: canParse()" style="margin-top: 20px">
+    <form class="base-url-form" style="margin-top: 20px">
         <div>
             <label class="label" style="padding-top: 7px; margin-right: 5px">Base URL</label>
         </div>
@@ -55,7 +55,7 @@
             <input class="input" type="text" data-bind="value: baseUrl">
         </div>
         <div>
-            <a data-bind="click: doParse"
+            <a data-bind="click: doParse, attr: {disabled: !canParse()}"
                class="button is-primary">
                 Parse
             </a>

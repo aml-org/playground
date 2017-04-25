@@ -17,6 +17,10 @@ $notSelected: #999A9B;
 $black: #000;
 $white: $tertiary;
 
+html {
+  background-color: $aluminum2;
+}
+
 // fonts
 $inputMono: Input Mono, monospace;
 $openSans: Open Sans, sans-serif;
