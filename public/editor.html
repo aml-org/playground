@@ -47,7 +47,7 @@
         </p>
     </div>
     <div id="editor-container" data-bind="visible: (editorSection() !== 'diagram' && editorSection() !== 'query')"></div>
-    <form class="base-url-form" style="margin-top: 20px">
+    <form class="base-url-form" style="margin-top: 20px" data-bind="visible: (editorSection() !== 'diagram' && editorSection() !== 'query')">
         <div>
             <label class="label" style="padding-top: 7px; margin-right: 5px">Base URL</label>
         </div>
