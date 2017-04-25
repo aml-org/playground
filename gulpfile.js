@@ -12,10 +12,17 @@ var gutil = require('gulp-util');
 var sourcemaps = require('gulp-sourcemaps');
 var browserSync = require('browser-sync').create();
 var bower = require('gulp-bower');
+var sass = require('gulp-sass');
 var child = require("child_process");
 
 gulp.task('bower', function() {
     return bower({cwd: "public"})
+});
+
+gulp.task('sass', function () {
+    return gulp.src('./public/scss/**/*.scss')
+        .pipe(sass().on('error', sass.logError))
+        .pipe(gulp.dest('./public/css'));
 });
 
 const options = {"standalone":"amf_playground"};
