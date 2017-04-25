@@ -2,6 +2,12 @@
   position: absolute;
   top: 13px; }
 
+#preloader-progress::-moz-progress-bar {
+  background-color: #00A2DF; }
+
+#preloader-progress::-webkit-progress-value {
+  background-color: #00A2DF; }
+
 * {
   box-sizing: border-box; }
 
@@ -94,7 +100,7 @@
 #editor-container {
   border: none; }
   #editor-container .monaco-editor.vs .token, #editor-container .monaco-editor.vs .token.comment, #editor-container .monaco-editor.vs .token.comment.block, #editor-container .monaco-editor.vs .token.comment.block.documentation, #editor-container .monaco-editor.vs .token.comment.line, #editor-container .monaco-editor.vs .token.type {
-    color: #33CC7A; }
+    color: #00A2DF; }
     #editor-container .monaco-editor.vs .token.string.value, #editor-container .monaco-editor.vs .token.string.yaml, #editor-container .monaco-editor.vs .token.comment.string.value, #editor-container .monaco-editor.vs .token.comment.string.yaml, #editor-container .monaco-editor.vs .token.comment.block.string.value, #editor-container .monaco-editor.vs .token.comment.block.string.yaml, #editor-container .monaco-editor.vs .token.comment.block.documentation.string.value, #editor-container .monaco-editor.vs .token.comment.block.documentation.string.yaml, #editor-container .monaco-editor.vs .token.comment.line.string.value, #editor-container .monaco-editor.vs .token.comment.line.string.yaml, #editor-container .monaco-editor.vs .token.type.string.value, #editor-container .monaco-editor.vs .token.type.string.yaml {
       color: #ECECEC !important; }
   #editor-container .monaco-editor.vs .token.number {
@@ -111,7 +117,7 @@
   #editor-container .monaco-editor.vs .current-line {
     border: none; }
   #editor-container .selected-element-line-decoration {
-    background-color: #33CC7A; }
+    background-color: #00A2DF; }
 
 .base-url-form {
   display: flex; }

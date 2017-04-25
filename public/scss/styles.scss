@@ -27,6 +27,14 @@ $openSans: Open Sans, sans-serif;
   top: 13px;
 }
 
+#preloader-progress::-moz-progress-bar {
+  background-color: $primary;
+}
+
+#preloader-progress::-webkit-progress-value {
+  background-color: $primary;
+}
+
 // page layout/General
 * {
   box-sizing: border-box;
@@ -149,7 +157,7 @@ $openSans: Open Sans, sans-serif;
   border: none;
   .monaco-editor.vs {
     .token, .token.comment, .token.comment.block, .token.comment.block.documentation, .token.comment.line, .token.type{
-      color: $futureGreen2;
+      color: $primary;
       // font-family: $inputMono;
       &.string.value, &.string.yaml {
         color: $ramlWhite!important;
@@ -173,7 +181,7 @@ $openSans: Open Sans, sans-serif;
     }
   }
   .selected-element-line-decoration {
-    background-color: $futureGreen2;
+    background-color: $primary;
   }
 }
 .base-url-form {
