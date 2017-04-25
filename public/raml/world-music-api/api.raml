@@ -4,7 +4,7 @@ description: This is an example of a music API.
 version: v1
 baseUri:
   value: http://{environment}.musicapi.com/{version}
-  (rediractable): true
+  (redirectable): true
 baseUriParameters:
   environment:
     type: string
@@ -83,7 +83,7 @@ annotationTypes:
         type: string
         enum: [ "MIT", "Apache 2.0" ]
     allowedTargets: API
-  rediractable: boolean
+  redirectable: boolean
 
 (info):
   license: MIT
