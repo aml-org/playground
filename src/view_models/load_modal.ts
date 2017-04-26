@@ -42,7 +42,10 @@ export class LoadModal {
         { name: "Types/test001 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Types/test001/apiValid.raml" },
         { name: "Types/test003 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Types/test003/apiValid.raml" },
         { name: "Types/test004 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Types/test004/apiValid.raml" },
-        { name: "Annotations/test001 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Annotations/test001/apiValid.raml" }
+        { name: "Annotations/test001 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Annotations/test001/apiValid.raml" },
+        { name: "MethodRresponses/test001 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/MethodResponses/test001/methResp01.raml" },
+        { name: "MethodRresponses/test002 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/MethodResponses/test002/methResp02.raml" },
+        { name: "MethodRresponses/test005 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/MethodResponses/test005/methResp05.raml" }
     ]);
 
     public selectedParserType: KnockoutObservable<any> = ko.observable<any>(this.parserTypes[0]);
