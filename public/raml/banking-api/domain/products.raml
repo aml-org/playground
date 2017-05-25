@@ -1,0 +1,313 @@
+#%RAML 1.0 Library
+
+uses:
+  domain: ../extensions/domain.raml
+  quantities: ./quantities.raml
+  agents: ./agents.raml
+  common: ./common.raml
+
+(domain.base): "http://acme-banking/vocabulary/products#"
+
+usage: Description of financial services and products
+
+annotationTypes:
+
+  # Classes
+
+  FinancialProduct:
+    displayName: Financial Product
+    description: |
+      A product provided to consumers and businesses by financial institutions such as banks, insurance companies,
+      brokerage firms, consumer finance companies, and investment companies which comprise the financial services industry.
+    (domain.inherits):
+      - (domain.Class)
+    (domain.literalProperties):
+      - (productId)
+      - (common.leiCode)
+      - (feesAndComissionsSpecification)
+      - (reviewState)
+    (domain.objectProperties):
+      - (provider)
+      - (broker)
+      - (interestRate)
+      - (annualPercentageRate)
+      - (productBuyer)
+
+  BankAccount:
+    displayName: Bank Account
+    description: |
+      A product or service offered by a bank whereby one may deposit, withdraw or transfer money and in some
+      cases be paid interest.
+    (domain.inherits):
+      - (FinancialProduct)
+    (domain.literalProperties):
+      - (accountNumber)
+      - (accountType)
+    (domain.objectProperties):
+      - (accountHolder)
+      - (amount)
+      - (accountMinimumInflow)
+      - (accountOverdraftLimit)
+
+  LoanOrCredit:
+    displayName: Loan or Credit
+    description: A financial product for the loaning of an amount of money under agreed terms and charges.
+    (domain.inherits):
+      - (FinancialProduct)
+    (domain.literalProperties):
+      - (requiredCollateral)
+      - (loanType)
+    (domain.objectProperties):
+      - (amount)
+      - (loanTerm)
+      - (loanRepaymentForm)
+      - (gracePeriod)
+
+  PaymentCard:
+    displayName: PaymentCard
+    description: A payment method using a credit, debit, store or other card to associate the payment with an account.
+    (domain.inherits):
+      - (FinancialProduct)
+    (domain.literalProperties):
+      - (cashBack)
+      - (contactlessPayment)
+      - (floorLimit)
+
+  CreditCard:
+    displayName: Credit Card
+    description: |
+      A card payment method of a particular brand or name. Used to mark up a particular payment method
+      and/or the financial product/service that supplies the card account.
+    (domain.inherits):
+      - (LoanOrCredit)
+      - (PaymentCard)
+
+  LoanRepayment:
+    displayName: Loan Repayment
+    description: Repayment of the live principal and interest of a loan
+    (domain.inherits): (domain.Class)
+    (domain.literalProperties):
+      - (date)
+    (domain.objectProperties):
+      - (paymentOf)
+      - (principalRepaid)
+      - (interestRepaid)
+      - (amount)
+
+  # Properties
+
+  feesAndComissionsSpecification:
+    displayName: fees and comssions
+    description: |
+      Description of fees, commissions, and other terms applied either to a class of financial product,
+      or by a financial service organization
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  reviewState:
+    displayName: reviewState
+    description: Status of the service in the progress from request to approval
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  provider:
+    displayName: provider
+    description: |
+      The service provider, service operator, or service performer; the goods producer.
+      Another party (a seller) may offer those services or goods on behalf of the provider.
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (agents.Organization)
+
+  broker:
+    displayName: broker
+    description: |
+      An entity that arranges for an exchange between a buyer and a seller.
+      In most cases a broker never acquires or releases ownership of a product or service involved in an exchange.
+      If it is not clear whether an entity is a broker, seller, or buyer, the latter two terms are preferred.
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (agents.LegalPerson)
+
+  interestRate:
+    displayName: interest rate
+    description: |
+      The interest rate, charged or paid, applicable to the financial product.
+      This is different from the calculated annualPercentageRate.
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): float
+
+  annualPercentageRate:
+    displayName: annual percentage rate
+    description: |
+      The annual rate that is charged for borrowing (or made by investing), expressed as a single percentage number that
+      represents the actual yearly cost of funds over the term of a loan. This includes any fees or additional costs
+      associated with the transaction.
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): float
+
+  accountNumber:
+    displayName: account number
+    description: |
+      an identifier assigned to each client account for ease in referring to that party activity
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  accountType:
+    displayName: account type
+    description: The type of an account.
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  productBuyer:
+    displayName: product buyer
+    description: a party that has purchased a particular product or service
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (agents.LegalPerson)
+
+  accountHolder:
+    displayName: account holder
+    description: a party holding an account
+    (domain.inherits):
+      - (productBuyer)
+
+  buyerOf:
+    displayName: buys
+    description: purchase of a particular product or service
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (FinancialProduct)
+    (domain.domain): (agents.LegalPerson)
+
+  holds:
+    displayName: holds
+    description: holds an account
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (BankAccount)
+    (domain.domain): (agents.LegalPerson)
+
+  amount:
+    displayName: amount
+    description: The amount of money.
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (quantities.MonetaryAmount)
+
+  accountMinimumInflow:
+    displayName: account minimum in-flow
+    description: A minimum amount that has to be paid in every month.
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (quantities.MonetaryAmount)
+
+  accountOverdraftLimit:
+    displayName: account overdraft limit
+    description: |
+      An overdraft is an extension of credit from a lending institution when an account reaches zero.
+      An overdraft allows the individual to continue withdrawing money even if the account has no funds in it.
+      Basically the bank allows people to borrow a set amount of money.
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (quantities.MonetaryAmount)
+
+  requiredCollateral:
+    displayName: required collateral
+    description: |
+      Assets required to secure loan or credit repayments.
+      It may take form of third party pledge, goods, financial instruments (cash, securities, etc.).
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  loanType:
+    displayName: loan type
+    description: the type of the loan.
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  loanTerm:
+    displayName: loan term
+    description: The duration of the loan or credit agreement.
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (quantities.Duration)
+
+  loanRepaymentForm:
+    displayName: loan repayment form
+    description: |
+      A form of paying back money previously borrowed from a lender. Repayment usually takes the form of periodic
+      payments that normally include part principal plus interest in each payment.
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (quantities.RepaymentSpecification)
+
+  gracePeriod:
+    displayName: grace period
+    description: |
+      The period of time after any due date that the borrower has to fulfil its obligations before a default
+      (failure to pay) is deemed to have occurred.
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (quantities.Duration)
+
+  cashBack:
+    displayName: cash-back
+    description: |
+      A cardholder benefit that pays the cardholder a small percentage of their net expenditures.
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): boolean
+
+  contactlessPayment:
+    displayName: contactless payment
+    description: |
+      A secure method for consumers to purchase products or services via debit, credit or smartcards by using
+      RFID or NFC technology.
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): boolean
+
+  floorLimit:
+    displayName: floor limit
+    description: |
+      A floor limit is the amount of money above which credit card transactions must be authorized.
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (quantities.MonetaryAmount)
+
+  customerId:
+    displayName: product id
+    description: Internal ID used to identify a FinancialProduct in our systems
+    (domain.inherits):
+      - (common.id)
+    (domain.range): string
+
+  paymentOf:
+    displayName: payment of
+    description: Product or service being paid
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (domain.FinancialProduct)
+
+  principalRepaid:
+    displayName: principal repaid
+    description: Amount of a loan principle being repaid
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (quantities.MonetaryAmount)
+
+  interestRepaid:
+    displayName: interest repaid
+    description: Amount of a loan interest being repaid
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (quantities.MonetaryAmount)

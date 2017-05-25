@@ -3,6 +3,7 @@ import * as jsonld from "jsonld";
 import {UnitModel} from "./units_model";
 import {LexicalInfo} from "./model_utils";
 import {LexicalInfoGenerator} from "./lexical_info_generator";
+import {absoluteURL} from "../utils";
 
 const apiFramework = window["api_modeling_framework"].core;
 
@@ -31,6 +32,18 @@ function to_clj(x: any) {
     }
 }
 
+function allReferences(model: ModelProxy, acc: {[id: string]: ModelProxy}): {[id: string]: ModelProxy} {
+    model._references().forEach(ref => {
+        if (acc[absoluteURL(ref)] == null) {
+            const proxy = model._nestedModel(ref);
+            acc[absoluteURL(ref)] = proxy;
+            acc = allReferences(proxy, acc);
+        }
+    });
+    return acc;
+}
+
+
 /**
  * A proxy class to interact with the clojure code containing the logic to interact with a API Model
  */
@@ -43,6 +56,7 @@ export class ModelProxy {
     public apiModelString: string = "";
     public generatedAPIModel: any;
     public lexicalInfoGenerator: LexicalInfoGenerator;
+    public allReferencesMap: {[id: string]: ModelProxy} | null = null;
 
     constructor(public raw: any, public sourceType: ModelType) {
         // we setup the default model with the value passed in the constructor
@@ -180,14 +194,38 @@ export class ModelProxy {
      * Returns all the files referenced in a document model
      * @returns {string[]}
      */
-    references(): string[] {
+    _references(): string[] {
         const files: string[] = [];
         files.push(this.location());
         apiFramework.references(this.raw).forEach(f => files.push(f));
         return files;
     }
 
+
+    references(): string[] {
+        if (this.allReferencesMap == null) {
+           this.allReferencesMap = allReferences(this, {});
+        }
+        const acc: string[] = [];
+        for (let id in this.allReferencesMap) {
+            acc.push(id);
+        }
+
+        return acc;
+    }
+
+
     nestedModel(location: string): ModelProxy {
+        if (this.allReferencesMap == null) {
+            this.allReferencesMap = allReferences(this, {});
+        }
+        /*
+
+        */
+        return this.allReferencesMap[absoluteURL(location)];
+    }
+
+    _nestedModel(location: string): ModelProxy {
         const rawModel = apiFramework.reference_model(this.raw, location);
         return new ModelProxy(rawModel, this.sourceType);
     }

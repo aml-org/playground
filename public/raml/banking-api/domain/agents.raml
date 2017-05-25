@@ -1,0 +1,151 @@
+#%RAML 1.0 Library
+
+uses:
+  domain: ../extensions/domain.raml
+  common: ./common.raml
+
+
+(domain.base): "http://acme-banking/vocabulary/agents#"
+
+usage: Entities with some kind of agency in financial processes
+
+annotationTypes:
+
+  # Classes
+
+  LegalPerson:
+    displayName: Legal Person
+    description: Any entity which can incur legal obligation and can be sued at law.
+    (domain.inherits):
+      - (domain.Class)
+    (domain.literalProperties):
+      - (customerId)
+      - (common.lei)
+      - (common.name)
+      - (taxId)
+      - (vatId)
+      - (email)
+      - (telephone)
+    (domain.objectProperties):
+      - (address)
+
+
+  Organization:
+    displayName: Organization
+    description: |
+      A social unit of people, systematically structured and managed to meet a need or pursue collective goals
+      on a continuing basis.
+    (domain.inherits):
+      - (LegalPerson)
+
+
+  Person:
+    displayName: Person
+    description: |
+      Person who has attained the age of majority as defined by given jurisdiction and is allowed to conduct a business
+      or any other occupation on his or her own behalf or for their own account.
+    (domain.inherits):
+      - (LegalPerson)
+    (domain.literalProperties):
+      - (title)
+      - (familiyName)
+      - (gender)
+      - (birthDate)
+      - (deathDate)
+
+  Address:
+    displayName: Address
+    description: A mailing address.
+    (domain.inherits): (domain.Class)
+    (domain.literalProperties):
+      - (addressCountry)
+      - (addressLocality)
+      - (addressRegion)
+      - (postalCode)
+      - (streetAddress)
+
+  # Properties
+
+  email:
+    displayName: email
+    description: Email address.
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  telephone:
+    displayName: telephone
+    description: Telephone number
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  address:
+    displayName: address
+    description: Physical address of the entity.
+    (domain.inherits):
+      - (domain.ObjectProperty)
+    (domain.range): (Address)
+
+  addressCountry:
+    displayName: address country
+    description: The country. For example, USA. You can also provide the two-letter ISO 3166-1 alpha-2 country code.
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  addressLocality:
+    displayName: address locality
+    description: The locality. For example, Mountain View
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  addressRegion:
+    displayName: address region
+    description: The region. For example, CA.
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  postalCode:
+    displayName: postal code
+    description: The postal code. For example, 94043.
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  streetAddress:
+    displayName: street address
+    description: The street address. For example, 1600 Amphitheatre Pkwy.
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  vatId:
+    displayName: VAT identifier
+    description: The Value-added Tax ID of the organization or person.
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  taxId:
+    displayName: tax identifier
+    description: The Tax / Fiscal ID of the organization or person, e.g. the TIN in the US or the CIF/NIF in Spain.
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  title:
+    displayName: title
+    description: Salutation for a person
+    (domain.inherits):
+      - (domain.LiteralProperty)
+    (domain.range): string
+
+  customerId:
+    displayName: customer id
+    description: Internal ID used to identify a customer in our systems
+    (domain.inherits):
+      - (common.id)
+    (domain.range): string

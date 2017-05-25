@@ -19,6 +19,7 @@ export class LoadModal {
         { name: "OpenAPI 2.0", key: "open-api" }
     ]);
     public apiExamples: KnockoutObservableArray<any> = ko.observableArray([
+        { name: "Banking API (RAML)", key: "raml", url: getBaseUrl() + "raml/banking-api/http/api.raml" },
         { name: "World Music API (RAML)", key: "raml", url: getBaseUrl() + "raml/world-music-api/api.raml" },
         { name: "Mobile Order API (RAML)", key: "raml", url: getBaseUrl() + "raml/mobile-order-api/api.raml" },
         { name: "Spotify (RAML)", key: "raml", url: getBaseUrl() + "raml/spotify/api.raml" },

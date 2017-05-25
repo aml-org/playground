@@ -1,6 +1,7 @@
 import { ModelProxy, ModelLevel } from "./model_proxy";
-import { label, nestedLabel } from "../utils";
+import {absoluteURL, label, nestedLabel} from "../utils";
 import {DomainModel, extract_value, LABEL, NAME} from "./domain_model";
+
 
 export type DocumentKind = "DomainElement" | "DocumentDeclaration" | "Document" | "Fragment" | "Module";
 export interface DocumentId {
@@ -62,17 +63,20 @@ function consumePromises<T>(promises: ((ke: (e) => void, kd:(T) => void) => void
     }
 }
 
+
+
 export class UnitModel {
     constructor(public model: ModelProxy) { }
 
     public process(modelLevel: ModelLevel, cb) {
+        debugger;
         const acc = { "documents": [], "fragments": [], "modules": [] };
-        const references = this.model.references();
-        const promises = references.map(reference => {
-            if (modelLevel == "document" || reference == this.model.location()) {
+
+        const promises = this.model.references().map(ref => {
+            if (modelLevel == "document" || ref == this.model.location()) {
+                const reference = this.model.nestedModel(ref);
                 return (resolve, reject) => {
-                    let nestedModel = this.model.nestedModel(reference);
-                    nestedModel.toAPIModelProcessed(modelLevel, false, false, { "source-maps?": true }, (err, jsonld: any) => {
+                    reference.toAPIModelProcessed(modelLevel, false, false, { "source-maps?": true }, (err, jsonld: any) => {
                         if (err != null) {
                             reject(err);
                         } else {
@@ -121,11 +125,11 @@ export class UnitModel {
     }
 
     parseDocument(doc: any, acc) {
-        const docId = doc["@id"];
+        const docId = absoluteURL(doc["@id"]);
         const declares = (doc["http://raml.org/vocabularies/document#declares"] || []).map((declaration) => {
 
             return new DocumentDeclaration(
-                declaration["@id"],
+                absoluteURL(declaration["@id"]),
                 declaration,
                 nestedLabel(doc, declaration),
                 (declaration["@type"] || [])[0],
@@ -140,14 +144,14 @@ export class UnitModel {
         const references = this.extractReferences(doc);
         const encoded = this.extractEncodedElement(doc);
         const encodedLabel = extract_value(encoded, NAME) || extract_value(encoded, LABEL);
-        acc.fragments.push(new Fragment(doc["@id"], encodedLabel || label(doc["@id"]), references, encoded));
+        acc.fragments.push(new Fragment(absoluteURL(doc["@id"]), encodedLabel || label(absoluteURL(doc["@id"])), references, encoded));
     }
 
     parseModule(doc: any, acc) {
-        const docId = doc["@id"];
+        const docId = absoluteURL(doc["@id"]);
         const declares = (doc["http://raml.org/vocabularies/document#declares"] || []).map((declaration) => {
             return new DocumentDeclaration(
-                declaration["@id"],
+                absoluteURL(declaration["@id"]),
                 declaration,
                 nestedLabel(doc, declaration),
                 (declaration["@type"] || [])[0],
@@ -207,7 +211,7 @@ export class UnitModel {
         const encoded = (node["http://raml.org/vocabularies/document#encodes"] || [])[0];
         if (encoded != null) {
             const isAbstract = encoded["@type"].find(t => t === "http://raml.org/vocabularies/document#AbstractDomainElement");
-            return new DomainElement(encoded["@id"], encoded, nestedLabel(node, encoded), encoded["@type"][0], isAbstract, );
+            return new DomainElement(absoluteURL(encoded["@id"]), encoded, nestedLabel(node, encoded), encoded["@type"][0], isAbstract, );
         } else {
             return undefined;
         }
@@ -215,25 +219,25 @@ export class UnitModel {
 
     extractReferences(doc: any) {
         const references = (doc["http://raml.org/vocabularies/document#references"] || []);
-        return references.map((ref) => ref["@id"]);
+        return references.map((ref) => absoluteURL(ref["@id"]));
     }
 
     private foldReferences(acc: { documents: Document[]; fragments: Fragment[]; modules: Module[] }) {
         const mapping: { [id: string]: DocumentId } = {};
-        acc.documents.forEach(doc => mapping[doc.id] = doc);
-        acc.fragments.forEach(doc => mapping[doc.id] = doc);
-        acc.modules.forEach(doc => mapping[doc.id] = doc);
+        acc.documents.forEach(doc => mapping[absoluteURL(doc.id)] = doc);
+        acc.fragments.forEach(doc => mapping[absoluteURL(doc.id)] = doc);
+        acc.modules.forEach(doc => mapping[absoluteURL(doc.id)] = doc);
 
         acc.documents.forEach((doc: Document) => {
-            const references = doc.references.map((ref) => mapping[ref as string]);
+            const references = doc.references.map((ref) => mapping[absoluteURL(ref)]);
             doc.references = references;
         });
         acc.fragments.forEach((doc: Document) => {
-            const references = doc.references.map((ref) => mapping[ref as string]);
+            const references = doc.references.map((ref) => mapping[absoluteURL(ref)]);
             doc.references = references;
         });
         acc.modules.forEach((doc: Document) => {
-            const references = doc.references.map((ref) => mapping[ref as string]);
+            const references = doc.references.map((ref) => mapping[absoluteURL(ref)]);
             doc.references = references;
         });
     }

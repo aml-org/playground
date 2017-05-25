@@ -1,0 +1,160 @@
+#%RAML 1.0
+
+title: ACME Banking HTTP API
+version: 1.0
+mediaType: application/json
+
+uses:
+  hyper: ../extensions/hypermedia.raml
+  products: ../domain/products.raml
+  quantities: ../domain/quantities.raml
+  shapes: ./dataTypes/shapes.raml
+
+securitySchemes:
+  oauth2_0: !include securitySchemes/oauth2_0.raml
+
+traits:
+  pageable: !include traits/pageable.raml
+  sortable: !include traits/sortable.raml
+  contentCacheable: !include traits/content-cacheable.raml
+  partial: !include traits/partial.raml
+
+securedBy: oauth2_0
+
+/customers:
+  /corporate:
+    post:
+      description: Customer data created correctly for an Organization
+      body: shapes.NewOrganizationData
+  /commercial:
+    post:
+      description: Customer data created correctly for a Person
+      body: shapes.NewPersonData
+
+  /{customer_id}:
+    uriParameters:
+      customer_id: string
+    get:
+      is: [ partial ]
+      description: Returns Customer data
+      responses:
+        200:
+          body:
+            shapes.OrganizationData | shapes.PersonData
+    patch:
+      description: Updates Customer data
+      responses:
+        200:
+          body:
+            shapes.CustomerPatchData
+    delete:
+      description: Removes a Customer from the system
+
+    /accounts:
+      (hyper.operationLink): (products.holds)
+      get:
+        is: [ pageable, sortable ]
+        description: Returns a collection of BankAccounts for this Customer
+        responses:
+          200:
+            body:
+              shapes.BankAccountData[]
+      post:
+        description: Requests the creation of a new BankAccount
+        body:
+          shapes.NewBankAccountRequestData
+      /{account_id}:
+        (hyper.operationLink): (products.buyerOf)
+        uriParameters:
+          account_id: string
+        get:
+          is: [ partial ]
+          description: Returns information about a Customer BankAccount
+          responses:
+            200:
+              body:
+                shapes.BankAccountData
+        delete:
+          description: Removes a Customer BankAccount
+    /loans:
+      (hyper.operationLink): (products.buyerOf)
+      get:
+        is: [ pageable, sortable, contentCacheable ]
+        description: Collection of a Customer Loans
+        responses:
+          200:
+            body: shapes.LoanData[]
+      post:
+        description: Creates a new Customer Loan
+        body:
+          shapes.NewLoanRequestData
+
+      /{loan_id}:
+        (hyper.operationLink): (products.buyerOf)
+        uriParameters:
+          loan_id: string
+        get:
+          is: [ partial ]
+          description: Returns information about a Customer Loan
+          responses:
+            200:
+              body:
+                shapes.LoanData
+
+      /schedule:
+        (hyper.operationLink): (products.loanRepaymentForm)
+        get:
+          description: Returns the repayments schedule for a Loan
+          responses:
+            200:
+              body: quantities.RepaymentSpecificationData
+    /cards:
+      /debit:
+        (hyper.operationLink): (products.buyerOf)
+        get:
+          is: [ pageable, sortable ]
+          description: Collection of a Customer PaymentCards
+          responses:
+            200:
+              body: shapes.DebitCardData[]
+        post:
+          description: Requests a new PaymentCard
+          body: shapes.NewDebitCardRequestData
+
+        /{card_id}:
+          (hyper.operationLink): (products.buyerOf)
+          uriParameters:
+            card_id: string
+          get:
+            is: [ partial ]
+            description: Information about a Customer PaymentCard
+            responses:
+              200:
+                body: shapes.DebitCardData
+          delete:
+            description: Requests the cancellation of a Customer PaymentCard
+
+      /credit:
+        (hyper.operationLink): (products.buyerOf)
+        get:
+          is: [ pageable, sortable ]
+          description: Collection of a Customer CreditCards
+          responses:
+            200:
+              body: shapes.CreditCardData[]
+        post:
+          description: Requests a new CreditCard
+          body: shapes.NewCreditCardRequestData
+
+        /{card_id}:
+          (hyper.operationLink): (products.buyerOf)
+          uriParameters:
+            card_id: string
+          get:
+            is: [ partial ]
+            description: Information about a Customer CreditCard
+            responses:
+              200:
+                body: shapes.CreditCardData
+          delete:
+            description: Requests the cancellation of a Customer CreditCard

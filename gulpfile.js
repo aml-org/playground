@@ -47,6 +47,32 @@ function bundle() {
         .pipe(gulp.dest('./public/js'))
         .pipe(browserSync.stream({once: true}));
 }
+
+
+const optionsValidation = {"standalone":"amf_playground_validation"};
+const bValidation = watchify(browserify(optionsValidation));
+function bundleValidation() {
+    return bValidation
+        .add([
+            "src/validation/view_model.ts"
+        ])
+        .plugin(tsify, { target: 'es5' })
+        //.transform(babelify, { extensions: [ '.tsx', '.ts' ] })
+        .bundle()
+        // log errors if they happen
+        .on('error', gutil.log.bind(gutil, 'Browserify Error'))
+        .pipe(source('amf_playground_validation.js'))
+        // optional, remove if you don't need to buffer file contents
+        .pipe(buffer())
+        // optional, remove if you dont want sourcemaps
+        .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
+        // Add transformation tasks to the pipeline here.
+        .pipe(sourcemaps.write('./')) // writes .map file
+        .pipe(gulp.dest('./public/js'))
+        .pipe(browserSync.stream({once: true}));
+}
+
+gulp.task('bundle_validation', bundleValidation); // so you can run `gulp js` to build the file
 gulp.task('bundle', bundle); // so you can run `gulp js` to build the file
 b.on('update', bundle); // on any dep update, runs the bundler
 b.on('log', gutil.log); // output build logs to terminal
@@ -57,5 +83,13 @@ gulp.task('serve', ["bower"], function () {
     browserSync.init({
         server: "public",
         startPath: "/index.html"
+    });
+});
+
+gulp.task('serve_validation', ["bower"], function () {
+    // bundleValidation();
+    browserSync.init({
+        server: "public",
+        startPath: "/validation.html"
     });
 });

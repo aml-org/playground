@@ -9,6 +9,14 @@ export function label(uri: string): string {
     }
 }
 
+// to make URLs absolute
+const anchor = document.createElement("a");
+
+export function absoluteURL(url): string {
+    anchor.href = url;
+    return anchor.href;
+}
+
 export function nestedLabel(parent: any, child: any): string {
     const uri = child["@id"];
     const label = extract_value(child, NAME) || extract_value(child, LABEL);
