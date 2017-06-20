@@ -2,20 +2,30 @@
 
 usage: Data shapes for the HTTP API
 
-uses:
-  domain: ../../extensions/domain.raml
-  agents: ../../domain/agents.raml
-  quantities: ../../domain/quantities.raml
-
 types:
+  MonetaryAmountData:
+    properties:
+      value: number
+      currency: string
+
+  DurationData:
+    properties:
+      value: string
+
+  RepaymentSpecificationData:
+    properties:
+      down_payment: MonetaryAmountData
+      payment_frequency: number
+      number_payments: integer
+      payment_amount: MonetaryAmountData
+      early_payment_penalty: MonetaryAmountData
 
   AddressData:
-    (domain.class): (agents.Address)
     properties:
       address_country: string
       address_locality: string
       address_region: string
-      postal_code: string 
+      postal_code: string
       street_address: string
 
   NewCustomerData:
@@ -38,12 +48,12 @@ types:
       title?:
         type: string
         enum: [mr, mrs, ms, dr]
-      given_name:
-      family_name:
+      given_name: string
+      family_name: string
       gender:
         type: string
         enum: [female, male]
-      vat_id?: string
+      vat_id?:
       birth_date: date-only
 
 
@@ -58,7 +68,6 @@ types:
 
   OrganizationData:
     discriminatorValue: Organization
-    (domain.class): (agents.Organization)
     type: CustomerData
     properties:
       id: string
@@ -68,7 +77,6 @@ types:
 
   PersonData:
     discriminatorValue: Person
-    (domain.class): (agents.Person)
     type: CustomerData
     properties:
       id: string
@@ -98,7 +106,7 @@ types:
       gender?:
         type: string
         enum: [female, male]
-      vat_id?: string
+      vat_id?:
       birth_date?: date-only
       death_date?: date-only
       address_country?: string
@@ -115,14 +123,13 @@ types:
         enum: [ standard, saver ]
 
   BankAccountData:
-    (domain.class): (products.BankAccount)
     properties:
       id: string
       account_number: string
       accountType:
         type: string
         enum: [ standard, saver ]
-      amount: quantities.MonetaryAmountData
+      amount: MonetaryAmountData
       lei: string
       fees_and_comissions: string
       review_state:
@@ -130,17 +137,17 @@ types:
         enum: [ requested, cancelled, opened, closed ]
       interest_rate: number
       annual_interest_rate: number
-      minimum_inflow: quantities.MonetaryAmountData
-      overdraft_limit: quantities.MonetaryAmountData
+      minimum_inflow: MonetaryAmountData
+      overdraft_limit: MonetaryAmountData
 
   NewLoanRequestData:
     properties:
       category: string
-      amount: quantities.MonetaryAmountData
-      term: quantities.DurationData
+      amount: MonetaryAmountData
+      term: DurationData
       interest_rate: number
-      down_payment: quantities.MonetaryAmountData
-      payment_amount: quantities.MonetaryAmountData
+      down_payment: MonetaryAmountData
+      payment_amount: MonetaryAmountData
       payment_frequency: number
       review_state:
         type: string
@@ -154,14 +161,13 @@ types:
           - closed
 
   LoanData:
-    (domain.class): (products.LoanOrCredit)
     properties:
       id: string
       account_number: string
       accountType:
         type: string
         enum: [ standard, saver ]
-      amount: quantities.MonetaryAmountData
+      amount: MonetaryAmountData
       lei: string
       fees_and_comissions: string
       review_state:
@@ -176,9 +182,9 @@ types:
           - closed
       interest_rate: number
       annual_interest_rate: number
-      minimum_inflow: quantities.MonetaryAmountData
-      overdraft_limit: quantities.MonetaryAmountData
-      grace_period: quantities.DurationData
+      minimum_inflow: MonetaryAmountData
+      overdraft_limit: MonetaryAmountData
+      grace_period: DurationData
 
   NewDebitCardRequestData:
     properties:
@@ -186,11 +192,10 @@ types:
       contactless: boolean
 
   DebitCardData:
-    (domain.class): (products.PaymentCard)
     properties:
       id: string
       lei: string
-      fees_and_comissions: string
+      fees_and_comissions:
       review_state:
         type: string
         enum:
@@ -200,14 +205,14 @@ types:
           - closed
       cash_back: boolean
       contactless: boolean
-      floor_limit: quantities.MonetaryAmountData
+      floor_limit: MonetaryAmountData
 
   NewCreditCardRequestData:
     properties:
       cash_back: boolean
       contactless: boolean
       interest_rate: number
-      payment_amount: quantities.MonetaryAmountData
+      payment_amount: MonetaryAmountData
       payment_frequency: number
       review_state:
         type: string
@@ -221,15 +226,14 @@ types:
           - closed
 
   CreditCardData:
-    (domain.class): (products.CreditCard)
     properties:
       id: string
-      amount: quantities.MonetaryAmountData
+      amount: MonetaryAmountData
       lei: string
       cash_back: boolean
       contactless: boolean
-      floor_limit: quantities.MonetaryAmountData
-      fees_and_comissions: string
+      floor_limit: MonetaryAmountData
+      fees_and_comissions:
       review_state:
         type: string
         enum:
@@ -242,6 +246,6 @@ types:
           - closed
       interest_rate: number
       annual_interest_rate: number
-      minimum_inflow: quantities.MonetaryAmountData
-      overdraft_limit: quantities.MonetaryAmountData
-      grace_period: quantities.DurationData
+      minimum_inflow: MonetaryAmountData
+      overdraft_limit: MonetaryAmountData
+      grace_period: DurationData

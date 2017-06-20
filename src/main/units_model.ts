@@ -69,7 +69,6 @@ export class UnitModel {
     constructor(public model: ModelProxy) { }
 
     public process(modelLevel: ModelLevel, cb) {
-        debugger;
         const acc = { "documents": [], "fragments": [], "modules": [] };
 
         const promises = this.model.references().map(ref => {

@@ -56,7 +56,7 @@
         </div>
         <!-- data-bind="visible: (lastLoadedFile() != null)" -->
          <div data-bind="visible: (lastLoadedFile() != null)"
-             style="position: absolute; width: 100%; padding: 10px; bottom: -20px; display:none">
+             style="position: absolute; width: 100%; padding: 10px; bottom: -10px; display:none; background-color: #F4F5F6; z-index: 1000">
             <i class="fa fa-cog fa-spin fa-3x fa-fw"
                data-bind="visible: (lastLoadedFile() != null)"
                style="float:left; font-size: 22px; margin-right: 10px">
@@ -141,6 +141,12 @@
                             document.getElementById("navigator").style.height = (navigatorContainerHeight - 154) + "px";
                         } else {
                             document.getElementById("navigator").style.height = "auto";
+                        }
+
+                        var navigatorDiv = document.getElementById("navigator-container");
+                        if (navigatorDiv != null) {
+                            navigatorDiv.style.maxHeight = (height-75) + "px";
+                            navigatorDiv.style.height = (height-75) + "px";
                         }
                     };
 

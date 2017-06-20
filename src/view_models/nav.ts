@@ -4,8 +4,8 @@ import {ModelLevel} from "../main/model_proxy";
 export class Nav {
     static DOCUMENT_LEVEL_SELECTED_EVENT = "document_level_selected_event";
     public documentLevelOptions: KnockoutObservableArray<any> = ko.observableArray<any>([
-        {name: "Document Model", key: "document"},
-        {name: "Domain Model", key: "domain"}
+        {name: "Unresolved Model", key: "document"},
+        {name: "Resolved Model", key: "domain"}
     ]);
     public selectedDocumentLevel: KnockoutObservable<any> = ko.observable<any>(this.documentLevelOptions[0]);
 

@@ -5,7 +5,7 @@
 
 // #editor-container {
 //     border-style: solid;
-//     border-width: 1px;
+//     border-width: 1px;0
 //     border-color: lightgrey;
 // }
 */
@@ -54,6 +54,7 @@
 .navigator-item {
     padding: 5px;
 }
+
 
 .selected-element-line-decoration {
     background: #23d160;
