@@ -62,7 +62,9 @@
         </div>
         
     </form>
-    <div id="graph-container" style="overflow: auto" data-bind="visible: editorSection() === 'diagram'"></div>
+    <div id="graph-container" style="overflow: auto" data-bind="visible: editorSection() === 'diagram'">
+        <div id="graph-container-inner"></div>
+    </div>
     <div id="query"
          class="imported box"
          data-bind="visible: editorSection() === 'query'">

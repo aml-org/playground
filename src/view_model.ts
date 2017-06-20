@@ -269,6 +269,7 @@ export class ViewModel {
             } else {
                 if (this.editorSection() === "api-model" || this.editorSection() === "raml" || this.editorSection() === "open-api") {
 
+                    debugger;
                     this.model.elementLexicalInfoFor(unit.id, this.editorSection() as "raml" | "open-api" | "api-model", this.documentLevel, (err, lexicalInfo) => {
                        if (err == null) {
                            if (lexicalInfo != null) {
@@ -512,7 +513,7 @@ export class ViewModel {
     public resetDiagram() {
         try {
             // cleaning the diagram
-            document.getElementById("graph-container").innerHTML = "";
+            document.getElementById("graph-container-inner").innerHTML = "";
             let level: "document" | "domain" | "files" = "files";
             if (this.navigatorSection() === "domain") {
                 level = "domain";
@@ -528,7 +529,7 @@ export class ViewModel {
                 }
             );
             this.diagram.process(this.allUnits());
-            this.diagram.render("graph-container", () => {
+            this.diagram.render("graph-container-inner", () => {
                 if (oldDiagram != null) {
                     if (this.diagram.paper) {
                         this.diagram.paperScale(oldDiagram.scaleX, oldDiagram.scaleY);

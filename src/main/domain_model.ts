@@ -287,7 +287,10 @@ export class DomainModel {[name: string]: any;
         if (has_type(encoded, INCLUDE_RELATIONSHIP)) {
             return this.buildInclude(encoded);
         }
-        const label = extract_value(encoded, NAME) || extract_value(encoded, LABEL);
+        let label = extract_value(encoded, NAME) || extract_value(encoded, LABEL) || "Data Shape";
+        if ((label as string).indexOf("/") === 0) {
+            label = "Data Shape"
+        }
 
         const element = new Shape(encoded, encoded["@id"], label);
         this.elements[element.id] = element;

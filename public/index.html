@@ -148,6 +148,12 @@
                             navigatorDiv.style.maxHeight = (height-75) + "px";
                             navigatorDiv.style.height = (height-75) + "px";
                         }
+
+                        var graphDiv = document.getElementById("graph-container");
+                        if (graphDiv != null) {
+                            graphDiv.style.maxHeight = (height-200) + "px";
+                            graphDiv.style.height = (height-200) + "px";
+                        }
                     };
 
                     var getHeight = function(containerId) {
