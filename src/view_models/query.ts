@@ -32,7 +32,7 @@ ORDER BY DESC(?property)`),
   ?resource rdf:type doc:Unit ;
             rdf:type ?type .
   FILTER (?type != doc:Unit)
-} ORDER BY DESC(?s)`),
+} ORDER BY DESC(?type)`),
         new PredefinedQuery("Resources with methods defining successful responses",
         `SELECT ?path ?method ?status { 
         

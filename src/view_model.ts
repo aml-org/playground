@@ -269,7 +269,6 @@ export class ViewModel {
             } else {
                 if (this.editorSection() === "api-model" || this.editorSection() === "raml" || this.editorSection() === "open-api") {
 
-                    debugger;
                     this.model.elementLexicalInfoFor(unit.id, this.editorSection() as "raml" | "open-api" | "api-model", this.documentLevel, (err, lexicalInfo) => {
                        if (err == null) {
                            if (lexicalInfo != null) {
