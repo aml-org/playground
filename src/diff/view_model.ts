@@ -5,7 +5,7 @@
 import * as ko from "knockout";
 import {KnockoutObservable} from "knockout";
 
-import {AMF} from "amf-js/index";
+import * as amf from "@mulesoft/amf-client-js"
 import * as jsonld from "jsonld";
 import {HashGenerator} from "./hash_generator";
 import {DiffGenerator, NodeDiff} from "./diff_generator";
@@ -103,32 +103,29 @@ export class ViewModel {
 
     protected hashEditor(editor, cb) {
         const toParse = editor.getValue();
-        AMF.RAMLParser.parseString(toParse, "https://mulesoft-labs.github.io/amf-playground", {}, (e, model) => {
-            if (e == null) {
-                try {
-                    AMF.JSONLDGenerator.generateString(model, "http://mulesoft-labs.github.io/amf-diff", {"source-maps?": false}, (e, text) => {
-                        if (e == null) {
-                            jsonld.flatten(JSON.parse(text), (e, flattened) => {
-                                if (e == null) {
-                                    const g = new HashGenerator(flattened as any[]);
-                                    cb(g);
-                                } else {
-                                    console.log(e);
-                                    console.log("Error processing JSON-LD");
-                                }
-                            })
-                        } else {
-                            console.log(e);
-                            console.log("Error generating JSON-LD");
-                        }
-                    });
-                } catch (e) {
-                    console.log("Exception parsing shape");
-                    console.log(e);
-                }
-            } else {
-                console.log("Error parsing RAML Type");
+        amf.Core
+            .parser("RAML 1.0", "application/yaml")
+            .parseStringAsync(toParse).then((model) => {
+            try {
+                let text = amf.Core
+                    .generator("AMF Graph", "application/ld+json")
+                    .generateString(model);
+
+                jsonld.flatten(JSON.parse(text), (e, flattened) => {
+                    if (e == null) {
+                        const g = new HashGenerator(flattened as any[]);
+                        cb(g);
+                    } else {
+                        console.log(e);
+                        console.log("Error processing JSON-LD");
+                    }
+                });
+            } catch (e) {
+                console.log("Exception parsing shape");
+                console.log(e);
             }
+        }).catch((e) => {
+            console.log("Error parsing RAML Type");
         });
     }
 

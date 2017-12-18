@@ -87,7 +87,7 @@ gulp.task('serve', ["bower"], function () {
 });
 
 gulp.task('serve_validation', ["bower"], function () {
-    // bundleValidation();
+    bundleValidation();
     browserSync.init({
         server: "public",
         startPath: "/validation.html"

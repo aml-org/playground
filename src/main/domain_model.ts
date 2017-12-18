@@ -23,20 +23,20 @@ NS_MAPPING[SCHEMA_ORG_NS]= "schema-org";
 
 // RDF Classes
 export const DOMAIN_ELEMENT: string = DOCUMENT_NS + "DomainElement";
-export const API_DOCUMENTATION: string = HTTP_NS + "APIDocumentation";
+export const API_DOCUMENTATION: string = SCHEMA_ORG_NS + "WebAPI";
+export const TRAIT: string = DOCUMENT_NS + "Trait";
 export const END_POINT: string = HTTP_NS + "EndPoint";
 export const OPERATION: string = HYDRA_NS + "Operation";
 export const RESPONSE: string = HTTP_NS + "Response";
 export const REQUEST: string = HTTP_NS + "Request";
 export const PAYLOAD: string = HTTP_NS + "Payload";
-export const SCHEMA: string = HTTP_NS + "Schema";
 export const SHAPE: string = SHACL_NS + "Shape"
-export const INCLUDE_RELATIONSHIP: string = DOCUMENT_NS + "IncludeRelationship";
 export const DOMAIN_PROPERTY_SCHEMA: string = DOCUMENT_NS + "DomainPropertySchema";
 
 // RDF Properties
 export const LABEL: string = DOCUMENT_NS + "label";
 export const NAME: string = SCHEMA_ORG_NS + "name";
+export const SHACL_NAME: string = SHACL_NS + "name";
 export const ENCODES: string = DOCUMENT_NS + "encodes";
 export const ENDPOINT: string = HTTP_NS + "endpoint";
 export const PATH: string = HTTP_NS + "path";
@@ -73,7 +73,7 @@ export function has_type(node, type) {
 }
 
 // Model Classes
-export type DomainElementKind = "APIDocumentation" | "EndPoint" | "Operation" | "Response" | "Request" | "Payload" | "DomainElement" | "Shape" | "Include" | "Extends" | "DomainPropertySchema";
+export type DomainElementKind = "APIDocumentation" | "EndPoint" | "Operation" | "Response" | "Request" | "Payload" | "DomainElement" | "Shape" | "Include" | "Extends" | "DomainPropertySchema" | "Trait";
 
 export interface DomainModelElement {
     id: string;
@@ -141,6 +141,12 @@ export class DomainPropertySchema extends DomainElement {
     constructor(public raw: any, public id, public domain: string, public range: string, public label: string) { super(raw, id, label) }
 }
 
+export class Trait extends DomainElement {
+    kind: DomainElementKind = "Trait";
+
+    constructor(public raw: any, public id, public label: string) { super(raw, id, label) }
+}
+
 // Factory
 export class DomainModel {[name: string]: any;
 
@@ -152,7 +158,6 @@ export class DomainModel {[name: string]: any;
     }
 
     public process(): DomainElement {
-        console.log("BUILDING DOMAIN MODEL FOR " + this.jsonld["@id"]);
         const encoded = this.jsonld;
         if (has_type(encoded, API_DOCUMENTATION)) {
             console.log("* Processing APIDocumentation");
@@ -175,13 +180,14 @@ export class DomainModel {[name: string]: any;
         } else if(has_type(encoded, SHAPE)) {
             console.log("* Processing Shape");
             return this.buildShape(encoded);
-        } else if(has_type(encoded, INCLUDE_RELATIONSHIP)) {
-            console.log("* Processing Include");
-            return this.buildInclude(encoded);
         } else if(has_type(encoded, DOMAIN_PROPERTY_SCHEMA)) {
             console.log("* Processing DomainPropertySchema");
             return this.buildDomainPropertySchema(encoded);
+        } else if(has_type(encoded, TRAIT)) {
+            console.log("* Processing Trait");
+            return this.buildTrait(encoded);
         } else {
+            console.log("* Unknown element " + this.jsonld["@id"] + " => " + JSON.stringify(this.jsonld["@type"]));
             return this.buildDomainElement(encoded);
         }
     }
@@ -189,23 +195,18 @@ export class DomainModel {[name: string]: any;
 
     private buildDomainElement(encoded: any): DomainElement {
         if (encoded == null || encoded["@id"] == null) { return undefined }
-        if (has_type(encoded, INCLUDE_RELATIONSHIP)) {
-            return this.buildInclude(encoded);
-        }
         console.log("* Building DomainElement " + encoded["@id"]);
-        const label = extract_value(encoded, NAME) || extract_value(encoded, LABEL);
+        const label = this.extractLabel(encoded, "DomainElement");
         const element = new DomainElement(encoded, encoded["@id"], label);
         this.elements[element.id] = element;
         return element;
     }
 
     private buildAPIDocumentation(encoded: any): DomainElement {
+        debugger;
         if (encoded == null || encoded["@id"] == null) { return undefined }
-        if (has_type(encoded, INCLUDE_RELATIONSHIP)) {
-            return this.buildInclude(encoded);
-        }
         console.log("* Building APIDocumentation " + encoded["@id"]);
-        const label = extract_value(encoded, NAME) || extract_value(encoded, LABEL);
+        const label = this.extractLabel(encoded, "WebAPI");
         const endpoints = extract_links(encoded, ENDPOINT).map(elm => this.buildEndPoint(elm));
         const element = new APIDocumentation(encoded, encoded["@id"], label, endpoints);
         this.elements[element.id] = element;
@@ -214,12 +215,9 @@ export class DomainModel {[name: string]: any;
 
     private buildEndPoint(encoded: any): DomainElement {
         if (encoded == null || encoded["@id"] == null) { return undefined }
-        if (has_type(encoded, INCLUDE_RELATIONSHIP)) {
-            return this.buildInclude(encoded);
-        }
         console.log("* Building EndPoint " + encoded["@id"]);
         const path = extract_value(encoded, PATH);
-        const label = extract_value(encoded, NAME) || extract_value(encoded, LABEL);
+        const label = this.extractLabel(encoded, "EndPoint");
         const operations = extract_links(encoded, SUPPORTED_OPERATION).map(elm => this.buildOperation(elm));
         const element = new EndPoint(encoded, encoded["@id"], path, label, operations);
         this.elements[element.id] = element;
@@ -228,12 +226,9 @@ export class DomainModel {[name: string]: any;
 
     private buildOperation(encoded: any): DomainElement {
         if (encoded == null || encoded["@id"] == null) { return undefined }
-        if (has_type(encoded, INCLUDE_RELATIONSHIP)) {
-            return this.buildInclude(encoded);
-        }
         console.log("* Building Operation " + encoded["@id"]);
         const method = extract_value(encoded, METHOD);
-        const label = extract_value(encoded, NAME) || extract_value(encoded, LABEL);
+        const label = this.extractLabel(encoded, "Operation");
         const requests = extract_links(encoded, EXPECTS).map(elm => this.buildRequest(elm));
         const responses = extract_links(encoded, RETURNS).map(elm => this.buildResponse(elm));
         const element = new Operation(encoded, encoded["@id"], label, method, requests, responses);
@@ -244,13 +239,10 @@ export class DomainModel {[name: string]: any;
 
     private buildResponse(encoded: any): DomainElement {
         if (encoded == null || encoded["@id"] == null) { return undefined }
-        if (has_type(encoded, INCLUDE_RELATIONSHIP)) {
-            return this.buildInclude(encoded);
-        }
         console.log("* Building Response " + encoded["@id"]);
         const status = extract_value(encoded, STATUS_CODE);
         const payloads = extract_links(encoded, RESPONSE_PAYLOAD).map(elm => this.buildPayload(elm));
-        const label = extract_value(encoded, NAME) || extract_value(encoded, LABEL);
+        const label = this.extractLabel(encoded, "Response");
         const element = new Response(encoded, encoded["@id"], label, status, payloads);
         this.elements[element.id] = element;
         return element;
@@ -258,11 +250,8 @@ export class DomainModel {[name: string]: any;
 
     private buildRequest(encoded: any): DomainElement {
         if (encoded == null || encoded["@id"] == null) { return undefined }
-        if (has_type(encoded, INCLUDE_RELATIONSHIP)) {
-            return this.buildInclude(encoded);
-        }
         const payloads = extract_links(encoded, RESPONSE_PAYLOAD).map(elm => this.buildPayload(elm));
-        const label = extract_value(encoded, NAME) || extract_value(encoded, LABEL);
+        const label = this.extractLabel(encoded, "Request");
         const element = new Request(encoded, encoded["@id"], label, payloads);
         this.elements[element.id] = element;
         return element;
@@ -270,13 +259,10 @@ export class DomainModel {[name: string]: any;
 
     private buildPayload(encoded: any): DomainElement {
         if (encoded == null || encoded["@id"] == null) { return undefined }
-        if (has_type(encoded, INCLUDE_RELATIONSHIP)) {
-            return this.buildInclude(encoded);
-        }
         console.log("* Building Payload " + encoded["@id"]);
         const mediaType = extract_value(encoded, MEDIA_TYPE);
         const shape = this.buildShape(extract_link(encoded, PAYLOAD_SCHEMA)) as Shape | IncludeRelationship;
-        const label = extract_value(encoded, NAME) || extract_value(encoded, LABEL);
+        const label = this.extractLabel(encoded, "Payload");
         const element = new Payload(encoded, encoded["@id"], label, mediaType, shape);
         this.elements[element.id] = element;
         return element;
@@ -284,10 +270,7 @@ export class DomainModel {[name: string]: any;
 
     private buildShape(encoded: any): DomainElement {
         if (encoded == null || encoded["@id"] == null) { return undefined }
-        if (has_type(encoded, INCLUDE_RELATIONSHIP)) {
-            return this.buildInclude(encoded);
-        }
-        let label = extract_value(encoded, NAME) || extract_value(encoded, LABEL) || "Data Shape";
+        let label = this.extractLabel(encoded, "Shape");
         if ((label as string).indexOf("/") === 0) {
             label = "Data Shape"
         }
@@ -297,26 +280,27 @@ export class DomainModel {[name: string]: any;
         return element;
     }
 
-    private buildInclude(encoded: any) {
-        if (encoded == null || encoded["@id"] == null) { return undefined }
-        console.log("* Building Include " + encoded["@id"]);
-        console.log(JSON.stringify(encoded, null, 2));
-        const label = extract_value(encoded, NAME) || extract_value(encoded, LABEL);
-        const target = extract_link(encoded, TARGET);
-        console.log("  Target: " + target["@id"]);
-        const element = new IncludeRelationship(encoded, encoded["@id"], target["@id"], label);
-        this.elements[element.id] = element;
-        return element;
-    }
-
     private buildDomainPropertySchema(encoded: any) {
         if (encoded == null || encoded["@id"] == null) { return undefined }
         console.log("* Building DomainPropertySchema " + encoded["@id"]);
-        const label = extract_value(encoded, NAME) || extract_value(encoded, LABEL);
+        const label = this.extractLabel(encoded, "Property Shape");
         const domain = extract_link(encoded, DOMAIN);
         const range = extract_link(encoded, RANGE);
         const element = new DomainPropertySchema(encoded, encoded["@id"], domain, range, label);
         this.elements[element.id] = element;
         return element;
+    }
+
+    private buildTrait(encoded: any) {
+        if (encoded == null || encoded["@id"] == null) { return undefined }
+        console.log("* Building Trait " + encoded["@id"]);
+        const label = this.extractLabel(encoded, "Trait");
+        const element = new Trait(encoded, encoded["@id"], label);
+        this.elements[element.id] = element;
+        return element;
+    }
+
+    private extractLabel(encoded: any, defaultName: string) {
+        return extract_value(encoded, NAME) || extract_value(encoded, LABEL) || extract_value(encoded, SHACL_NAME) || defaultName;
     }
 }

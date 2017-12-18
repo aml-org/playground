@@ -16,25 +16,22 @@ const endsWith = (s: string, postfix: string): boolean => {
 export class UI {
     iconClassForUnit(unit: units.DocumentId) {
         try {
-            if (unit.kind === "Document") {
+            if (unit && unit.kind === "Document") {
                 return "fa fa-file";
-            } else if (unit.kind === "Fragment") {
+            } else if (unit && unit.kind === "Fragment") {
                 return "fa fa-puzzle-piece";
-            } else if (unit.kind === "Module") {
+            } else if (unit && unit.kind === "Module") {
                 return "fa fa-archive";
             } else {
                 return "fa fa-question";
             }
         } catch(e) {
-            console.log("CANNOT FIND UNIT!!!");
-            console.log(unit);
             return "fa fa-file";
         }
     }
 
     iconClassForDomainUnit(unit: units.DomainElement) {
         try {
-            //console.log("ICON FOR " + unit.id + " => " + unit.elementClass);
             if (endsWith(unit.elementClass, "#APIDocumentation")) {
                 return "fa fa-book";
             } else if (endsWith(unit.elementClass, "#Payload")) {
@@ -45,12 +42,16 @@ export class UI {
                 return "fa fa-rocket";
             } else if (endsWith(unit.elementClass, "#DomainPropertySchema")) {
                 return "fa fa-pencil";
+            } else if (endsWith(unit.elementClass, "#Trait")) {
+                return "fa fa-paperclip"
+            } else if (endsWith(unit.elementClass, "#ResourceType")) {
+                return "fa fa-paperclip"
+            } else if (endsWith(unit.elementClass, "#SecurityScheme")) {
+                return "fa fa-lock"
             } else {
                 return "fa fa-code";
             }
         } catch (e) {
-            console.log("NOT ICON CLASS DOMAIN UNIT FOUND");
-            console.log(unit);
             return "fa fa-code";
         }
     }
@@ -77,8 +78,6 @@ export class UI {
                 return "fa fa-code"
             }
         } catch (e) {
-            console.log("NOT ICON CLASS FOUND");
-            console.log(unit);
             return 'fa fa-code';
         }
     }
@@ -113,8 +112,6 @@ export class UI {
                 }
             }
         } catch(e) {
-            console.log("NOT LABEL FOUND");
-            console.log(unit);
             return "??";
         }
     }
@@ -137,8 +134,6 @@ export class UI {
                 return "";
             }
         } catch(e) {
-            console.log("NOT BINDING LABEL FOUND");
-            console.log(binding);
             return "??";
         }
     }

@@ -18,7 +18,14 @@ export class Query {
     private viewModel: ViewModel = (window['viewModel'] as ViewModel);
     public text: KnockoutObservable<string> = ko.observable<string>("SELECT * { ?s ?p ?o }");
     public variables: KnockoutObservableArray<string> = ko.observableArray<string>([]);
-    public bindings: KnockoutObservableArray<Bindings> = ko.observableArray<Bindings>([]);
+    public results = [];
+    public perPage: number = 10;
+    public currentPage: KnockoutObservable<number> = ko.observable(-1);
+    public bindings: KnockoutComputed<Bindings> = ko.computed(() => {
+        var current = this.currentPage() * this.perPage;
+        return this.results.slice(current, current + this.perPage);
+    });
+    public totalPages: number = -1;
     public predefinedQueries: KnockoutObservableArray<PredefinedQuery> = ko.observableArray<PredefinedQuery>([
         new PredefinedQuery("All assertions ordered by subject", "SELECT * { ?s ?p ?o } ORDER BY DESC(?s)"),
         new PredefinedQuery("All assertions ordered by predicate", "SELECT * { ?s ?p ?o } ORDER BY DESC(?p)"),
@@ -68,7 +75,6 @@ ORDER BY DESC(?property)`),
     }
 
     process(jsonld: any, cb) {
-        console.log("STORING JSONLD DOC");
         new Store((err, store: Store) => {
             if (err) {
                 alert("Error creating RDF store");
@@ -97,8 +103,8 @@ ORDER BY DESC(?property)`),
     }
 
     submit() {
-        console.log("SUBMITTING QUERY");
         if (this.store) {
+            this.currentPage(-1);
             this.store.execute(this.text(), (err, res: SelectResults) => {
                 if (err) {
                     alert("Error executing query " + this.text());
@@ -106,9 +112,25 @@ ORDER BY DESC(?property)`),
                 } else {
                     console.log(`Found ${res.length} results`);
                     this.resetVariables(res[0]);
-                    this.bindings(res);
+                    this.results = res;
+                    this.totalPages = Math.floor(res.length / this.perPage);
+                    this.currentPage(0);
                 }
             })
+        }
+    }
+
+    nextPage() {
+        debugger;
+        if (this.currentPage() < this.totalPages) {
+            this.currentPage(this.currentPage() + 1)
+        }
+    }
+
+
+    previousPage() {
+        if (this.currentPage() > 0) {
+            this.currentPage(this.currentPage() - 1)
         }
     }
 

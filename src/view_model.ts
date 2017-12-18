@@ -1,16 +1,15 @@
 import * as ko from "knockout";
 import {LoadModal, LoadFileEvent, ParserType} from "./view_models/load_modal";
 import { ModelProxy, ModelLevel } from "./main/model_proxy";
-import { AmfPlaygroundWindow } from "./main/amf_playground_window";
+import {AmfPlaygroundWindow, ModelType} from "./main/amf_playground_window";
 import { Nav } from "./view_models/nav";
-// import IStandaloneCodeEditor = monaco.editor.IStandaloneCodeEditor;
-// import createModel = monaco.editor.createModel;
 import {Document, Fragment, Module, DocumentId, Unit, DocumentDeclaration} from "./main/units_model";
 import { label } from "./utils";
 import { UI } from "./view_models/ui";
 import { DomainElement, DomainModel } from "./main/domain_model";
 import {Query} from "./view_models/query";
 import {Diagram} from "./view_models/diagram";
+import * as amf from "@mulesoft/amf-client-js";
 
 export type NavigatorSection = "files" | "logic" | "domain";
 export type EditorSection = "raml" | "open-api" | "api-model" | "diagram" | "query";
@@ -97,6 +96,7 @@ export class ViewModel {
 
         // events we are subscribed
         this.loadModal.on(LoadModal.LOAD_FILE_EVENT, (data: LoadFileEvent) => {
+            window["AMF_LOADING_EVENT"](data.location);
             this.amfPlaygroundWindow.parseModelFile(data.type, data.location, (err, model) => {
                 if (err) {
                     console.log(err);
@@ -157,9 +157,10 @@ export class ViewModel {
         }
         this.documentModelChanged = false;
         this.changesFromLastUpdate = 0
-        location = location || this.model.location()
-        value = value || this.editor.getModel().getValue()
-        this.documentModel.update(location, value, (e) => {
+        location = location || this.model.location();
+        value = value || this.editor.getModel().getValue();
+        let modelType = <ModelType>this.editorSection();
+        this.documentModel.update(location, value, modelType, (e) => {
             if (e != null) {
                 this.resetUnits();
                 this.resetReferences();
@@ -173,7 +174,6 @@ export class ViewModel {
 
     public selectNavigatorFile(reference: ReferenceFile) {
         if (this.selectedReference() == null || this.selectedReference().id !== reference.id) {
-            this.selectedReference(reference);
             this.focusedId(reference.id);
             if (this.documentModel != null) {
                 if (this.documentModel.location() !== reference.id) {
@@ -183,6 +183,7 @@ export class ViewModel {
                 }
                 this.resetDocuments()
             }
+            this.selectedReference(reference);
             this.resetDiagram();
             this.resetDomainUnits();
         }
@@ -269,31 +270,28 @@ export class ViewModel {
             } else {
                 if (this.editorSection() === "api-model" || this.editorSection() === "raml" || this.editorSection() === "open-api") {
 
-                    this.model.elementLexicalInfoFor(unit.id, this.editorSection() as "raml" | "open-api" | "api-model", this.documentLevel, (err, lexicalInfo) => {
-                       if (err == null) {
-                           if (lexicalInfo != null) {
-                               console.log("FOUND LEXICAL INFO FOR " + unit.id);
-                               this.editor.revealRangeInCenter({
-                                   startLineNumber: lexicalInfo.startLine,
-                                   startColumn: lexicalInfo.startColumn,
-                                   endLineNumber: lexicalInfo.endLine,
-                                   endColumn: lexicalInfo.endColumn
-                               });
-                               this.decorations = this.editor.deltaDecorations(this.decorations, [
-                                   {
-                                       range: new monaco.Range(lexicalInfo.startLine, 1, lexicalInfo.endLine, 1),
-                                       options: {
-                                           linesDecorationsClassName: 'selected-element-line-decoration',
-                                           isWholeLine: true
-                                       }
-                                   }
-                               ]);
-                           }
-                       } else {
-                           // remove decorations
-                           this.decorations = this.editor.deltaDecorations(this.decorations, [])
-                       }
-                    });
+                    const lexicalInfo: amf.core.parser.Range = this.model.elementLexicalInfo(unit.id);
+
+                    if (lexicalInfo != null) {
+                        this.editor.revealRangeInCenter({
+                            startLineNumber: lexicalInfo.start.line,
+                            startColumn: lexicalInfo.start.column,
+                            endLineNumber: lexicalInfo.end.line,
+                            endColumn: lexicalInfo.end.column
+                        });
+                        this.decorations = this.editor.deltaDecorations(this.decorations, [
+                            {
+                                range: new monaco.Range(lexicalInfo.start.line, lexicalInfo.start.column, lexicalInfo.end.line, lexicalInfo.end.column),
+                                options: {
+                                    linesDecorationsClassName: 'selected-element-line-decoration',
+                                    isWholeLine: true
+                                }
+                            }
+                        ]);
+                    } else {
+                        // remove decorations
+                        this.decorations = this.editor.deltaDecorations(this.decorations, [])
+                    }
                 }
             }
         }
@@ -350,7 +348,12 @@ export class ViewModel {
 
     apply(location: Node) {
         window["viewModel"] = this;
-        ko.applyBindings(this);
+        amf.plugins.features.AMFValidation.register();
+        amf.plugins.document.Vocabularies.register();
+        amf.plugins.document.WebApi.register();
+        amf.Core.init().then(() => {
+            ko.applyBindings(this);
+        });
     }
 
 
@@ -358,8 +361,8 @@ export class ViewModel {
     private resetDocuments() {
         if (this.model != null) {
             // We generate the RAML representation
-            if (this.selectedParserType() === "raml" && this.documentLevel === "document" && this.editorSection() === "raml" && this.model.text() != null) {
-                this.editor.setModel(createModel(this.model.text(), "yaml"));
+            if (this.selectedParserType() === "raml" && this.documentLevel === "document" && this.editorSection() === "raml" && this.model.raw != null) {
+                this.editor.setModel(createModel(this.model.raw, "yaml"));
                 //this.editor['_configuration'].editor.readOnly = false;
             } else {
                 this.model.toRaml(this.documentLevel, this.generationOptions(), (err, string) => {
@@ -376,8 +379,8 @@ export class ViewModel {
             }
 
             // We generate the OpenAPI representation
-            if (this.selectedParserType() === "open-api" && this.documentLevel === "document" && this.editorSection() === "open-api" && this.model.text() != null) {
-                this.editor.setModel(createModel(this.model.text(), "json"));
+            if (this.selectedParserType() === "open-api" && this.documentLevel === "document" && this.editorSection() === "open-api" && this.model.raw != null) {
+                this.editor.setModel(createModel(this.model.raw, "json"));
                 //this.editor['_configuration'].editor.readOnly = false;
             } else {
                 this.model.toOpenAPI(this.documentLevel, this.generationOptions(), (err, string) => {
@@ -442,8 +445,8 @@ export class ViewModel {
         }
         if (section === "raml") {
             if (this.model != null) {
-                if (this.selectedParserType() === "raml" && this.documentLevel === "document" && this.model.text() != null) {
-                    this.editor.setModel(createModel(this.model.text(), "yaml"));
+                if (this.selectedParserType() === "raml" && this.documentLevel === "document" && this.model.raw != null) {
+                    this.editor.setModel(createModel(this.model.raw, "yaml"));
                     //this.editor['_configuration'].editor.readOnly = false;
                 } else {
                     this.editor.setModel(createModel(this.model.ramlString, "yaml"));
@@ -456,8 +459,8 @@ export class ViewModel {
             window['resizeFn']();
         } else if (section === "open-api") {
             if (this.model != null) {
-                if (this.selectedParserType() === "open-api" && this.documentLevel === "document" && this.model.text() != null) {
-                    this.editor.setModel(createModel(this.model.text(), "json"));
+                if (this.selectedParserType() === "open-api" && this.documentLevel === "document" && this.model.raw != null) {
+                    this.editor.setModel(createModel(this.model.raw, "json"));
                     //this.editor['_configuration'].editor.readOnly = false;
                 } else {
                     this.editor.setModel(createModel(this.model!.openAPIString, "json"));
@@ -559,22 +562,26 @@ export class ViewModel {
 
     private makeReference(currentLocation: string, reference: string): ReferenceFile {
         console.log("*** Making reference " + reference);
-        const parts = currentLocation.split("/");
-        parts.pop();
-        const currentLocationDir = parts.join("/") + "/";
-        const isRemote = reference.indexOf("http") === 0;
-        if (reference.indexOf(currentLocationDir) === 0) {
-            return {
-                type: (isRemote ? "remote" : "local"),
-                id: reference,
-                label: label(reference)
+        if (reference != null) {
+            const parts = currentLocation.split("/");
+            parts.pop();
+            const currentLocationDir = parts.join("/") + "/";
+            const isRemote = reference.indexOf("http") === 0;
+            if (reference.indexOf(currentLocationDir) === 0) {
+                return {
+                    type: (isRemote ? "remote" : "local"),
+                    id: reference,
+                    label: label(reference)
+                }
+            } else {
+                return {
+                    type: (isRemote ? "remote" : "local"),
+                    id: reference,
+                    label: label(reference),
+                }
             }
         } else {
-            return {
-                type: (isRemote ? "remote" : "local"),
-                id: reference,
-                label: label(reference),
-            }
+            throw new Error("Null reference!");
         }
     }
 
@@ -637,7 +644,6 @@ export class ViewModel {
     }
 
     private indexDomainUnits(elm: Document | Fragment | Module) {
-        console.log("INDEXING DOMAIN UNITS FOR " + elm.kind);
         const units: DomainModel[] = [];
         const reference = elm.id;
 

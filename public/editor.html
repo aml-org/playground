@@ -18,6 +18,7 @@
                            css: { 'is-active': editorSection() === 'query' }">
                 <a>Query</a></li>
         </ul>
+        <!--
         <p class="control"
            style="border-bottom-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid; margin-bottom: 0px !important;"
            data-bind="if: editorSection() === 'api-model'">
@@ -31,8 +32,9 @@
                 No
             </label>
         </p>
+        -->
         <p class="control"
-           style="border-bottom-color: lightgrey; border-bottom-width: 1px; border-bottom-style: solid"
+           style="border-bottom-color: #999A9B; border-bottom-width: 3px; border-bottom-style: solid"
            data-bind="if: editorSection() === 'diagram'">
             <a class="button" data-bind="click: function() { viewModel.diagram.zoomOut() }" style="float: left">
                 <span class="icon">
@@ -54,19 +56,21 @@
         <div class="input-div">
             <input class="input" type="text" data-bind="value: baseUrl">
         </div>
+        <!--
         <div>
             <a data-bind="click: doParse, attr: {disabled: !canParse()}"
                class="button is-primary">
                 Parse
             </a>
         </div>
-        
+        -->
     </form>
     <div id="graph-container" style="overflow: auto" data-bind="visible: editorSection() === 'diagram'">
         <div id="graph-container-inner"></div>
     </div>
     <div id="query"
          class="imported box"
+         style="overflow: auto"
          data-bind="visible: editorSection() === 'query'">
         <p class="control">
         <span class="select">
@@ -97,5 +101,10 @@
             </tr>
             </tbody>
         </table>
+    </div>
+    <div id="query-pagination" style="margin-bottom: 40px" data-bind="if: query.currentPage() !== -1 && editorSection() === 'diagram'">
+        <div><a style="color: #14A7DE; font-weight:bolder; float: left; margin-left: 10px" data-bind="click: query.previousPage.bind(query)">prev</a></div>
+        <span style="float: left; margin-left: 10px" data-bind="text: 'page ' + (query.currentPage() + 1) + ' of ' + Math.ceil(query.results.length / query.perPage)">page</span>
+        <div><a style="color: #14A7DE; font-weight:bolder; float:left; margin-left: 10px" data-bind="click: query.nextPage.bind(query)">next</a></div>
     </div>
 </div>

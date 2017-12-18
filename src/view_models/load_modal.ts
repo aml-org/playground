@@ -1,5 +1,4 @@
 import * as ko from "knockout";
-import { AmfPlaygroundWindow } from "../main/amf_playground_window";
 
 export type ParserType = "raml" | "open-api";
 export class LoadFileEvent {
@@ -25,6 +24,7 @@ export class LoadModal {
         { name: "Spotify (RAML)", key: "raml", url: getBaseUrl() + "raml/spotify/api.raml" },
         { name: "Pet Store API (Open API)", key: "open-api", url: getBaseUrl() + "openapi/petstore.json" },
         { name: "Uber API (Open API)", key: "open-api", url: getBaseUrl() + "openapi/uber.json" },
+        /*
         { name: "Api/test001 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Api/test001/api.raml" },
         { name: "Api/test003 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Api/test003/api.raml" },
         { name: "Api/test004 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Api/test004/api.raml" },
@@ -47,6 +47,7 @@ export class LoadModal {
         { name: "MethodRresponses/test001 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/MethodResponses/test001/methResp01.raml" },
         { name: "MethodRresponses/test002 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/MethodResponses/test002/methResp02.raml" },
         { name: "MethodRresponses/test005 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/MethodResponses/test005/methResp05.raml" }
+        */
     ]);
 
     public selectedParserType: KnockoutObservable<any> = ko.observable<any>(this.parserTypes[0]);

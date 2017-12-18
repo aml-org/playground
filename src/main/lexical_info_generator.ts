@@ -10,6 +10,7 @@ const apiModelGenerator = new apiFramework.__GT_APIModelGenerator();
 export type LexicalSyntaxes = "raml" | "open-api" | "api-model";
 
 export class LexicalInfoGenerator {
+    /*
     private lexicalInfoMaps: {[syntax: string]: any} = {};
     public text: {[syntax: string]: string} = {};
     jsonldGenerator: (cb) => any;
@@ -309,4 +310,5 @@ export class LexicalInfoGenerator {
             }
         }
     }
+    */
 }

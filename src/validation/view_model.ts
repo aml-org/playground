@@ -3,24 +3,10 @@
  */
 
 import * as ko from "knockout";
-import {Shape} from "amf-js/src/core/domain/shapes/Shape";
-import {AMF} from "amf-js/index";
-import {Type} from "amf-js/src/core/domain/Type";
+import * as amf from "@mulesoft/amf-client-js";
+import Shape = amf.model.domain.Shape
+
 export type NavigatorSection = "shapes" | "errors"
-
-interface ValidationError {
-    constraint: string;
-    focus: string;
-    message: string;
-    "result-path": string;
-    severity: string;
-    shape: string;
-}
-
-interface ValidationReport {
-    conforms: true;
-    "validation-results": any[]
-}
 
 const createModel = function(text, mode) {
     return window["monaco"].editor.createModel(text, mode);
@@ -28,12 +14,10 @@ const createModel = function(text, mode) {
 
 export class ViewModel {
 
-    private validator = new window['api_modeling_framework'].core.DataValidator();
-
     public navigatorSection: KnockoutObservable<NavigatorSection> = ko.observable<NavigatorSection>("shapes");
     
     public shapes: KnockoutObservableArray<Shape> = ko.observableArray<Shape>([]);
-    public errors: KnockoutObservableArray<ValidationError> = ko.observableArray<ValidationError>([]);
+    public errors: KnockoutObservableArray<amf.validation.AMFValidationResult> = ko.observableArray<amf.validation.AMFValidationResult>([]);
 
     public editorSection: KnockoutObservable<string> = ko.observable<string>("raml");
 
@@ -45,65 +29,68 @@ export class ViewModel {
     public modelSyntax: string | null = null;
     public modelText: string | null = null;
 
+    public init(): Promise<any> {
+        amf.plugins.features.AMFValidation.register();
+        amf.plugins.document.Vocabularies.register();
+        amf.plugins.document.WebApi.register();
+        return amf.Core.init();
+    }
+
     public constructor(public dataEditor: any, public shapeEditor: any) {
         const parsingFn = () => {
             if (this.editorSection() === "raml") {
                 const toParse = "#%RAML 1.0 DataType\n" + shapeEditor.getValue();
-                AMF.RAMLParser.parseString(toParse, "https://mulesoft-labs.github.io/amf-playground", {}, (e, parsed) => {
-                    if (e == null) {
-                        const oldShape = this.selectedShape();
-                        const oldShapes = this.shapes();
-                        const oldErrors = this.errors();
-                        try {
-                            if (parsed.encodes() instanceof Type && (parsed.encodes() as Type).getShape() != null) {
-                                this.model = parsed;
-                                this.modelSyntax = 'raml';
-                                this.modelText = shapeEditor.getValue();
+                amf.Core.parser("RAML 1.0", "application/yaml").parseStringAsync(toParse).then((parsed: amf.model.document.Document) => {
+                    const oldShape = this.selectedShape();
+                    const oldShapes = this.shapes();
+                    const oldErrors = this.errors();
+                    try {
+                        if (parsed.encodes != null && parsed.encodes instanceof Shape) {
+                            this.model = parsed;
+                            this.modelSyntax = 'raml';
+                            this.modelText = shapeEditor.getValue();
 
-                                const parsedShape = (parsed.encodes() as Type).getShape();
-                                this.selectedShape(parsedShape);
-                                this.shapes([parsedShape]);
-                                this.doValidate();
-                            }
-                        } catch (e) {
-                            console.log("Exception parsing shape");
-                            console.log(e);
-                            this.selectedShape(oldShape);
-                            this.shapes(oldShapes);
-                            this.errors(oldErrors);
+                            const parsedShape = parsed.encodes as Shape;
+                            this.selectedShape(parsedShape);
+                            this.shapes([parsedShape]);
+                            this.doValidate();
                         }
-                    } else {
-                        console.log("Error parsing RAML Type");
+                    } catch (e) {
+                        console.log("Exception parsing shape");
+                        console.log(e);
+                        this.selectedShape(oldShape);
+                        this.shapes(oldShapes);
+                        this.errors(oldErrors);
                     }
-                });
+                }).catch((e) => {
+                    console.log("Error parsing RAML Type");
+                })
             } else if (this.editorSection() === "open-api") {
-                AMF.OpenAPIParser.parseString(this.shapeEditor.getValue(), "https://mulesoft-labs.github.io/amf-playground", {}, (e, parsed) => {
-                    if (e == null) {
-                        const oldShape = this.selectedShape();
-                        const oldShapes = this.shapes();
-                        const oldErrors = this.errors();
-                        try {
-                            if (parsed.encodes() instanceof Type && (parsed.encodes() as Type).getShape() != null) {
-                                this.model = parsed;
-                                this.modelSyntax = 'open-api';
-                                this.modelText = shapeEditor.getValue();
+                amf.Core.parser("OAS 2.0", "application/json").parseStringAsync(this.shapeEditor.getValue()).then((parsed: amf.model.document.Document) => {
+                    const oldShape = this.selectedShape();
+                    const oldShapes = this.shapes();
+                    const oldErrors = this.errors();
+                    try {
+                        if (parsed.encodes != null && parsed.encodes instanceof Shape) {
+                            this.model = parsed;
+                            this.modelSyntax = 'open-api';
+                            this.modelText = shapeEditor.getValue();
 
-                                const parsedShape = (parsed.encodes() as Type).getShape();
-                                this.selectedShape(parsedShape);
-                                this.shapes([parsedShape]);
-                                this.doValidate();
-                            }
-                        } catch (e) {
-                            console.log("Exception parsing shape");
-                            console.log(e);
-                            this.selectedShape(oldShape);
-                            this.shapes(oldShapes);
-                            this.errors(oldErrors);
+                            const parsedShape = parsed.encodes as Shape;
+                            this.selectedShape(parsedShape);
+                            this.shapes([parsedShape]);
+                            this.doValidate();
                         }
-                    } else {
-                        console.log("Error parsing JSON Schema");
+                    } catch (e) {
+                        console.log("Exception parsing shape");
+                        console.log(e);
+                        this.selectedShape(oldShape);
+                        this.shapes(oldShapes);
+                        this.errors(oldErrors);
                     }
-                });
+                }).cath((e) => {
+                    console.log("Error parsing JSON Schema");
+                })
             } else {
                 const input = JSON.parse(shapeEditor.getValue());
                 const toParse = {
@@ -114,44 +101,48 @@ export class ViewModel {
                     ],
                     "http://raml.org/vocabularies/document#encodes": [input]
                 };
-                AMF.JSONLDParser.parseString(JSON.stringify(toParse), "https://mulesoft-labs.github.io/amf-playground", {}, (e, parsed) => {
-                    if (e == null) {
-                        const oldShape = this.selectedShape();
-                        const oldShapes = this.shapes();
-                        const oldErrors = this.errors();
+                amf.Core.parser("AMF Graph", "application/ld+json").parseStringAsync(toParse).then((parsed) => {
+                    const oldShape = this.selectedShape();
+                    const oldShapes = this.shapes();
+                    const oldErrors = this.errors();
 
-                        try {
-                            if (parsed.encodes() instanceof Type && (parsed.encodes() as Type).getShape() != null) {
-                                this.model = parsed;
-                                this.modelSyntax = 'api-model';
-                                this.modelText = shapeEditor.getValue();
-                                const parsedShape = (parsed.encodes() as Type).getShape();
-                                this.selectedShape(parsedShape);
-                                this.shapes([parsedShape]);
-                                this.doValidate();
-                            }
-                        } catch (e) {
-                            console.log("Exception parsing shape");
-                            console.log(e);
-                            this.selectedShape(oldShape);
-                            this.shapes(oldShapes);
-                            this.errors(oldErrors);
+                    try {
+                        if (parsed.encodes != null && parsed.encodes instanceof Shape) {
+                            this.model = parsed;
+                            this.modelSyntax = 'api-model';
+                            this.modelText = shapeEditor.getValue();
+                            const parsedShape = parsed.encodes as Shape;
+                            this.selectedShape(parsedShape);
+                            this.shapes([parsedShape]);
+                            this.doValidate();
                         }
-                    } else {
-                        console.log("Error parsing SHACL constraint");
+                    } catch (e) {
+                        console.log("Exception parsing shape");
+                        console.log(e);
+                        this.selectedShape(oldShape);
+                        this.shapes(oldShapes);
+                        this.errors(oldErrors);
                     }
+                }).catch((e) => {
+                    console.log("Error parsing SHACL constraint");
                 });
             }
         };
         this.editorSection.subscribe((section) => this.onEditorSectionChange(section));
-        parsingFn();
+        this.init().then(() => {
+            parsingFn();
+        }).catch((e) => {
+            console.log("ERROR!!! " + e);
+        });
+
         shapeEditor.onDidChangeModelContent(parsingFn);
         dataEditor.onDidChangeModelContent(parsingFn);
     }
 
     public hasError(shape: Shape): boolean {
+        console.log("ERROR? " + shape.getId());
         const errors = this.errorsMapShape || {};
-        return errors[(shape.getId()||"").split("#")[1]] || false;
+        return errors[(shape.getId()||"").split("document/type")[1]] || false;
     }
 
     public selectShape(shape: Shape) {
@@ -173,84 +164,47 @@ export class ViewModel {
 
 
     public doValidate() {
-        window['api_modeling_framework'].core.validate(
-            this.validator,
-            this.shapeEditor.getValue(),
-            "raml",
-            this.dataEditor.getValue(),
-            (e, report: ValidationReport) => {
-                if (e) {
-                    alert(`Error validating shape: ${e}`)
-                } else {
-                    this.errors(report['validation-results']);
-                    this.errorsMapShape = this.errors()
-                        .map(e => e["shape"].split("AnonShape")[1])
-                        .reduce((a, s) => { a[s] = true; return a}, {});
-                    // just triggering a redraw
-                    const last = this.shapes.pop();
-                    this.shapes.push(last);
-                    window['resizeFn']();
-                }
-            }
-        )
+        amf.Core.parser("AMF Payload", "application/json").parseStringAsync(this.dataEditor.getValue()).then((doc: amf.model.document.Document) => {
+            amf.plugins.document.WebApi.validatePayload(
+                this.selectedShape(),
+                doc.encodes
+            ).then((report) => {
+                this.errors(report.results);
+                this.errorsMapShape = this.errors()
+                    .map(e  => {
+                        console.log(e.validationId.split("document/type")[1]);
+                        return e.validationId.split("document/type")[1]
+                    })
+                    .reduce((a, s) => { a[s] = true; return a}, {});
+                // just triggering a redraw
+                const last = this.shapes.pop();
+                this.shapes.push(last);
+                window['resizeFn']();
+            }).catch((e) => {
+                alert(`Error validating shape: ${e}`)
+            })
+        }).catch((e) => {
+            alert("Error parsing the JSON data");
+        })
+
     }
 
     private onEditorSectionChange(section: string) {
         if (this.model != null) {
              if (section === "raml") {
-                 /*
-                if (this.modelSyntax === "raml" && this.modelText) {
-                    this.shapeEditor.setModel(createModel(this.modelText, "yaml"));
-                } else {
-                */
-                    AMF.RAMLGenerator.generateString(this.model, "https://mulesoft-labs.github.io/amf-playground/validation", {}, (e, parsed) => {
-                        if (e == null) {
-                            let lines = parsed.split("\n");
-                            lines.shift();
-                            this.shapeEditor.setModel(createModel(lines.join("\n"), "yaml"));
-                        } else {
-                            alert("Error generating RAML Type text");
-                        }
-                    });
-                    /*
-                }
-                */
+                 const generated = amf.Core.generator("RAML 1.0", "application/yaml").generateString(this.model);
+                 let lines = generated.split("\n");
+                 lines.shift();
+                 this.shapeEditor.setModel(createModel(lines.join("\n"), "yaml"));
             } else if (section === "open-api") {
-                 /*
-                if (this.modelSyntax === "open-api" && this.modelText) {
-                    this.shapeEditor.setModel(createModel(this.modelText, "json"));
-                } else {
-                */
-                    AMF.OpenAPIGenerator.generateString(this.model, "https://mulesoft-labs.github.io/amf-playground/validation", {}, (e, parsed) => {
-                        if (e == null) {
-                            const json = JSON.parse(parsed);
-                            const shape = json;
-                            this.shapeEditor.setModel(createModel(JSON.stringify(shape, null, 2), "json"));
-                        } else {
-                            alert("Error generating RAML Type text");
-                        }
-                    });
-                    /*
-                }
-                */
+                 const generated = amf.Core.generator("OAS 2.0", "application/json").generateString(this.model);
+                 const shape = JSON.parse(generated);
+                 this.shapeEditor.setModel(createModel(JSON.stringify(shape, null, 2), "json"));
             } else if (section === "api-model") {
-                 /*
-                if (this.modelSyntax === "api-model" && this.modelText) {
-                    this.shapeEditor.setModel(createModel(this.modelText, "json"));
-                } else {
-                */
-                    AMF.JSONLDGenerator.generateString(this.model, "https://mulesoft-labs.github.io/amf-playground/validation", {}, (e, parsed) => {
-                        if (e == null) {
-                            const json = JSON.parse(parsed);
-                            const shape = json["http://raml.org/vocabularies/document#encodes"][0];
-                            this.shapeEditor.setModel(createModel(JSON.stringify(shape, null, 2), "json"));
-                        } else {
-                            alert("Error generating RAML Type text");
-                        }
-                    });
-                    /*
-                }
-                */
+                 const generated = amf.Core.generator("RAML Graph", "application/ld+json").generateString(this.model);
+                 const json = JSON.parse(generated);
+                 const shape = json[0]["http://raml.org/vocabularies/document#encodes"][0];
+                 this.shapeEditor.setModel(createModel(JSON.stringify(shape, null, 2), "json"));
             }
             window['resizeFn']();
         }

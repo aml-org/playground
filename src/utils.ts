@@ -1,4 +1,4 @@
-import {extract_value, LABEL, NAME} from "./main/domain_model";
+import {extract_value, LABEL, NAME, SHACL_NAME} from "./main/domain_model";
 export function label(uri: string): string {
     if (uri.indexOf("#") > -1) {
         const hashPart = uri.split("#")[1];
@@ -19,7 +19,7 @@ export function absoluteURL(url): string {
 
 export function nestedLabel(parent: any, child: any): string {
     const uri = child["@id"];
-    const label = extract_value(child, NAME) || extract_value(child, LABEL);
+    const label = extract_value(child, NAME) || extract_value(child, LABEL) || extract_value(child, SHACL_NAME);
     if (label != null) {
         return label;
     } else {
