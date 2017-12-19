@@ -184,7 +184,8 @@ export class ViewModel {
                 alert(`Error validating shape: ${e}`)
             })
         }).catch((e) => {
-            alert("Error parsing the JSON data");
+
+            // alert("Error parsing the JSON data");
         })
 
     }

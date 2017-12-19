@@ -102,7 +102,7 @@
             </tbody>
         </table>
     </div>
-    <div id="query-pagination" style="margin-bottom: 40px" data-bind="if: query.currentPage() !== -1 && editorSection() === 'diagram'">
+    <div id="query-pagination" style="margin-bottom: 40px" data-bind="if: query.currentPage() !== -1 && editorSection() === 'query'">
         <div><a style="color: #14A7DE; font-weight:bolder; float: left; margin-left: 10px" data-bind="click: query.previousPage.bind(query)">prev</a></div>
         <span style="float: left; margin-left: 10px" data-bind="text: 'page ' + (query.currentPage() + 1) + ' of ' + Math.ceil(query.results.length / query.perPage)">page</span>
         <div><a style="color: #14A7DE; font-weight:bolder; float:left; margin-left: 10px" data-bind="click: query.nextPage.bind(query)">next</a></div>

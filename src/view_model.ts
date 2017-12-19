@@ -96,8 +96,9 @@ export class ViewModel {
 
         // events we are subscribed
         this.loadModal.on(LoadModal.LOAD_FILE_EVENT, (data: LoadFileEvent) => {
-            window["AMF_LOADING_EVENT"](data.location);
+            this.lastLoadedFile(data.location);
             this.amfPlaygroundWindow.parseModelFile(data.type, data.location, (err, model) => {
+                this.lastLoadedFile("Refreshing user interface");
                 if (err) {
                     console.log(err);
                     alert(err);
@@ -111,6 +112,7 @@ export class ViewModel {
                     this.resetReferences();
                     this.resetDocuments();
                     this.resetDiagram();
+                    this.lastLoadedFile(undefined);
                 }
             });
         });

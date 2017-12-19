@@ -31,15 +31,20 @@ export class ViewModel {
 
     public apply(location: Node) {
         window["viewModel"] = this;
-        ko.applyBindings(this);
-        this.editorSection.subscribe((value) => {
-            if (value === 'graph') {
-                if (this.graph != null) {
-                    this.graph.clear();
-                }
+        amf.plugins.features.AMFValidation.register();
+        amf.plugins.document.Vocabularies.register();
+        amf.plugins.document.WebApi.register();
+        amf.Core.init().then(() => {
+            ko.applyBindings(this);
+            this.editorSection.subscribe((value) => {
+                if (value === 'graph') {
+                    if (this.graph != null) {
+                        this.graph.clear();
+                    }
 
-                this.graph = new Graph(this.diff());
-            }
+                    this.graph = new Graph(this.diff());
+                }
+            });
         });
     }
 
