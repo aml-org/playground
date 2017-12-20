@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 
 <div class="box imported is-paddingless">
-    <nav class="nav">
-        <div class="nav-left nav-menu">
-            <span class="logo-wrapper nav-item">
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div class="logo-wrapper navbar-item">
                 <span class="nav-logo-img">
                     <img src='./images/amfLogo.svg'>
                 </span>
-                <span class="nav-logo-text">Validation</span>
-            </span>
-            <div class="nav-right nav-menu">
-                <div class="nav-item">
-                    <span style="font-size: 14px; font-weight: bolder" class="tag is-success" data-bind="visible: (errors()||[]).length === 0">No Errors</span>
-                    <span style="font-size: 14px; font-weight: bolder" class="tag is-danger" data-bind="visible: (errors()||[]).length > 0, text: ((errors()||[]).length)+' errors'"></span>
-                </div>
+                <span style="color:white; margin-left: 5px" class="nav-logo-text" class="nav-logo-text">Validation</span>
+            </div>
+        </div>
+        <div class="navbar-start navbar-menu">
+        </div>
+        <div class="navbar-end nav-menu">
+            <div class="navbar-item">
+                <span style="font-size: 14px; font-weight: bolder" class="tag is-success" data-bind="visible: (errors()||[]).length === 0">No Errors</span>
+                <span style="font-size: 14px; font-weight: bolder" class="tag is-danger" data-bind="visible: (errors()||[]).length > 0, text: ((errors()||[]).length)+' errors'"></span>
             </div>
         </div>
     </nav>

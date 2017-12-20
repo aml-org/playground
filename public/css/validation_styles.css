@@ -67,37 +67,37 @@ html {
     margin-bottom: -3px;
     opacity: 1; }
 
-.nav {
+.navbar {
     background-image: url("../images/header.svg");
     position: relative;
     padding: 5px 0; }
-.nav .nav-item .select select {
+navbar navbar-item .select select {
     background-color: transparent;
     color: #ffffff;
     border: none;
     border-radius: 0; }
-.nav .nav-item .select select option {
+navbar navbar-item .select select option {
     color: #000; }
-.nav .nav-item .select select option:hover {
+navbar navbar-item .select select option:hover {
     color: #ffffff; }
-.nav .nav-item .select:after {
+navbar navbar-item .select:after {
     border-color: #ffffff; }
-.nav .nav-item a.button {
+navbar navbar-item a.button {
     border-radius: 0;
     color: #00A2DF;
     border: 1px solid #00A2DF;
     background-color: transparent;
     position: absolute;
     right: 200px; }
-.nav .logo-wrapper {
+navbar .logo-wrapper {
     color: #ffffff;
     font-family: Open Sans, sans-serif; }
-.nav .logo-wrapper .nav-logo-text {
+navbar .logo-wrapper navbar-logo-text {
     font-size: 20px;
     margin: 0 8px 0 13px; }
-.nav .logo-wrapper .nav-logo-img {
+navbar .logo-wrapper navbar-logo-img {
     margin-left: 10px; }
-.nav .logo-wrapper .super {
+navbar .logo-wrapper .super {
     margin-bottom: 8px; }
 
 .editor-container {

@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 
 <div class="box imported is-paddingless">
-    <nav class="nav">
-        <div class="nav-left nav-menu">
-            <span class="logo-wrapper nav-item">
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div class="logo-wrapper navbar-item">
                 <span class="nav-logo-img">
                     <img src='./images/amfLogo.svg'>
                 </span>
-                <span class="nav-logo-text">Playground</span>
-            </span>
-            <span class="nav-item">
+                <span style="color:white; margin-left: 5px" class="nav-logo-text" class="nav-logo-text">Validation</span>
+            </div>
+        </div>
+        <div class="navbar-start navbar-menu">
+        </div>
+        <div class="navbar-end navbar-menu">
+            <span class="navbar-item">
                 <a class="button" data-bind="click: loadModal.show.bind(loadModal)">
                     <span class="icon">
                         <i class="fa fa-folder-open-o"></i>
@@ -17,9 +21,7 @@
                     <span>Load API Specification</span>
                 </a>
             </span>
-        </div>
-        <div class="nav-right">
-            <span class="nav-item">
+            <span class="navbar-item">
                 <p class="control">
                     <!-- <label class="label">Level</label> -->
                     <span class="select">

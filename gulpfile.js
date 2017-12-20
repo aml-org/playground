@@ -108,7 +108,7 @@ gulp.task('serve', ["bower"], function () {
     bundle();
     browserSync.init({
         server: "public",
-        startPath: "/index.html"
+        startPath: "/playground.html"
     });
 });
 
