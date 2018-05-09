@@ -119,10 +119,34 @@ function bundleVocabs() {
         .pipe(browserSync.stream({once: true}));
 }
 
+const optionsCustomValidation = {"standalone":"amf_playground_custom_validation"};
+const bCustomValidation = watchify(browserify(optionsCustomValidation));
+function bundleCustomValidation() {
+    return bCustomValidation
+        .add([
+            "src/custom_validation/view_model.ts"
+        ])
+        .plugin(tsify, { target: 'es5' })
+        //.transform(babelify, { extensions: [ '.tsx', '.ts' ] })
+        .bundle()
+        // log errors if they happen
+        .on('error', gutil.log.bind(gutil, 'Browserify Error'))
+        .pipe(source('amf_playground_custom_validation.js'))
+        // optional, remove if you don't need to buffer file contents
+        .pipe(buffer())
+        // optional, remove if you dont want sourcemaps
+        .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
+        // Add transformation tasks to the pipeline here.
+        .pipe(sourcemaps.write('./')) // writes .map file
+        .pipe(gulp.dest('./public/js'))
+        .pipe(browserSync.stream({once: true}));
+}
+
 
 gulp.task('bundle_validation', bundleValidation); // so you can run `gulp js` to build the file
 gulp.task('bundle_diff', bundleDiff); // so you can run `gulp js` to build the file
 gulp.task('bundle_vocabs', bundleVocabs); // so you can run `gulp js` to build the file
+gulp.task('bundle_custom_validation', bundleCustomValidation); // so you can run `gulp js` to build the file
 gulp.task('bundle', bundle); // so you can run `gulp js` to build the file
 b.on('update', bundle); // on any dep update, runs the bundler
 b.on('log', gutil.log); // output build logs to terminal
@@ -158,5 +182,13 @@ gulp.task('serve_vocabs', ["bower"], function () {
     browserSync.init({
         server: "public",
         startPath: "/vocabularies.html"
+    });
+});
+
+gulp.task('serve_custom_validation', ["bower"], function () {
+    bundleCustomValidation();
+    browserSync.init({
+        server: "public",
+        startPath: "/custom_validation.html"
     });
 });
