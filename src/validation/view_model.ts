@@ -3,8 +3,9 @@
  */
 
 import * as ko from "knockout";
-import * as amf from "@mulesoft/amf-client-js";
-import Shape = amf.model.domain.Shape
+import * as amf from "amf-client-js";
+import AnyShape = amf.model.domain.AnyShape
+
 
 export type NavigatorSection = "shapes" | "errors"
 
@@ -16,12 +17,12 @@ export class ViewModel {
 
     public navigatorSection: KnockoutObservable<NavigatorSection> = ko.observable<NavigatorSection>("shapes");
     
-    public shapes: KnockoutObservableArray<Shape> = ko.observableArray<Shape>([]);
-    public errors: KnockoutObservableArray<amf.validation.AMFValidationResult> = ko.observableArray<amf.validation.AMFValidationResult>([]);
+    public shapes: KnockoutObservableArray<AnyShape> = ko.observableArray<AnyShape>([]);
+    public errors: KnockoutObservableArray<amf.validate.ValidationResult> = ko.observableArray<amf.validate.ValidationResult>([]);
 
     public editorSection: KnockoutObservable<string> = ko.observable<string>("raml");
 
-    public selectedShape: KnockoutObservable<Shape> = ko.observable<Shape>();
+    public selectedShape: KnockoutObservable<AnyShape> = ko.observable<AnyShape>();
     public selectedError: KnockoutObservable<any> = ko.observable<any>();
     public errorsMapShape: {[id: string]: boolean} = {};
 
@@ -29,11 +30,13 @@ export class ViewModel {
     public modelSyntax: string | null = null;
     public modelText: string | null = null;
 
+    public changesFromLastUpdate = 0;
+    public documentModelChanged = false;
+    public RELOAD_PERIOD = 1000;
+
+
     public init(): Promise<any> {
-        amf.plugins.features.AMFValidation.register();
-        amf.plugins.document.Vocabularies.register();
-        amf.plugins.document.WebApi.register();
-        return amf.Core.init();
+        return amf.AMF.init();
     }
 
     public constructor(public dataEditor: any, public shapeEditor: any) {
@@ -45,12 +48,12 @@ export class ViewModel {
                     const oldShapes = this.shapes();
                     const oldErrors = this.errors();
                     try {
-                        if (parsed.encodes != null && parsed.encodes instanceof Shape) {
+                        if (parsed.encodes != null && parsed.encodes instanceof AnyShape) {
                             this.model = parsed;
                             this.modelSyntax = 'raml';
                             this.modelText = shapeEditor.getValue();
 
-                            const parsedShape = parsed.encodes as Shape;
+                            const parsedShape = parsed.encodes as AnyShape;
                             this.selectedShape(parsedShape);
                             this.shapes([parsedShape]);
                             this.doValidate();
@@ -71,12 +74,12 @@ export class ViewModel {
                     const oldShapes = this.shapes();
                     const oldErrors = this.errors();
                     try {
-                        if (parsed.encodes != null && parsed.encodes instanceof Shape) {
+                        if (parsed.encodes != null && parsed.encodes instanceof AnyShape) {
                             this.model = parsed;
                             this.modelSyntax = 'open-api';
                             this.modelText = shapeEditor.getValue();
 
-                            const parsedShape = parsed.encodes as Shape;
+                            const parsedShape = parsed.encodes as AnyShape;
                             this.selectedShape(parsedShape);
                             this.shapes([parsedShape]);
                             this.doValidate();
@@ -88,7 +91,7 @@ export class ViewModel {
                         this.shapes(oldShapes);
                         this.errors(oldErrors);
                     }
-                }).cath((e) => {
+                }).catch((e) => {
                     console.log("Error parsing JSON Schema");
                 })
             } else {
@@ -101,17 +104,17 @@ export class ViewModel {
                     ],
                     "http://raml.org/vocabularies/document#encodes": [input]
                 };
-                amf.Core.parser("AMF Graph", "application/ld+json").parseStringAsync(toParse).then((parsed) => {
+                amf.Core.parser("AMF Graph", "application/ld+json").parseStringAsync(JSON.stringify(toParse)).then((parsed: amf.model.document.Document) => {
                     const oldShape = this.selectedShape();
                     const oldShapes = this.shapes();
                     const oldErrors = this.errors();
 
                     try {
-                        if (parsed.encodes != null && parsed.encodes instanceof Shape) {
+                        if (parsed.encodes != null && parsed.encodes instanceof AnyShape) {
                             this.model = parsed;
                             this.modelSyntax = 'api-model';
                             this.modelText = shapeEditor.getValue();
-                            const parsedShape = parsed.encodes as Shape;
+                            const parsedShape = parsed.encodes as AnyShape;
                             this.selectedShape(parsedShape);
                             this.shapes([parsedShape]);
                             this.doValidate();
@@ -135,18 +138,41 @@ export class ViewModel {
             console.log("ERROR!!! " + e);
         });
 
-        shapeEditor.onDidChangeModelContent(parsingFn);
-        dataEditor.onDidChangeModelContent(parsingFn);
+        shapeEditor.onDidChangeModelContent(() => {
+            this.changesFromLastUpdate++;
+            this.documentModelChanged = true;
+            ((number) => {
+                setTimeout(() => {
+                    if (this.changesFromLastUpdate === number) {
+                        this.changesFromLastUpdate = 0;
+                        parsingFn()
+                    }
+                }, this.RELOAD_PERIOD);
+            })(this.changesFromLastUpdate);
+        });
+        dataEditor.onDidChangeModelContent(() => {
+            this.changesFromLastUpdate++;
+            this.documentModelChanged = true;
+            ((number) => {
+                setTimeout(() => {
+                    if (this.changesFromLastUpdate === number) {
+                        this.changesFromLastUpdate = 0;
+                        parsingFn()
+                    }
+                }, this.RELOAD_PERIOD);
+            })(this.changesFromLastUpdate);
+        });
     }
 
-    public hasError(shape: Shape): boolean {
-        console.log("ERROR? " + shape.getId());
+
+    public hasError(shape: AnyShape): boolean {
+        console.log("ERROR? " + shape.id);
         const errors = this.errorsMapShape || {};
-        return errors[(shape.getId()||"").split("document/type")[1]] || false;
+        return errors[(shape.id||"").split("document/type")[1]] || false;
     }
 
-    public selectShape(shape: Shape) {
-        if (this.selectedShape() == null || this.selectedShape().getId() !== shape.getId()) {
+    public selectShape(shape: AnyShape) {
+        if (this.selectedShape() == null || this.selectedShape().id !== shape.id) {
             this.selectedShape(shape);
         }
     }
@@ -164,11 +190,9 @@ export class ViewModel {
 
 
     public doValidate() {
-        amf.Core.parser("AMF Payload", "application/json").parseStringAsync(this.dataEditor.getValue()).then((doc: amf.model.document.Document) => {
-            amf.plugins.document.WebApi.validatePayload(
-                this.selectedShape(),
-                doc.encodes
-            ).then((report) => {
+        const shape = this.selectedShape();
+        if (shape != null) {
+            shape.validate(this.dataEditor.getValue()).then((report) => {
                 this.errors(report.results);
                 this.errorsMapShape = this.errors()
                     .map(e  => {
@@ -181,31 +205,32 @@ export class ViewModel {
                 this.shapes.push(last);
                 window['resizeFn']();
             }).catch((e) => {
-                alert(`Error validating shape: ${e}`)
+                console.log("Error parsing and validating JSON data");
+                console.error(e)
             })
-        }).catch((e) => {
-
-            // alert("Error parsing the JSON data");
-        })
-
+        }
     }
 
     private onEditorSectionChange(section: string) {
         if (this.model != null) {
              if (section === "raml") {
-                 const generated = amf.Core.generator("RAML 1.0", "application/yaml").generateString(this.model);
-                 let lines = generated.split("\n");
-                 lines.shift();
-                 this.shapeEditor.setModel(createModel(lines.join("\n"), "yaml"));
+                 amf.Core.generator("RAML 1.0", "application/yaml").generateString(this.model).then((generated) => {
+                     let lines = generated.split("\n");
+                     lines.shift();
+                     this.shapeEditor.setModel(createModel(lines.join("\n"), "yaml"));
+                 });
             } else if (section === "open-api") {
-                 const generated = amf.Core.generator("OAS 2.0", "application/json").generateString(this.model);
-                 const shape = JSON.parse(generated);
-                 this.shapeEditor.setModel(createModel(JSON.stringify(shape, null, 2), "json"));
+                 amf.Core.generator("OAS 2.0", "application/json").generateString(this.model).then((generated) => {
+                     const shape = JSON.parse(generated);
+                     delete shape["x-amf-fragmentType"];
+                     this.shapeEditor.setModel(createModel(JSON.stringify(shape, null, 2), "json"));
+                 });
             } else if (section === "api-model") {
-                 const generated = amf.Core.generator("RAML Graph", "application/ld+json").generateString(this.model);
-                 const json = JSON.parse(generated);
-                 const shape = json[0]["http://raml.org/vocabularies/document#encodes"][0];
-                 this.shapeEditor.setModel(createModel(JSON.stringify(shape, null, 2), "json"));
+                 amf.AMF.amfGraphGenerator().generateString(this.model, new amf.render.RenderOptions().withCompactUris).then((generated) => {
+                     const json = JSON.parse(generated);
+                     const shape = json[0]["doc:encodes"][0];
+                     this.shapeEditor.setModel(createModel(JSON.stringify(shape, null, 2), "json"));
+                 });
             }
             window['resizeFn']();
         }

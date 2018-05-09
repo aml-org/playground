@@ -50,7 +50,7 @@
         var loadApp = function(cb) {
             var assets = [
                 "js/amf_playground_diff.js",
-                "bower_components/monaco-editor/release/min/vs/loader.js"
+                "js/monaco-editor/min/vs/loader.js"
             ];
             var loaded = 0;
             var preload = new createjs.LoadQueue();
@@ -94,7 +94,7 @@
                     }
                 }
 
-                require.config({paths: {'vs': 'bower_components/monaco-editor/release/min/vs'}});
+                require.config({paths: {'vs': 'js/monaco-editor/min/vs'}});
                 require(['vs/editor/editor.main'], function () {
 
                     var resize = function () {
@@ -153,7 +153,10 @@
                             '          properties:\n' +
                             '            description: string'
                         ].join('\n'),
-                        language: 'yaml'
+                        language: 'yaml',
+                        minimap: {
+                            enabled: false
+                        }
                     });
 
                     var editorRight = monaco.editor.create(document.getElementById("editor-right-container"), {
@@ -205,7 +208,10 @@
                             '/products:\n' +
                             '  get:'
                         ].join('\n'),
-                        language: 'yaml'
+                        language: 'yaml',
+                        minimap: {
+                            enabled: false
+                        }
                     });
 
                     window.appModel = new amf_playground_diff.ViewModel(editorLeft,editorRight);

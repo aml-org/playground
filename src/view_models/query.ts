@@ -8,14 +8,13 @@ import {ViewModel} from "../view_model";
 import {SelectResults} from "rdfstore";
 import {Bindings} from "rdfstore";
 
-class PredefinedQuery {
+export class PredefinedQuery {
     constructor(public name: string, public text: string) {}
 }
 
 export class Query {
 
     private store: Store;
-    private viewModel: ViewModel = (window['viewModel'] as ViewModel);
     public text: KnockoutObservable<string> = ko.observable<string>("SELECT * { ?s ?p ?o }");
     public variables: KnockoutObservableArray<string> = ko.observableArray<string>([]);
     public results = [];
@@ -90,6 +89,9 @@ ORDER BY DESC(?property)`),
                 this.store.registerDefaultNamespace("rdfs", RDFS_NS);
                 this.store.registerDefaultNamespace("xsd", XSD_NS);
                 this.store.registerDefaultNamespace("schema-org", SCHEMA_ORG_NS);
+                this.store.registerDefaultNamespace("meta", "http://raml.org/vocabularies/meta#");
+                this.store.registerDefaultNamespace("music", "http://mulesoft.com/vocabularies/music#");
+                this.store.registerDefaultNamespace("music-curation", "http://mulesoft.com/vocabularies/music_curation#");
 
                 store.load("application/ld+json", jsonld, ((err) => {
                     if (err) {
@@ -121,7 +123,6 @@ ORDER BY DESC(?property)`),
     }
 
     nextPage() {
-        debugger;
         if (this.currentPage() < this.totalPages) {
             this.currentPage(this.currentPage() + 1)
         }

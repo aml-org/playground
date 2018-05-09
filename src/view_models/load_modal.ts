@@ -22,32 +22,8 @@ export class LoadModal {
         { name: "World Music API (RAML)", key: "raml", url: getBaseUrl() + "raml/world-music-api/api.raml" },
         { name: "Mobile Order API (RAML)", key: "raml", url: getBaseUrl() + "raml/mobile-order-api/api.raml" },
         { name: "Spotify (RAML)", key: "raml", url: getBaseUrl() + "raml/spotify/api.raml" },
-        { name: "Pet Store API (Open API)", key: "open-api", url: getBaseUrl() + "openapi/petstore.json" },
-        { name: "Uber API (Open API)", key: "open-api", url: getBaseUrl() + "openapi/uber.json" },
-        /*
-        { name: "Api/test001 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Api/test001/api.raml" },
-        { name: "Api/test003 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Api/test003/api.raml" },
-        { name: "Api/test004 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Api/test004/api.raml" },
-        { name: "Fragments/test001 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Fragments/test001/fragment.raml" },
-        { name: "Fragments/test004 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Fragments/test004/DataType.raml" },
-        { name: "Fragments/test005 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Fragments/test005/Trait.raml" },
-        { name: "Methods/test001 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Methods/test001/meth01.raml" },
-        { name: "Methods/test002 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Methods/test002/meth02.raml" },
-        { name: "Methods/test003 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Methods/test003/meth03.raml" },
-        { name: "Resources/test001 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Resources/test001/api.raml" },
-        { name: "Resources/test002 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Resources/test002/api.raml" },
-        { name: "Responses/test001 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Responses/test001/api.raml" },
-        { name: "Responses/test002 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Responses/test002/api.raml" },
-        { name: "Responses/test003 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Responses/test003/api.raml" },
-        { name: "Traits/test001 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Traits/test001/apiValid.raml" },
-        { name: "Types/test001 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Types/test001/apiValid.raml" },
-        { name: "Types/test003 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Types/test003/apiValid.raml" },
-        { name: "Types/test004 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Types/test004/apiValid.raml" },
-        { name: "Annotations/test001 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/Annotations/test001/apiValid.raml" },
-        { name: "MethodRresponses/test001 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/MethodResponses/test001/methResp01.raml" },
-        { name: "MethodRresponses/test002 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/MethodResponses/test002/methResp02.raml" },
-        { name: "MethodRresponses/test005 (RAML)", key: "raml", url: getBaseUrl() + "raml/tck/raml-1.0/MethodResponses/test005/methResp05.raml" }
-        */
+        { name: "Pet Store API (Open API)", key: "open-api", url: getBaseUrl() + "openapi/petstore.yaml" },
+        { name: "Uber API (Open API)", key: "open-api", url: getBaseUrl() + "openapi/uber.yaml" },
     ]);
 
     public selectedParserType: KnockoutObservable<any> = ko.observable<any>(this.parserTypes[0]);

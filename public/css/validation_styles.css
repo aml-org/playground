@@ -216,3 +216,15 @@ navbar .logo-wrapper .super {
 #report-table  #id-column-header {
     width: 100% !important;
 }
+
+#errors-navigator {
+    font-size: 75%
+}
+
+#shapes-list {
+    font-size: 75%
+}
+
+#shapes-list li {
+    padding: 1px
+}

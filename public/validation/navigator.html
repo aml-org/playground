@@ -30,7 +30,7 @@
                 </span>
             </a>
             <ul class="menu-list">
-                <li data-bind="text: ($data.getId() || '').split('document/type')[1]"></li>
+                <li data-bind="text: ($data.id || '').split('document/type')[1]"></li>
                 <span data-bind="foreach: $data.properties">
                     <span data-bind="template: {name: 'shape-template', data: $data}"></span>
                 </span>
@@ -46,12 +46,12 @@
                 </span>
             </a>
             <ul class="menu-list">
-                <li class="navigator-item" data-bind="text: '/' + ($data.path||'').split('#')[1]"></li>
+                <li class="navigator-item" data-bind="text: '/' + ($data.path.value()||'').split('#')[1]"></li>
                 <li data-bind="if: ($data.range != null && $data.range.constructor.name.indexOf('ScalarShape') == -1)">
                     <span data-bind="template: {name: 'shape-template', data: $data.range}"></span>
                 </li>
-                <li data-bind="if: ($data.range != null && $data.range.constructor.name.indexOf('ScalarShape') > -1)">
-                    <h2 data-bind="text: 'xsd:' + ($data.range.dataType ||'').split('#')[1]"></h2>
+                <li data-bind="if: ($data.range.isNull != null && $data.range.constructor.name.indexOf('ScalarShape') > -1)">
+                    <h2 data-bind="text: 'xsd:' + ($data.range.dataType.value() ||'').split('#')[1]"></h2>
                 </li>
             </ul>
         </li>

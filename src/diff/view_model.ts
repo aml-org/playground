@@ -5,7 +5,7 @@
 import * as ko from "knockout";
 import {KnockoutObservable} from "knockout";
 
-import * as amf from "@mulesoft/amf-client-js"
+import * as amf from "amf-client-js"
 import * as jsonld from "jsonld";
 import {HashGenerator} from "./hash_generator";
 import {DiffGenerator, NodeDiff} from "./diff_generator";
@@ -114,17 +114,20 @@ export class ViewModel {
             try {
                 let text = amf.Core
                     .generator("AMF Graph", "application/ld+json")
-                    .generateString(model);
-
-                jsonld.flatten(JSON.parse(text), (e, flattened) => {
-                    if (e == null) {
-                        const g = new HashGenerator(flattened as any[]);
-                        cb(g);
-                    } else {
+                    .generateString(model).then((text) => {
+                        jsonld.flatten(JSON.parse(text), (e, flattened) => {
+                            if (e == null) {
+                                const g = new HashGenerator(flattened as any[]);
+                                cb(g);
+                            } else {
+                                console.log(e);
+                                console.log("Error processing JSON-LD");
+                            }
+                        });
+                    }).catch((e) => {
+                        console.log("Exception parsing shape");
                         console.log(e);
-                        console.log("Error processing JSON-LD");
-                    }
-                });
+                    })
             } catch (e) {
                 console.log("Exception parsing shape");
                 console.log(e);

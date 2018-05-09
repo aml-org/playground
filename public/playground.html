@@ -65,7 +65,7 @@
             var assets = [
                 "./js/amf.js",
                 "./js/amf_playground.js",
-                "monaco-editor/min/vs/loader.js"
+                "js/monaco-editor/min/vs/loader.js"
             ];
             var loaded = 0;
             var preload = new createjs.LoadQueue();
@@ -109,7 +109,7 @@
                     }
                 }
 
-                require.config({paths: {'vs': 'monaco-editor/min/vs'}});
+                require.config({paths: {'vs': 'js/monaco-editor/min/vs'}});
                 require(['vs/editor/editor.main'], function () {
 
                     var resize = function () {

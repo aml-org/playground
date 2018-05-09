@@ -54,7 +54,7 @@
             var assets = [
                 //"./js/amf_bindings.js",
                 "js/amf_playground_validation.js",
-                "bower_components/monaco-editor/release/min/vs/loader.js"
+                "js/monaco-editor/min/vs/loader.js"
             ];
             var loaded = 0;
             var preload = new createjs.LoadQueue();
@@ -98,7 +98,7 @@
                     }
                 }
 
-                require.config({paths: {'vs': 'bower_components/monaco-editor/release/min/vs'}});
+                require.config({paths: {'vs': 'js/monaco-editor/min/vs'}});
                 require(['vs/editor/editor.main'], function () {
 
                     var resize = function () {
@@ -150,7 +150,10 @@
                         value: [
                         '{\n  "name": "Timothy",\n  "surname": "Berners-Lee"\n}'
                         ].join('\n'),
-                        language: 'json'
+                        language: 'json',
+                        minimap: {
+                            enabled: false
+                        }
                     });
 
                     var editorShape = monaco.editor.create(document.getElementById("editor-shape-container"), {
@@ -187,7 +190,10 @@
                             "    required: false\n" +
                             "    type: string"
                         ].join('\n'),
-                        language: 'yaml'
+                        language: 'yaml',
+                        minimap: {
+                            enabled: false
+                        }
                     });
 
 

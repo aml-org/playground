@@ -7,9 +7,9 @@ import {Document, Fragment, Module, DocumentId, Unit, DocumentDeclaration} from 
 import { label } from "./utils";
 import { UI } from "./view_models/ui";
 import { DomainElement, DomainModel } from "./main/domain_model";
-import {Query} from "./view_models/query";
+import {Query, PredefinedQuery} from "./view_models/query";
 import {Diagram} from "./view_models/diagram";
-import * as amf from "@mulesoft/amf-client-js";
+import * as amf from "amf-client-js";
 
 export type NavigatorSection = "files" | "logic" | "domain";
 export type EditorSection = "raml" | "open-api" | "api-model" | "diagram" | "query";
@@ -382,7 +382,7 @@ export class ViewModel {
 
             // We generate the OpenAPI representation
             if (this.selectedParserType() === "open-api" && this.documentLevel === "document" && this.editorSection() === "open-api" && this.model.raw != null) {
-                this.editor.setModel(createModel(this.model.raw, "json"));
+                this.editor.setModel(createModel(this.model.raw, "yaml"));
                 //this.editor['_configuration'].editor.readOnly = false;
             } else {
                 this.model.toOpenAPI(this.documentLevel, this.generationOptions(), (err, string) => {
@@ -391,7 +391,7 @@ export class ViewModel {
                         console.log(err);
                     } else {
                         if (this.editorSection() === "open-api") {
-                            this.editor.setModel(createModel(this.model!.openAPIString, "json"));
+                            this.editor.setModel(createModel(this.model!.openAPIString, "yaml"));
                             //this.editor['_configuration'].editor.readOnly = true;
                         }
                     }
@@ -462,14 +462,14 @@ export class ViewModel {
         } else if (section === "open-api") {
             if (this.model != null) {
                 if (this.selectedParserType() === "open-api" && this.documentLevel === "document" && this.model.raw != null) {
-                    this.editor.setModel(createModel(this.model.raw, "json"));
+                    this.editor.setModel(createModel(this.model.raw, "yaml"));
                     //this.editor['_configuration'].editor.readOnly = false;
                 } else {
-                    this.editor.setModel(createModel(this.model!.openAPIString, "json"));
+                    this.editor.setModel(createModel(this.model!.openAPIString, "yaml"));
                     //this.editor['_configuration'].editor.readOnly = true;
                 }
             } else {
-                this.editor.setModel(createModel("// no model loaded", "json"));
+                this.editor.setModel(createModel("# no model loaded", "yaml"));
                 //this.editor['_configuration'].editor.readOnly = true;
             }
             window['resizeFn']();

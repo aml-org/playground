@@ -8,6 +8,9 @@ export const RDFS_NS: string = "http://www.w3.org/2000/01/rdf-schema#";
 export const SHACL_NS: string = "http://www.w3.org/ns/shacl#";
 export const XSD_NS: string = "http://www.w3.org/2001/XMLSchema#";
 export const SCHEMA_ORG_NS: string = "http://schema.org/";
+export const META: string = "http://raml.org/vocabularies/meta#";
+export const MUSIC: string = "http://mulesoft.com/vocabularies/music#";
+export const MUSIC_CURATION: string = "http://mulesoft.com/vocabularies/music_curation#";
 
 export const NS_MAPPING = {};
 NS_MAPPING[HYDRA_NS]= "hydra";
@@ -19,6 +22,9 @@ NS_MAPPING[RDF_NS]= "rdf";
 NS_MAPPING[RDFS_NS]= "rdfs";
 NS_MAPPING[XSD_NS]= "xsd";
 NS_MAPPING[SCHEMA_ORG_NS]= "schema-org";
+NS_MAPPING[META] = "meta";
+NS_MAPPING[MUSIC] = "music";
+NS_MAPPING[MUSIC_CURATION] = "music-curation";
 
 
 // RDF Classes
@@ -203,7 +209,6 @@ export class DomainModel {[name: string]: any;
     }
 
     private buildAPIDocumentation(encoded: any): DomainElement {
-        debugger;
         if (encoded == null || encoded["@id"] == null) { return undefined }
         console.log("* Building APIDocumentation " + encoded["@id"]);
         const label = this.extractLabel(encoded, "WebAPI");
