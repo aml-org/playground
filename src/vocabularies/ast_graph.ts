@@ -17,7 +17,7 @@ export class AstGraph {
     public maxScale: number = null;
 
     constructor(public dialect: any) {
-        const container = document.getElementById("taxonomyContainer");
+        const container = document.getElementById("taxonomyContainerClasses");
         const data = this.model();
 
         this.options = {
@@ -71,7 +71,7 @@ export class AstGraph {
     resize() {
 
         var height = document.documentElement.clientHeight;
-        var editors = ["taxonomyContainer"];
+        var editors = ["taxonomyContainerClasses"];
         editors.forEach(function (editor) {
             var containerDiv = document.getElementById(editor);
             var style = window.getComputedStyle(containerDiv);
@@ -84,7 +84,7 @@ export class AstGraph {
 
 
     clear() {
-        let container = document.getElementById("taxonomyContainer");
+        let container = document.getElementById("taxonomyContainerClasses");
         container.removeChild(container.firstChild);
     }
 

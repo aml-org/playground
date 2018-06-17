@@ -11,7 +11,7 @@ import {PredefinedQuery, Query} from "../view_models/query";
 import { UI } from "../view_models/ui";
 
 export type NavigatorSection = "files"
-export type Formats = "aml" | "jsonld" | "taxonomy" | "query"
+export type Formats = "aml" | "jsonld" | "taxonomy" | "taxonomy-properties" | "query"
 
 interface Ref {
     name: string,
@@ -153,25 +153,26 @@ export class ViewModel implements amf.resource.ResourceLoader {
             } else if (format === "aml") {
                 this.setEditorRawFileText(ref.aml, "yaml");
                 this.displayErrors(ref);
-            } else if (format === "taxonomy") {
+            } else if (format === "taxonomy" || format === "taxonomy-properties") {
                 if (ref != null && ref.model == null) {
                     this.render(ref, (err) => {
-                        if (err == null && this.selectedFormat() === "taxonomy" && this.selectedReference().url == ref.url) {
+                        if (err == null && (this.selectedFormat() === "taxonomy" || this.selectedFormat() === "taxonomy-properties")&& this.selectedReference().url == ref.url) {
                             if (ref.kind === "document" && ref.jsonld == null) {
                                 this.render(ref, (err) => {
-                                    if (err == null && this.selectedFormat() === "taxonomy" && this.selectedReference().url == ref.url) {
-                                        this.renderGraphs();
+                                    if (err == null && (this.selectedFormat() === "taxonomy" || this.selectedFormat() === "taxonomy-properties") && this.selectedReference().url == ref.url) {
+                                        this.renderGraphs(this.selectedFormat());
                                     }
                                 })
                             } else {
-                                this.renderGraphs();
+                                this.renderGraphs(this.selectedFormat());
                             }
                         }
                     })
                 } else {
-                    this.renderGraphs();
+                    this.renderGraphs(this.selectedFormat());
                 }
             } else if (format === "query") {
+
                 if (this.selectedReference().kind === "vocabulary")
                     this.query.predefinedQueries(this.vocabularyPredefinedQueries);
                 if (this.selectedReference().kind === "dialect")
@@ -216,7 +217,7 @@ export class ViewModel implements amf.resource.ResourceLoader {
         })
     }
 
-    protected renderGraphs() {
+    protected renderGraphs(format: Formats) {
         if (this.selectedReference() && this.selectedReference().kind == "dialect") {
             setTimeout(() => {
                 if (this.astGraph != null) {
@@ -237,7 +238,7 @@ export class ViewModel implements amf.resource.ResourceLoader {
                     this.taxonomy.clear();
                 }
                 const models = this.vocabsFiles().map((vocab) => vocab.model).filter((m) => m != null);
-                this.taxonomy = new Taxonomy(models);
+                this.taxonomy = new Taxonomy(models, format);
             }, 300);
         }
     }

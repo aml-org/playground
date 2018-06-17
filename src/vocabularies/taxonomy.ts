@@ -4,6 +4,7 @@
 
 import * as amf from "amf-client-js";
 import * as vis from 'vis';
+import {Formats} from "./view_model";
 
 interface GraphModel {
     nodes: vis.Node[],
@@ -15,9 +16,11 @@ export class Taxonomy {
     public network: vis.Network;
     public minScale: number = null;
     public maxScale: number = null;
+    public format: Formats;
 
-    constructor(public models: amf.model.document.DeclaresModel[]) {
-        const container = document.getElementById("taxonomyContainer");
+    constructor(public models: amf.model.document.DeclaresModel[], format: Formats) {
+        this.format = format;
+        const container = document.getElementById(this.format === "taxonomy" ? "taxonomyContainerClasses" : "taxonomyContainerProperties");
         const data = this.model();
 
         this.options = {
@@ -72,20 +75,22 @@ export class Taxonomy {
     resize() {
 
         var height = document.documentElement.clientHeight;
-        var editors = ["taxonomyContainer"];
+        var editors = ["taxonomyContainerClasses", "taxonomyContainerProperties"];
         editors.forEach(function (editor) {
             var containerDiv = document.getElementById(editor);
-            var style = window.getComputedStyle(containerDiv);
-            var hidden = style.display == "none";
-            if (!hidden) {
-                containerDiv.setAttribute("style", "height: " + (height - 150) + "px; background-color: #272b30");
+            if (containerDiv != null) {
+                var style = window.getComputedStyle(containerDiv);
+                var hidden = style.display == "none";
+                if (!hidden) {
+                    containerDiv.setAttribute("style", "height: " + (height - 170) + "px; background-color: #272b30");
+                }
             }
         });
     }
 
 
     clear() {
-        let container = document.getElementById("taxonomyContainer");
+        let container = document.getElementById(this.format === "taxonomy" ? "taxonomyContainerClasses" : "taxonomyContainerProperties");
         container.removeChild(container.firstChild);
     }
 
@@ -224,9 +229,16 @@ export class Taxonomy {
                 });
             }
         }
-        return {
-            nodes: classTerms.concat(propertyTerms),
-            edges: acc
-        };
+        if (this.format === "taxonomy-properties") {
+            return {
+                nodes: propertyTerms,
+                edges: acc
+            };
+        } else {
+            return {
+                nodes: classTerms,
+                edges: acc
+            }
+        }
     }
 }

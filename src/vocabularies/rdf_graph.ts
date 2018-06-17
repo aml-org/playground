@@ -19,7 +19,7 @@ export class RdfGraph {
     public nodes: vis.Node[] = [];
 
     constructor(public jsonld: string) {
-        const container = document.getElementById("taxonomyContainer");
+        const container = document.getElementById("taxonomyContainerClasses");
         this.model(JSON.parse(jsonld));
 
         this.options = {
@@ -85,7 +85,7 @@ export class RdfGraph {
     resize() {
 
         var height = document.documentElement.clientHeight;
-        var editors = ["taxonomyContainer"];
+        var editors = ["taxonomyContainerClasses"];
         editors.forEach(function (editor) {
             var containerDiv = document.getElementById(editor);
             var style = window.getComputedStyle(containerDiv);
@@ -98,7 +98,7 @@ export class RdfGraph {
 
 
     clear() {
-        let container = document.getElementById("taxonomyContainer");
+        let container = document.getElementById("taxonomyContainerClasses");
         container.removeChild(container.firstChild);
     }
 

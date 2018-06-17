@@ -16,12 +16,19 @@
             </li>
             <li data-bind="click: () => { selectedFormat('taxonomy') },
                            css: { 'is-active': selectedFormat() === 'taxonomy' }">
-                <a data-bind="text: selectedReference() && selectedReference().kind === 'dialect' ? 'AST Graph' : ( selectedReference() && selectedReference().kind === 'vocabulary' ? 'Taxonomy' : 'Graph')">Taxonomy</a>
+                <a data-bind="text: selectedReference() && selectedReference().kind === 'dialect' ? 'AST Graph' : ( selectedReference() && selectedReference().kind === 'vocabulary' ? 'Classes Taxonomy' : 'Graph')">Taxonomy</a>
+            </li>
+
+            <li data-bind="click: () => { selectedFormat('taxonomy-properties') },
+                           visible: selectedReference() != null && selectedReference().kind === 'vocabulary',
+                           css: { 'is-active': selectedFormat() === 'taxonomy-properties' }">
+                <a data-bind="visible: () => { selectedReference().kind === 'vocabulary' }">Properties Taxonomy</a>
             </li>
         </ul>
     </div>
     <div id="editor-aml-container" class="editor-container" data-bind="visible: selectedFormat() == 'aml' || selectedFormat() == 'jsonld'"></div>
-    <div id="taxonomyContainer" class="graph-container" data-bind="visible: selectedFormat() == 'taxonomy'"></div>
+    <div id="taxonomyContainerClasses" class="graph-container" data-bind="visible: selectedFormat() === 'taxonomy'"></div>
+    <div id="taxonomyContainerProperties" class="graph-container" data-bind="visible: selectedFormat() === 'taxonomy-properties'"></div>
     <div id="query"
          class="imported box"
          style="overflow: auto"
