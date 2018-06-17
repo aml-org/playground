@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+    <link rel="stylesheet" href="bower_components/bulma/css/bulma.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
+    <meta charset="UTF-8">
+    <title>AMF</title>
+</head>
+<body>
+<div class="box imported is-paddingless">
+    <nav class="navbar" style="padding: 10px !important;">
+        <div class="navbar-brand">
+            <div class="logo-wrapper navbar-item">
+                <span class="nav-logo-img">
+                    <img src='./images/amfLogo.svg'>
+                </span>
+            </div>
+        </div>
+        <div class="navbar-end navbar">
+            <div class="navbar-item">
+                <a style="color: white; font-size: 13px; font-weight: bold; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;" target="_blank" href="book">Documentation</a>
+            </div>
+            <div class="navbar-item">
+                <a style="color: white; font-size: 13px; font-weight: bold; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;" target="_blank" href="https://github.com/mulesoft/amf">Code</a>
+            </div>
+            <div class="navbar-item">
+                <a style="color: white; font-size: 13px; font-weight: bold; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;" target="_blank" href="https://github.com/mulesoft/amf-examples">Examples</a>
+            </div>
+            <div class="navbar-item">
+            <div class="dropdown is-right">
+                <div class="dropdown-trigger">
+                    <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                        <span>Demos</span>
+                        <span class="icon is-small">
+                            <i class="fa fa-angle-down" aria-hidden="true"></i>
+                        </span>
+                    </button>
+                </div>
+                <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                    <div class="dropdown-content">
+                        <a target="_blank" href="playground.html" class="dropdown-item">
+                            AMF Playground
+                        </a>
+                        <a target="_blank" href="diff.html" class="dropdown-item">
+                            AMF Diff
+                        </a>
+                        <a target="_blank" href="custom_validation.html" href="#" class="dropdown-item">
+                            AMF Custom Validation
+                        </a>
+                        <a target="_blank" href="validation.html" href="#" class="dropdown-item">
+                            AMF Payload Validation
+                        </a>
+                        <a target="_blank" href="vocabularies.html" href="#" class="dropdown-item">
+                            AMF Vocabularies and Dialects
+                        </a>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </nav>
+</div>
+
+<section class="hero is-primary">
+    <div class="hero-body" style="background-color: #00A2DF">
+        <div class="container">
+            <h1 class="title">
+                MuleSoft's AMF: Modeling Framework and Language
+            </h1>
+            <h2 class="subtitle">
+                Describe anything, connect everything
+            </h2>
+
+            <a style="color: #00A2DF" href="https://github.com/mulesoft/amf" class="button">See the code</a>
+            <a style="color: #00A2DF" href="book" class="button">Read the docs</a>
+        </div>
+    </div>
+</section>
+
+<div style="background-color: #F4F5F6; width: 100%; position: absolute; bottom: 30px; text-align: center;">
+    <img src="./images/powered_by_mulesoft.png">
+</div>
+<script type="application/javascript">
+    var dropdown = document.querySelector('.dropdown');
+    dropdown.addEventListener('click', function(event) {
+        event.stopPropagation();
+        dropdown.classList.toggle('is-active');
+    });
+</script>
+</body>
+</html>

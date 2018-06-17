@@ -1,0 +1,22 @@
+{
+  "name": "amf-book",
+  "version": "1.0.0",
+  "description": "MuleSoft's Application Modeling Framework (AMF) is a set of tools to describe and connect information into a unified knowledge graph in a simple way.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mulesoft-labs/amf-book.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mulesoft-labs/amf-book/issues"
+  },
+  "homepage": "https://github.com/mulesoft-labs/amf-book#readme",
+  "devDependencies": {
+    "gitbook-plugin-header": "^0.1.0"
+  }
+}
