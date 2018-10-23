@@ -1,14 +1,14 @@
 // Namespaces
 export const HYDRA_NS: string = "http://www.w3.org/ns/hydra/core#";
-export const DOCUMENT_NS: string = "http://raml.org/vocabularies/document#";
-export const HTTP_NS: string = "http://raml.org/vocabularies/http#";
-export const SHAPES_NS: string = "http://raml.org/vocabularies/shapes#";
+export const DOCUMENT_NS: string = "http://a.ml/vocabularies/document#";
+export const HTTP_NS: string = "http://a.ml/vocabularies/http#";
+export const SHAPES_NS: string = "http://a.ml/vocabularies/shapes#";
 export const RDF_NS: string = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 export const RDFS_NS: string = "http://www.w3.org/2000/01/rdf-schema#";
 export const SHACL_NS: string = "http://www.w3.org/ns/shacl#";
 export const XSD_NS: string = "http://www.w3.org/2001/XMLSchema#";
 export const SCHEMA_ORG_NS: string = "http://schema.org/";
-export const META: string = "http://raml.org/vocabularies/meta#";
+export const META: string = "http://a.ml/vocabularies/meta#";
 export const MUSIC: string = "http://mulesoft.com/vocabularies/music#";
 export const MUSIC_CURATION: string = "http://mulesoft.com/vocabularies/music_curation#";
 

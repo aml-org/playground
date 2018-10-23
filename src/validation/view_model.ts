@@ -16,7 +16,7 @@ const createModel = function(text, mode) {
 export class ViewModel {
 
     public navigatorSection: KnockoutObservable<NavigatorSection> = ko.observable<NavigatorSection>("shapes");
-    
+
     public shapes: KnockoutObservableArray<AnyShape> = ko.observableArray<AnyShape>([]);
     public errors: KnockoutObservableArray<amf.validate.ValidationResult> = ko.observableArray<amf.validate.ValidationResult>([]);
 
@@ -99,10 +99,10 @@ export class ViewModel {
                 const toParse = {
                     "@id": "https://mulesoft-labs.github.io/amf-playground",
                     "@type": [
-                        "http://raml.org/vocabularies/document#Fragment",
-                        "http://raml.org/vocabularies/document#Unit"
+                        "http://a.ml/vocabularies/document#Fragment",
+                        "http://a.ml/vocabularies/document#Unit"
                     ],
-                    "http://raml.org/vocabularies/document#encodes": [input]
+                    "http://a.ml/vocabularies/document#encodes": [input]
                 };
                 amf.Core.parser("AMF Graph", "application/ld+json").parseStringAsync(JSON.stringify(toParse)).then((parsed: amf.model.document.Document) => {
                     const oldShape = this.selectedShape();

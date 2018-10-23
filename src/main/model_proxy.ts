@@ -146,9 +146,9 @@ export class ModelProxy {
                 const parsed = JSON.parse(res)[0];
                 if (compacted) {
                     const context = {
-                        "raml-doc": "http://raml.org/vocabularies/document#",
-                        "raml-http": "http://raml.org/vocabularies/http#",
-                        "raml-shapes": "http://raml.org/vocabularies/shapes#",
+                        "raml-doc": "http://a.ml/vocabularies/document#",
+                        "raml-http": "http://a.ml/vocabularies/http#",
+                        "raml-shapes": "http://a.ml/vocabularies/shapes#",
                         "hydra": "http://www.w3.org/ns/hydra/core#",
                         "shacl": "http://www.w3.org/ns/shacl#",
                         "schema-org": "http://schema.org/",

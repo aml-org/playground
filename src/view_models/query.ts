@@ -29,34 +29,34 @@ export class Query {
         new PredefinedQuery("All assertions ordered by subject", "SELECT * { ?s ?p ?o } ORDER BY DESC(?s)"),
         new PredefinedQuery("All assertions ordered by predicate", "SELECT * { ?s ?p ?o } ORDER BY DESC(?p)"),
         new PredefinedQuery("All properties in the graph",
-        `SELECT DISTINCT ?property 
- { ?s ?property ?o } 
+        `SELECT DISTINCT ?property
+ { ?s ?property ?o }
 ORDER BY DESC(?property)`),
         new PredefinedQuery("Graph node types", "SELECT ?type ?node { ?node rdf:type ?type } ORDER BY DESC(?type)"),
         new PredefinedQuery("All Documents in the Document Model",
-        `SELECT * { 
+        `SELECT * {
   ?resource rdf:type doc:Unit ;
             rdf:type ?type .
   FILTER (?type != doc:Unit)
 } ORDER BY DESC(?type)`),
         new PredefinedQuery("Resources with methods defining successful responses",
-        `SELECT ?path ?method ?status { 
-        
+        `SELECT ?path ?method ?status {
+
    ?resource rdf:type http:EndPoint ;
              http:path ?path ;
              hydra:supportedOperation ?operation .
-              
+
    ?operation hydra:method ?method ;
               hydra:returns ?response .
-                 
+
    ?response hydra:statusCode ?status .
    FILTER (?status = "200"^^xsd:string) .
-                 
+
 } ORDER BY DESC(?path)`),
         new PredefinedQuery("Encoded Domain elements",
-        `SELECT * { 
-  
-  ?document doc:encodes ?domainElement . 
+        `SELECT * {
+
+  ?document doc:encodes ?domainElement .
   ?domainElement rdf:type ?type .
 
   FILTER (?type != doc:DomainElement) .
@@ -89,7 +89,7 @@ ORDER BY DESC(?property)`),
                 this.store.registerDefaultNamespace("rdfs", RDFS_NS);
                 this.store.registerDefaultNamespace("xsd", XSD_NS);
                 this.store.registerDefaultNamespace("schema-org", SCHEMA_ORG_NS);
-                this.store.registerDefaultNamespace("meta", "http://raml.org/vocabularies/meta#");
+                this.store.registerDefaultNamespace("meta", "http://a.ml/vocabularies/meta#");
                 this.store.registerDefaultNamespace("music", "http://mulesoft.com/vocabularies/music#");
                 this.store.registerDefaultNamespace("music-curation", "http://mulesoft.com/vocabularies/music_curation#");
 

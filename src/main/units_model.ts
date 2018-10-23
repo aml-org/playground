@@ -107,25 +107,25 @@ export class UnitModel {
 
     isDocument(doc: any) {
         return (doc["@type"] || []).filter((type: string) => {
-            return type === "http://raml.org/vocabularies/document#Document"
+            return type === "http://a.ml/vocabularies/document#Document"
         }).length > 0
     }
 
     isModule(doc: any) {
         return (doc["@type"] || []).filter((type: string) => {
-            return type === "http://raml.org/vocabularies/document#Module"
+            return type === "http://a.ml/vocabularies/document#Module"
         }).length > 0
     }
 
     isFragment(doc: any) {
         return (doc["@type"] || []).filter((type: string) => {
-            return type === "http://raml.org/vocabularies/document#Fragment"
+            return type === "http://a.ml/vocabularies/document#Fragment"
         }).length > 0
     }
 
     parseDocument(doc: any, acc) {
         const docId = absoluteURL(doc["@id"]);
-        const declares = (doc["http://raml.org/vocabularies/document#declares"] || []).map((declaration) => {
+        const declares = (doc["http://a.ml/vocabularies/document#declares"] || []).map((declaration) => {
 
             return new DocumentDeclaration(
                 absoluteURL(declaration["@id"]),
@@ -148,7 +148,7 @@ export class UnitModel {
 
     parseModule(doc: any, acc) {
         const docId = absoluteURL(doc["@id"]);
-        const declares = (doc["http://raml.org/vocabularies/document#declares"] || []).map((declaration) => {
+        const declares = (doc["http://a.ml/vocabularies/document#declares"] || []).map((declaration) => {
             return new DocumentDeclaration(
                 absoluteURL(declaration["@id"]),
                 declaration,
@@ -189,14 +189,14 @@ export class UnitModel {
 
     extractTag(tagId, node) {
         try {
-            const sources = (node["http://raml.org/vocabularies/document#source"] || []);
+            const sources = (node["http://a.ml/vocabularies/document#source"] || []);
             const tagFound = this
-                .flatten(sources.map(source => source["http://raml.org/vocabularies/document#tag"] || []), true)
+                .flatten(sources.map(source => source["http://a.ml/vocabularies/document#tag"] || []), true)
                 .filter(tag => {
-                    return tag["http://raml.org/vocabularies/document#tagId"][0]["@value"] === tagId
+                    return tag["http://a.ml/vocabularies/document#tagId"][0]["@value"] === tagId
                 })[0];
             if (tagFound) {
-                return tagFound["http://raml.org/vocabularies/document#tagValue"][0]["@value"];
+                return tagFound["http://a.ml/vocabularies/document#tagValue"][0]["@value"];
             } else {
                 return undefined;
             }
@@ -207,9 +207,9 @@ export class UnitModel {
 
 
     extractEncodedElement(node: any) {
-        const encoded = (node["http://raml.org/vocabularies/document#encodes"] || [])[0];
+        const encoded = (node["http://a.ml/vocabularies/document#encodes"] || [])[0];
         if (encoded != null) {
-            const isAbstract = encoded["@type"].find(t => t === "http://raml.org/vocabularies/document#AbstractDomainElement");
+            const isAbstract = encoded["@type"].find(t => t === "http://a.ml/vocabularies/document#AbstractDomainElement");
             return new DomainElement(absoluteURL(encoded["@id"]), encoded, nestedLabel(node, encoded), encoded["@type"][0], isAbstract, );
         } else {
             return undefined;
@@ -217,7 +217,7 @@ export class UnitModel {
     }
 
     extractReferences(doc: any) {
-        const references = (doc["http://raml.org/vocabularies/document#references"] || []);
+        const references = (doc["http://a.ml/vocabularies/document#references"] || []);
         return references.map((ref) => absoluteURL(ref["@id"]));
     }
 

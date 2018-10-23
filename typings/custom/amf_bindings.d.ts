@@ -172,7 +172,7 @@ declare module 'amf-js/src/core/domain/shapes/Shape' {
 	 */
 	import { DomainModel } from 'amf-js/src/core/domain/DomainModel';
 	export const SH_NS = "http://www.w3.org/ns/shacl#";
-	export const SHAPES_NS = "http://raml.org/vocabularies/shapes#";
+	export const SHAPES_NS = "http://a.ml/vocabularies/shapes#";
 	export type XSDDataType = string;
 	export class Shape extends DomainModel {
 	    getId(): string;

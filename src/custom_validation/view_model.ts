@@ -232,7 +232,7 @@ export class ViewModel {
     protected loadShapes() {
         const shapes = amf.plugins.features.AMFValidation.emitShaclShapes(this.profileName);
         const shapesModels = JSON.parse(shapes).map((n) => {
-            let id = n["@id"].replace("http://raml.org/vocabularies/amf/parser#", "amf-parser").replace("http://raml.org/vocabularies/data#", "");
+            let id = n["@id"].replace("http://a.ml/vocabularies/amf/parser#", "amf-parser").replace("http://a.ml/vocabularies/data#", "");
             let isCustom = n["@id"].indexOf("amf/parser#") > -1;
             let message = (n["http://www.w3.org/ns/shacl#message"] || {})["@value"] || "";
             let targetId = ((n["http://www.w3.org/ns/shacl#targetClass"]||[])[0] || {})["@id"] || "";
