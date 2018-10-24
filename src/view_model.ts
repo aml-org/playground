@@ -499,7 +499,7 @@ export class ViewModel {
         if (foundReference) {
             this.selectNavigatorFile(foundReference);
         } else {
-            if (this.navigatorSection() === "domain") {
+            if (this.navigatorSection() === "domain" && unit) {
                 this.expandDomainUnit(unit)
             }
         }
