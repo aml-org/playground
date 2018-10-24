@@ -27,11 +27,11 @@ const createModel = function(text, mode) {
 export class ViewModel {
 
     // The model information stored as the global information, this will be used to generate the units and
-    // navigation options, subsets of this model can be selected anc become the active model
+    // navigation options, subsets of this model can be selected and become the active model
     public documentModel?: ModelProxy = undefined;
     // The global 'level' for the active document
     public documentLevel: ModelLevel = "document";
-    // The model used to show the spec text in the editor, this can change as different parts fo the global
+    // The model used to show the spec text in the editor, this can change as different parts of the global
     // model are selected and we need to show different spec texts
     public model?: ModelProxy = undefined;
     public referenceToDomainUnits: { [id: string]: DomainModel[] } = {};
@@ -149,7 +149,11 @@ export class ViewModel {
             this.resetDocuments();
         });
         this.editorSection.subscribe((section) => this.onEditorSectionChange(section));
-
+        this.editorSection.subscribe((oldSection) => {
+            if (oldSection === "raml" || oldSection === "open-api" || oldSection === "api-model") {
+                this.updateDocumentModel();
+            }
+        }, null, "beforeChange");
         this.selectedReference.subscribe((ref) => this.baseUrl(ref.id));
     }
 
@@ -350,9 +354,9 @@ export class ViewModel {
 
     apply(location: Node) {
         window["viewModel"] = this;
-        amf.plugins.features.AMFValidation.register();
-        amf.plugins.document.Vocabularies.register();
         amf.plugins.document.WebApi.register();
+        amf.plugins.document.Vocabularies.register();
+        amf.plugins.features.AMFValidation.register();
         amf.Core.init().then(() => {
             ko.applyBindings(this);
         });
@@ -441,10 +445,7 @@ export class ViewModel {
     }
 
     private onEditorSectionChange(section: EditorSection) {
-        // Warning, models here mean MONACO EDITOR MODELS, don't get confused with API Models
-        if (section === "raml" || section === "open-api" || section === "api-model") {
-            this.updateDocumentModel()
-        }
+        // Warning, models here mean MONACO EDITOR MODELS, don't get confused with API Models.
         if (section === "raml") {
             if (this.model != null) {
                 if (this.selectedParserType() === "raml" && this.documentLevel === "document" && this.model.raw != null) {

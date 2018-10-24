@@ -8,9 +8,15 @@ export type ModelLevel = "document" | "domain";
 const ramlGenerator = amf.Core.generator("RAML 1.0", "application/raml");
 const openAPIGenerator = amf.Core.generator("OAS 2.0", "application/yaml");
 const apiModelGenerator = amf.Core.generator("AMF Graph", "application/ld+json");
+
 const ramlParser = amf.Core.parser("RAML 1.0", "application/raml");
 const openAPIParser = amf.Core.parser("OAS 2.0", "application/yaml");
 const apiModelParser = amf.Core.parser("AMF Graph", "application/ld+json");
+
+// const ramlParser = amf.Core.parser("RAML 1.0", "application/yaml");
+// const openAPIParser = amf.Core.parser("OAS 2.0", "application/json");
+// const apiModelParser = amf.Core.parser("AMF Graph", "application/ld+json")
+
 
 /**
  * A proxy class to interact with the clojure code containing the logic to interact with a API Model
@@ -105,8 +111,9 @@ export class ModelProxy {
 
         if (location === this.model.location) {
             // we need to update the main document model
-            parser.parse(text).then((model) => {
+            parser.parseStringAsync(text).then((model) => {
                 this.model = model;
+                this.raw = model.raw;
             }).catch((e) => {
                 console.log("Error updating refs");
                 console.log(e);
