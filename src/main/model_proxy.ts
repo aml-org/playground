@@ -13,11 +13,6 @@ const ramlParser = amf.Core.parser("RAML 1.0", "application/raml");
 const openAPIParser = amf.Core.parser("OAS 2.0", "application/yaml");
 const apiModelParser = amf.Core.parser("AMF Graph", "application/ld+json");
 
-// const ramlParser = amf.Core.parser("RAML 1.0", "application/yaml");
-// const openAPIParser = amf.Core.parser("OAS 2.0", "application/json");
-// const apiModelParser = amf.Core.parser("AMF Graph", "application/ld+json")
-
-
 /**
  * A proxy class to interact with the clojure code containing the logic to interact with a API Model
  */

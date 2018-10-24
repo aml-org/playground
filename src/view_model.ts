@@ -84,26 +84,24 @@ export class ViewModel {
             this.changesFromLastUpdate++;
             this.documentModelChanged = true;
             ((number) => {
-                var modelLoc = this.model.location()
-                var modelVal = this.editor.getModel().getValue()
                 setTimeout(() => {
-                    if (this.changesFromLastUpdate === number && this.model && this.documentModel) {
-                        this.updateDocumentModel(modelLoc, modelVal)
+                    if (this.changesFromLastUpdate === number) {
+                        this.updateDocumentModel()
                     }
                 }, this.RELOAD_PERIOD);
             })(this.changesFromLastUpdate);
         });
 
         // events we are subscribed
-        this.loadModal.on(LoadModal.LOAD_FILE_EVENT, (data: LoadFileEvent) => {
-            this.lastLoadedFile(data.location);
-            this.amfPlaygroundWindow.parseModelFile(data.type, data.location, (err, model) => {
+        this.loadModal.on(LoadModal.LOAD_FILE_EVENT, (evt: LoadFileEvent) => {
+            this.lastLoadedFile(evt.location);
+            this.amfPlaygroundWindow.parseModelFile(evt.type, evt.location, (err, model) => {
                 this.lastLoadedFile("Refreshing user interface");
                 if (err) {
                     console.log(err);
                     alert(err);
                 } else {
-                    this.selectedParserType(data.type);
+                    this.selectedParserType(evt.type);
                     this.documentModel = model;
                     this.model = model;
                     this.selectedReference(this.makeReference(this.documentModel!.location(), this.documentModel!.location()));
@@ -148,24 +146,29 @@ export class ViewModel {
             }
             this.resetDocuments();
         });
-        this.editorSection.subscribe((section) => this.onEditorSectionChange(section));
+        this.editorSection.subscribe((section) => {
+            this.onEditorSectionChange(section)
+        });
         this.editorSection.subscribe((oldSection) => {
             if (oldSection === "raml" || oldSection === "open-api" || oldSection === "api-model") {
-                this.updateDocumentModel();
+                this.updateDocumentModel(oldSection);
             }
         }, null, "beforeChange");
         this.selectedReference.subscribe((ref) => this.baseUrl(ref.id));
     }
 
-    public updateDocumentModel(location?: string, value?: string) {
+    public updateDocumentModel(section?: EditorSection) {
         if (!this.documentModelChanged) {
             return;
         }
         this.documentModelChanged = false;
         this.changesFromLastUpdate = 0
-        location = location || this.model.location();
-        value = value || this.editor.getModel().getValue();
-        let modelType = <ModelType>this.editorSection();
+        if (!this.model) {
+            return this.doParse(section);
+        }
+        let location = this.model.location();
+        let value = this.editor.getModel().getValue();
+        let modelType = <ModelType>(section || this.editorSection());
         this.documentModel.update(location, value, modelType, (e) => {
             if (e != null) {
                 this.resetUnits();
@@ -331,13 +334,18 @@ export class ViewModel {
         });
     }
 
-    public doParse() {
-        if (this.editorSection() === "raml" || this.editorSection() === "open-api" || this.editorSection() === "api-model") {
-            this.amfPlaygroundWindow.parseString(this.editorSection() as "raml" | "open-api" | "api-model", this.baseUrl(), this.editor.getValue(), (err, model) => {
+    public doParse(section?: EditorSection) {
+        console.log(`** Parsing text for section ${section}`)
+        section = section || this.editorSection()
+        if (section === "raml" || section === "open-api" || section === "api-model") {
+            let value = this.editor.getModel().getValue()
+            let  baseUrl = this.baseUrl() || ''
+            this.amfPlaygroundWindow.parseString(section as "raml" | "open-api" | "api-model", baseUrl, value, (err, model) => {
                 if (err) {
                     console.log(err);
                     alert("Error parsing model, see console for details");
                 } else {
+                    this.selectedParserType(<ParserType>section);
                     this.documentModel = model;
                     this.model = model;
                     this.selectedReference(this.makeReference(this.documentModel!.location(), this.documentModel!.location()));
@@ -351,7 +359,6 @@ export class ViewModel {
         }
     }
 
-
     apply(location: Node) {
         window["viewModel"] = this;
         amf.plugins.document.WebApi.register();
@@ -361,7 +368,6 @@ export class ViewModel {
             ko.applyBindings(this);
         });
     }
-
 
     // Reset the view model state when a document has changed
     private resetDocuments() {
