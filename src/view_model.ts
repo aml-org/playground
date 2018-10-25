@@ -260,48 +260,50 @@ export class ViewModel {
     private decorations: any = [];
 
     public selectElementDocument(unit: DomainElement | DocumentDeclaration) {
-        if (this.documentModel) {
-            let topLevelUnit = null;
-            if (unit instanceof DomainElement) {
-                this.isTopLevelUnit(unit)
+        if (!this.documentModel) {
+            return
+        }
+        let topLevelUnit = null;
+        if (unit instanceof DomainElement) {
+            topLevelUnit = this.isTopLevelUnit(unit)
+        }
+
+        if (topLevelUnit != null) {
+            let foundRef = null;
+            this.references().forEach(ref => {
+                if (unit.id.indexOf(ref.id) === 0) {
+                    foundRef = ref;
+                }
+            });
+            if (foundRef) {
+                this.selectNavigatorFile(foundRef);
             }
-
-            if (topLevelUnit != null) {
-                let foundRef = null;
-                this.references().forEach(ref => {
-                    if (unit.id.indexOf(ref.id) === 0) {
-                        foundRef = ref;
-                    }
+        } else {
+            let inSourceSection = this.editorSection() === this.model.sourceType
+            const lexicalInfo: amf.core.parser.Range = this.model.elementLexicalInfo(unit.id);
+            if (lexicalInfo != null && inSourceSection) {
+                this.editor.revealRangeInCenter({
+                    startLineNumber: lexicalInfo.start.line,
+                    startColumn: lexicalInfo.start.column,
+                    endLineNumber: lexicalInfo.end.line,
+                    endColumn: lexicalInfo.end.column
                 });
-                if (foundRef) {
-                    this.selectNavigatorFile(foundRef);
-                }
-            } else {
-                if (this.editorSection() === "api-model" || this.editorSection() === "raml" || this.editorSection() === "open-api") {
-
-                    const lexicalInfo: amf.core.parser.Range = this.model.elementLexicalInfo(unit.id);
-
-                    if (lexicalInfo != null) {
-                        this.editor.revealRangeInCenter({
-                            startLineNumber: lexicalInfo.start.line,
-                            startColumn: lexicalInfo.start.column,
-                            endLineNumber: lexicalInfo.end.line,
-                            endColumn: lexicalInfo.end.column
-                        });
-                        this.decorations = this.editor.deltaDecorations(this.decorations, [
-                            {
-                                range: new monaco.Range(lexicalInfo.start.line, lexicalInfo.start.column, lexicalInfo.end.line, lexicalInfo.end.column),
-                                options: {
-                                    linesDecorationsClassName: 'selected-element-line-decoration',
-                                    isWholeLine: true
-                                }
-                            }
-                        ]);
-                    } else {
-                        // remove decorations
-                        this.decorations = this.editor.deltaDecorations(this.decorations, [])
+                this.decorations = this.editor.deltaDecorations(this.decorations, [
+                    {
+                        range: new monaco.Range(
+                            lexicalInfo.start.line,
+                            lexicalInfo.start.column,
+                            lexicalInfo.end.line,
+                            lexicalInfo.end.column),
+                        options: {
+                            linesDecorationsClassName: 'selected-element-line-decoration',
+                            isWholeLine: true
+                        }
                     }
-                }
+                ]);
+            } else {
+                // remove decorations
+                this.decorations = this.editor.deltaDecorations(this.decorations, [])
             }
         }
     }
