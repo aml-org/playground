@@ -1,14 +1,14 @@
 import * as ko from "knockout";
-import {LoadModal, LoadFileEvent, ParserType} from "./view_models/load_modal";
-import { ModelProxy, ModelLevel } from "./main/model_proxy";
-import {AmfPlaygroundWindow, ModelType} from "./main/amf_playground_window";
-import { Nav } from "./view_models/nav";
-import {Document, Fragment, Module, DocumentId, Unit, DocumentDeclaration} from "./main/units_model";
-import { label } from "./utils";
-import { UI } from "./view_models/ui";
-import { DomainElement, DomainModel } from "./main/domain_model";
-import {Query, PredefinedQuery} from "./view_models/query";
-import {Diagram} from "./view_models/diagram";
+import {LoadModal, LoadFileEvent, ParserType} from "../view_models/load_modal";
+import { ModelProxy, ModelLevel } from "../main/model_proxy";
+import {AmfPlaygroundWindow, ModelType} from "../main/amf_playground_window";
+import { Nav } from "../view_models/nav";
+import {Document, Fragment, Module, DocumentId, Unit, DocumentDeclaration} from "../main/units_model";
+import { label } from "../utils";
+import { UI } from "../view_models/ui";
+import { DomainElement, DomainModel } from "../main/domain_model";
+import {Query, PredefinedQuery} from "../view_models/query";
+import {Diagram} from "../view_models/diagram";
 import * as amf from "amf-client-js";
 
 export type NavigatorSection = "files" | "logic" | "domain";

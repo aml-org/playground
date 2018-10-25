@@ -30,7 +30,7 @@ const b = watchify(browserify(options));
 function bundle() {
     return b
         .add([
-            "src/view_model.ts"
+            "src/playground/view_model.ts"
         ])
         .plugin(tsify, { target: 'es6' })
         .transform(babelify, { extensions: [ '.tsx', '.ts' ] })
