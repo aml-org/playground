@@ -1,14 +1,14 @@
 import * as ko from "knockout";
-import {LoadModal, LoadFileEvent, ParserType} from "./view_models/load_modal";
-import { ModelProxy, ModelLevel } from "./main/model_proxy";
-import {AmfPlaygroundWindow, ModelType} from "./main/amf_playground_window";
-import { Nav } from "./view_models/nav";
-import {Document, Fragment, Module, DocumentId, Unit, DocumentDeclaration} from "./main/units_model";
-import { label } from "./utils";
-import { UI } from "./view_models/ui";
-import { DomainElement, DomainModel } from "./main/domain_model";
-import {Query, PredefinedQuery} from "./view_models/query";
-import {Diagram} from "./view_models/diagram";
+import {LoadModal, LoadFileEvent, ParserType} from "../view_models/load_modal";
+import { ModelProxy, ModelLevel } from "../main/model_proxy";
+import {AmfPlaygroundWindow, ModelType} from "../main/amf_playground_window";
+import { Nav } from "../view_models/nav";
+import {Document, Fragment, Module, DocumentId, Unit, DocumentDeclaration} from "../main/units_model";
+import { label } from "../utils";
+import { UI } from "../view_models/ui";
+import { DomainElement, DomainModel } from "../main/domain_model";
+import {Query, PredefinedQuery} from "../view_models/query";
+import {Diagram} from "../view_models/diagram";
 import * as amf from "amf-client-js";
 
 export type NavigatorSection = "files" | "logic" | "domain";
@@ -27,11 +27,11 @@ const createModel = function(text, mode) {
 export class ViewModel {
 
     // The model information stored as the global information, this will be used to generate the units and
-    // navigation options, subsets of this model can be selected anc become the active model
+    // navigation options, subsets of this model can be selected and become the active model
     public documentModel?: ModelProxy = undefined;
     // The global 'level' for the active document
     public documentLevel: ModelLevel = "document";
-    // The model used to show the spec text in the editor, this can change as different parts fo the global
+    // The model used to show the spec text in the editor, this can change as different parts of the global
     // model are selected and we need to show different spec texts
     public model?: ModelProxy = undefined;
     public referenceToDomainUnits: { [id: string]: DomainModel[] } = {};
@@ -84,26 +84,24 @@ export class ViewModel {
             this.changesFromLastUpdate++;
             this.documentModelChanged = true;
             ((number) => {
-                var modelLoc = this.model.location()
-                var modelVal = this.editor.getModel().getValue()
                 setTimeout(() => {
-                    if (this.changesFromLastUpdate === number && this.model && this.documentModel) {
-                        this.updateDocumentModel(modelLoc, modelVal)
+                    if (this.changesFromLastUpdate === number) {
+                        this.updateDocumentModel()
                     }
                 }, this.RELOAD_PERIOD);
             })(this.changesFromLastUpdate);
         });
 
         // events we are subscribed
-        this.loadModal.on(LoadModal.LOAD_FILE_EVENT, (data: LoadFileEvent) => {
-            this.lastLoadedFile(data.location);
-            this.amfPlaygroundWindow.parseModelFile(data.type, data.location, (err, model) => {
+        this.loadModal.on(LoadModal.LOAD_FILE_EVENT, (evt: LoadFileEvent) => {
+            this.lastLoadedFile(evt.location);
+            this.amfPlaygroundWindow.parseModelFile(evt.type, evt.location, (err, model) => {
                 this.lastLoadedFile("Refreshing user interface");
                 if (err) {
                     console.log(err);
                     alert(err);
                 } else {
-                    this.selectedParserType(data.type);
+                    this.selectedParserType(evt.type);
                     this.documentModel = model;
                     this.model = model;
                     this.selectedReference(this.makeReference(this.documentModel!.location(), this.documentModel!.location()));
@@ -148,20 +146,29 @@ export class ViewModel {
             }
             this.resetDocuments();
         });
-        this.editorSection.subscribe((section) => this.onEditorSectionChange(section));
-
+        this.editorSection.subscribe((section) => {
+            this.onEditorSectionChange(section)
+        });
+        this.editorSection.subscribe((oldSection) => {
+            if (oldSection === "raml" || oldSection === "open-api" || oldSection === "api-model") {
+                this.updateDocumentModel(oldSection);
+            }
+        }, null, "beforeChange");
         this.selectedReference.subscribe((ref) => this.baseUrl(ref.id));
     }
 
-    public updateDocumentModel(location?: string, value?: string) {
+    public updateDocumentModel(section?: EditorSection) {
         if (!this.documentModelChanged) {
             return;
         }
         this.documentModelChanged = false;
         this.changesFromLastUpdate = 0
-        location = location || this.model.location();
-        value = value || this.editor.getModel().getValue();
-        let modelType = <ModelType>this.editorSection();
+        if (!this.model) {
+            return this.doParse(section);
+        }
+        let location = this.model.location();
+        let value = this.editor.getModel().getValue();
+        let modelType = <ModelType>(section || this.editorSection());
         this.documentModel.update(location, value, modelType, (e) => {
             if (e != null) {
                 this.resetUnits();
@@ -253,48 +260,50 @@ export class ViewModel {
     private decorations: any = [];
 
     public selectElementDocument(unit: DomainElement | DocumentDeclaration) {
-        if (this.documentModel) {
-            let topLevelUnit = null;
-            if (unit instanceof DomainElement) {
-                this.isTopLevelUnit(unit)
+        if (!this.documentModel) {
+            return
+        }
+        let topLevelUnit = null;
+        if (unit instanceof DomainElement) {
+            topLevelUnit = this.isTopLevelUnit(unit)
+        }
+
+        if (topLevelUnit != null) {
+            let foundRef = null;
+            this.references().forEach(ref => {
+                if (unit.id.indexOf(ref.id) === 0) {
+                    foundRef = ref;
+                }
+            });
+            if (foundRef) {
+                this.selectNavigatorFile(foundRef);
             }
-
-            if (topLevelUnit != null) {
-                let foundRef = null;
-                this.references().forEach(ref => {
-                    if (unit.id.indexOf(ref.id) === 0) {
-                        foundRef = ref;
-                    }
+        } else {
+            let inSourceSection = this.editorSection() === this.model.sourceType
+            const lexicalInfo: amf.core.parser.Range = this.model.elementLexicalInfo(unit.id);
+            if (lexicalInfo != null && inSourceSection) {
+                this.editor.revealRangeInCenter({
+                    startLineNumber: lexicalInfo.start.line,
+                    startColumn: lexicalInfo.start.column,
+                    endLineNumber: lexicalInfo.end.line,
+                    endColumn: lexicalInfo.end.column
                 });
-                if (foundRef) {
-                    this.selectNavigatorFile(foundRef);
-                }
-            } else {
-                if (this.editorSection() === "api-model" || this.editorSection() === "raml" || this.editorSection() === "open-api") {
-
-                    const lexicalInfo: amf.core.parser.Range = this.model.elementLexicalInfo(unit.id);
-
-                    if (lexicalInfo != null) {
-                        this.editor.revealRangeInCenter({
-                            startLineNumber: lexicalInfo.start.line,
-                            startColumn: lexicalInfo.start.column,
-                            endLineNumber: lexicalInfo.end.line,
-                            endColumn: lexicalInfo.end.column
-                        });
-                        this.decorations = this.editor.deltaDecorations(this.decorations, [
-                            {
-                                range: new monaco.Range(lexicalInfo.start.line, lexicalInfo.start.column, lexicalInfo.end.line, lexicalInfo.end.column),
-                                options: {
-                                    linesDecorationsClassName: 'selected-element-line-decoration',
-                                    isWholeLine: true
-                                }
-                            }
-                        ]);
-                    } else {
-                        // remove decorations
-                        this.decorations = this.editor.deltaDecorations(this.decorations, [])
+                this.decorations = this.editor.deltaDecorations(this.decorations, [
+                    {
+                        range: new monaco.Range(
+                            lexicalInfo.start.line,
+                            lexicalInfo.start.column,
+                            lexicalInfo.end.line,
+                            lexicalInfo.end.column),
+                        options: {
+                            linesDecorationsClassName: 'selected-element-line-decoration',
+                            isWholeLine: true
+                        }
                     }
-                }
+                ]);
+            } else {
+                // remove decorations
+                this.decorations = this.editor.deltaDecorations(this.decorations, [])
             }
         }
     }
@@ -327,13 +336,18 @@ export class ViewModel {
         });
     }
 
-    public doParse() {
-        if (this.editorSection() === "raml" || this.editorSection() === "open-api" || this.editorSection() === "api-model") {
-            this.amfPlaygroundWindow.parseString(this.editorSection() as "raml" | "open-api" | "api-model", this.baseUrl(), this.editor.getValue(), (err, model) => {
+    public doParse(section?: EditorSection) {
+        console.log(`** Parsing text for section ${section}`)
+        section = section || this.editorSection()
+        if (section === "raml" || section === "open-api" || section === "api-model") {
+            let value = this.editor.getModel().getValue()
+            let  baseUrl = this.baseUrl() || ''
+            this.amfPlaygroundWindow.parseString(section as "raml" | "open-api" | "api-model", baseUrl, value, (err, model) => {
                 if (err) {
                     console.log(err);
                     alert("Error parsing model, see console for details");
                 } else {
+                    this.selectedParserType(<ParserType>section);
                     this.documentModel = model;
                     this.model = model;
                     this.selectedReference(this.makeReference(this.documentModel!.location(), this.documentModel!.location()));
@@ -347,17 +361,15 @@ export class ViewModel {
         }
     }
 
-
     apply(location: Node) {
         window["viewModel"] = this;
-        amf.plugins.features.AMFValidation.register();
-        amf.plugins.document.Vocabularies.register();
         amf.plugins.document.WebApi.register();
+        amf.plugins.document.Vocabularies.register();
+        amf.plugins.features.AMFValidation.register();
         amf.Core.init().then(() => {
             ko.applyBindings(this);
         });
     }
-
 
     // Reset the view model state when a document has changed
     private resetDocuments() {
@@ -441,10 +453,7 @@ export class ViewModel {
     }
 
     private onEditorSectionChange(section: EditorSection) {
-        // Warning, models here mean MONACO EDITOR MODELS, don't get confused with API Models
-        if (section === "raml" || section === "open-api" || section === "api-model") {
-            this.updateDocumentModel()
-        }
+        // Warning, models here mean MONACO EDITOR MODELS, don't get confused with API Models.
         if (section === "raml") {
             if (this.model != null) {
                 if (this.selectedParserType() === "raml" && this.documentLevel === "document" && this.model.raw != null) {
@@ -499,7 +508,7 @@ export class ViewModel {
         if (foundReference) {
             this.selectNavigatorFile(foundReference);
         } else {
-            if (this.navigatorSection() === "domain") {
+            if (this.navigatorSection() === "domain" && unit) {
                 this.expandDomainUnit(unit)
             }
         }
@@ -617,6 +626,9 @@ export class ViewModel {
                     units.fragments.forEach(fragment => {
                         this.indexDomainUnits(fragment);
                         if (unitsMap[fragment.id] != null) {
+                            if (fragment.id.endsWith('#')) {
+                                fragment.id = fragment.id.substring(0, fragment.id.length-1)
+                            }
                             fragment["expanded"] = unitsMap[fragment.id]["expanded"];
                         }
                         this.fragmentUnits.push(fragment)

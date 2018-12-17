@@ -42,12 +42,12 @@ export class AmfPlaygroundWindow {
         } else if(type === "api-model") {
             parser = amf.Core.parser("AMF Graph", "application/ld+json");
         }
-        try {
-            const model = parser.parseStringAsync(value);
+        parser.parseStringAsync(value).then((model) => {
             cb(null, new ModelProxy(model, type));
-        } catch (e) {
+        }).catch((err) => {
             console.log("Error parsing text");
-            cb(e, null);
-        }
+            console.log(err);
+            cb(err, null);
+        });
     }
 }

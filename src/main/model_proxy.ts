@@ -8,6 +8,7 @@ export type ModelLevel = "document" | "domain";
 const ramlGenerator = amf.Core.generator("RAML 1.0", "application/raml");
 const openAPIGenerator = amf.Core.generator("OAS 2.0", "application/yaml");
 const apiModelGenerator = amf.Core.generator("AMF Graph", "application/ld+json");
+
 const ramlParser = amf.Core.parser("RAML 1.0", "application/raml");
 const openAPIParser = amf.Core.parser("OAS 2.0", "application/yaml");
 const apiModelParser = amf.Core.parser("AMF Graph", "application/ld+json");
@@ -105,8 +106,9 @@ export class ModelProxy {
 
         if (location === this.model.location) {
             // we need to update the main document model
-            parser.parse(text).then((model) => {
+            parser.parseStringAsync(text).then((model) => {
                 this.model = model;
+                this.raw = model.raw;
             }).catch((e) => {
                 console.log("Error updating refs");
                 console.log(e);
@@ -146,9 +148,9 @@ export class ModelProxy {
                 const parsed = JSON.parse(res)[0];
                 if (compacted) {
                     const context = {
-                        "raml-doc": "http://raml.org/vocabularies/document#",
-                        "raml-http": "http://raml.org/vocabularies/http#",
-                        "raml-shapes": "http://raml.org/vocabularies/shapes#",
+                        "raml-doc": "http://a.ml/vocabularies/document#",
+                        "raml-http": "http://a.ml/vocabularies/http#",
+                        "raml-shapes": "http://a.ml/vocabularies/shapes#",
                         "hydra": "http://www.w3.org/ns/hydra/core#",
                         "shacl": "http://www.w3.org/ns/shacl#",
                         "schema-org": "http://schema.org/",

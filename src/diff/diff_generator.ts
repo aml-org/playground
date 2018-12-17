@@ -12,9 +12,9 @@ export interface TripleComponent {
 
 const prefixes = {
     'https://mulesoft-labs.github.io/amf-playground#': '',
-    "http://raml.org/vocabularies/document#": "raml-doc:",
-    "http://raml.org/vocabularies/http#": "raml-http:",
-    "http://raml.org/vocabularies/shapes#": "raml-shapes:",
+    "http://a.ml/vocabularies/document#": "raml-doc:",
+    "http://a.ml/vocabularies/http#": "raml-http:",
+    "http://a.ml/vocabularies/shapes#": "raml-shapes:",
     "http://www.w3.org/ns/hydra/core#": "hydra:",
     "http://www.w3.org/ns/shacl#": "shacl:",
     "http://schema.org/": "schema-org:",
@@ -243,7 +243,7 @@ export class DiffGenerator {
     }
 
     public isName(assertion: string): boolean {
-        return assertion.indexOf("http://schema.org/name") > -1 || assertion.indexOf("http://raml.org/vocabularies/http#path") > -1;
+        return assertion.indexOf("http://schema.org/name") > -1 || assertion.indexOf("http://a.ml/vocabularies/http#path") > -1;
     }
 
     public predicate(assertion: string): string {
