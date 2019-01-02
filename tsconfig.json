@@ -26,6 +26,6 @@
     ],
     "exclude": [
         "node_modules",
-        "public/bower_components"
+        "docs/bower_components"
     ]
 }

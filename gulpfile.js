@@ -16,13 +16,13 @@ var sass = require('gulp-sass');
 var child = require("child_process");
 
 gulp.task('bower', function() {
-    return bower({cwd: "public"})
+    return bower({cwd: "docs"})
 });
 
 gulp.task('sass', function () {
-    return gulp.src('./public/scss/**/*.scss')
+    return gulp.src('./docs/scss/**/*.scss')
         .pipe(sass().on('error', sass.logError))
-        .pipe(gulp.dest('./public/css'));
+        .pipe(gulp.dest('./docs/css'));
 });
 
 const options = {"standalone":"amf_playground"};
@@ -44,7 +44,7 @@ function bundle() {
         .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
         // Add transformation tasks to the pipeline here.
         .pipe(sourcemaps.write('./')) // writes .map file
-        .pipe(gulp.dest('./public/js'))
+        .pipe(gulp.dest('./docs/js'))
         .pipe(browserSync.stream({once: true}));
 }
 
@@ -68,7 +68,7 @@ function bundleValidation() {
         .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
         // Add transformation tasks to the pipeline here.
         .pipe(sourcemaps.write('./')) // writes .map file
-        .pipe(gulp.dest('./public/js'))
+        .pipe(gulp.dest('./docs/js'))
         .pipe(browserSync.stream({once: true}));
 }
 
@@ -92,7 +92,7 @@ function bundleDiff() {
         .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
         // Add transformation tasks to the pipeline here.
         .pipe(sourcemaps.write('./')) // writes .map file
-        .pipe(gulp.dest('./public/js'))
+        .pipe(gulp.dest('./docs/js'))
         .pipe(browserSync.stream({once: true}));
 }
 
@@ -115,7 +115,7 @@ function bundleVocabs() {
         .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
         // Add transformation tasks to the pipeline here.
         .pipe(sourcemaps.write('./')) // writes .map file
-        .pipe(gulp.dest('./public/js'))
+        .pipe(gulp.dest('./docs/js'))
         .pipe(browserSync.stream({once: true}));
 }
 
@@ -138,7 +138,7 @@ function bundleCustomValidation() {
         .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
         // Add transformation tasks to the pipeline here.
         .pipe(sourcemaps.write('./')) // writes .map file
-        .pipe(gulp.dest('./public/js'))
+        .pipe(gulp.dest('./docs/js'))
         .pipe(browserSync.stream({once: true}));
 }
 
@@ -155,7 +155,7 @@ b.on('log', gutil.log); // output build logs to terminal
 gulp.task('serve', ["bower"], function () {
     bundle();
     browserSync.init({
-        server: "public",
+        server: "docs",
         startPath: "/playground.html"
     });
 });
@@ -163,7 +163,7 @@ gulp.task('serve', ["bower"], function () {
 gulp.task('serve_validation', ["bower"], function () {
     bundleValidation();
     browserSync.init({
-        server: "public",
+        server: "docs",
         startPath: "/validation.html"
     });
 });
@@ -172,7 +172,7 @@ gulp.task('serve_validation', ["bower"], function () {
 gulp.task('serve_diff', ["bower"], function () {
     bundleDiff();
     browserSync.init({
-        server: "public",
+        server: "docs",
         startPath: "/diff.html"
     });
 });
@@ -180,7 +180,7 @@ gulp.task('serve_diff', ["bower"], function () {
 gulp.task('serve_vocabs', ["bower"], function () {
     bundleVocabs();
     browserSync.init({
-        server: "public",
+        server: "docs",
         startPath: "/vocabularies.html"
     });
 });
@@ -188,7 +188,7 @@ gulp.task('serve_vocabs', ["bower"], function () {
 gulp.task('serve_custom_validation', ["bower"], function () {
     bundleCustomValidation();
     browserSync.init({
-        server: "public",
+        server: "docs",
         startPath: "/custom_validation.html"
     });
 });
