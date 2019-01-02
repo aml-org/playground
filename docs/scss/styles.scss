@@ -107,11 +107,11 @@ $openSans: Open Sans, sans-serif;
 
 
 // Nav
-.nav {
+.navbar {
   background-image: url("../images/header.svg");
   position: relative;
   padding: 5px 0;
-  .nav-item  {
+  .navbar-item  {
     .select {
       select {
         background-color: transparent;
@@ -142,11 +142,11 @@ $openSans: Open Sans, sans-serif;
   .logo-wrapper {
     color: $white;
     font-family: $openSans;
-    .nav-logo-text {
+    .navbar-logo-text {
       font-size: 20px;
       margin: 0 8px 0 13px;
     }
-    .nav-logo-img {
+    .navbar-logo-img {
       margin-left: 10px;
     }
     .super {
