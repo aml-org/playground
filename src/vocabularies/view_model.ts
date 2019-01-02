@@ -25,7 +25,6 @@ interface Ref {
 
 export class ViewModel implements amf.resource.ResourceLoader {
 
-    public env: amf.client.environment.Environment = null;
     public navigatorSection: KnockoutObservable<NavigatorSection> = ko.observable<NavigatorSection>("files");
     public selectedReference: KnockoutObservable<Ref | null> = ko.observable<Ref | null>(null);
     public selectedFormat: KnockoutObservable<Formats> = ko.observable<Formats>("aml");
@@ -257,9 +256,7 @@ export class ViewModel implements amf.resource.ResourceLoader {
         amf.plugins.features.AMFValidation.register();
         amf.plugins.document.Vocabularies.register();
         amf.plugins.document.WebApi.register();
-        this.env = new amf.client.environment.Environment();
-        this.env = this.env["addClientLoader"](this);
-        this.amlParser = new amf.Aml10Parser(this.env);
+        this.amlParser = new amf.Aml10Parser();
         this.jsonldRenderer = amf.AMF.amfGraphGenerator();
         return amf.Core.init();
     }
@@ -364,7 +361,7 @@ export class ViewModel implements amf.resource.ResourceLoader {
                 this.jsonldRenderer
                     .generateString(doc.model, new amf.render.RenderOptions().withCompactUris)
                     .then((jsonld) => {
-                        doc.jsonld = jsonld;
+                        doc.jsonld = JSON.stringify(JSON.parse(jsonld), null, 2);
                         cb(null);
                     })
                     .catch((e) => {
