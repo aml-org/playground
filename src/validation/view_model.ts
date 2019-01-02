@@ -134,7 +134,6 @@ export class ViewModel {
     }
 
     public selectError(error: any) {
-        console.log('>>', error)
         if (this.selectedError() == null || this.selectedError().id !== error.id) {
             this.selectedError(error);
         }

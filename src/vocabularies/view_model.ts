@@ -259,7 +259,7 @@ export class ViewModel implements amf.resource.ResourceLoader {
         amf.plugins.document.WebApi.register();
         this.env = new amf.client.environment.Environment();
         this.env = this.env["addClientLoader"](this);
-        this.amlParser = new amf.VocabulariesParser(this.env);
+        this.amlParser = new amf.Aml10Parser(this.env);
         this.jsonldRenderer = amf.AMF.amfGraphGenerator();
         return amf.Core.init();
     }
