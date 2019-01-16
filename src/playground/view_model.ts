@@ -182,6 +182,7 @@ export class ViewModel {
     }
 
     public selectNavigatorFile(reference: ReferenceFile) {
+        this.updateDocumentModel();
         if (this.selectedReference() == null || this.selectedReference().id !== reference.id) {
             this.focusedId(reference.id);
             if (this.documentModel != null) {
@@ -562,7 +563,9 @@ export class ViewModel {
             const location = this.model.location();
             if (this.documentLevel === "document") {
                 this.references.removeAll();
-                this.documentModel.references().forEach(ref => this.references.push(this.makeReference(location, ref)));
+                this.documentModel.references().forEach(ref => {
+                    this.references.push(this.makeReference(location, ref))
+                });
             } else {
                 const documentModelReference = this.makeReference(location, location);
                 this.references.removeAll();

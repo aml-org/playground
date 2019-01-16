@@ -103,10 +103,9 @@ export class ModelProxy {
         } else {
             parser = apiModelParser
         }
-
         if (location === this.model.location) {
             // we need to update the main document model
-            parser.parseStringAsync(text).then((model) => {
+            parser.parseStringAsync(location, text).then((model) => {
                 this.model = model;
                 this.raw = model.raw;
             }).catch((e) => {
@@ -117,7 +116,7 @@ export class ModelProxy {
             // we need to update one reference in the document model
             const ref = this.model.references().filter((ref) =>  ref.location === location)[0];
             if (ref != null) {
-                parser.parseStringAsync(text).then((model) => {
+                parser.parseStringAsync(location, text).then((model) => {
                     const newRefs = this.model.references().map((ref) => {
                         if (ref.location !== location) {
                             return ref;
