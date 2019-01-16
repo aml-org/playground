@@ -204,7 +204,10 @@ export class ModelProxy {
         if (location == this.model.location) {
             return this;
         } else {
-            const unit = this.transitiveReferences().filter((ref) => ref.location === location)[0];
+            const unit = this.transitiveReferences().filter((ref) => {
+                return ref.location === location
+                    || ref.location === location.substring(0, location.length-1)
+            })[0];
             return new ModelProxy(unit, this.sourceType);
         }
     }

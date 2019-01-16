@@ -629,9 +629,6 @@ export class ViewModel {
                     units.fragments.forEach(fragment => {
                         this.indexDomainUnits(fragment);
                         if (unitsMap[fragment.id] != null) {
-                            if (fragment.id.endsWith('#')) {
-                                fragment.id = fragment.id.substring(0, fragment.id.length-1)
-                            }
                             fragment["expanded"] = unitsMap[fragment.id]["expanded"];
                         }
                         this.fragmentUnits.push(fragment)
