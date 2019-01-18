@@ -51,38 +51,45 @@ export class ViewModel {
     }
 
     public parseEditorContent() {
+        let toParse, parser, doc, profileName
         if (this.editorSection() === "raml") {
-            const toParse = "#%RAML 1.0 DataType\n" + this.shapeEditor.getValue();
-            amf.Core.parser("RAML 1.0", "application/yaml").parseStringAsync(toParse)
-                .then((parsed: amf.model.document.Document) => {
-                    this.parseEditorSyntax(parsed, 'raml');
-                }).catch((e) => {
-                    console.log("Error parsing RAML Type");
-                })
+            toParse = "#%RAML 1.0 DataType\n" + this.shapeEditor.getValue();
+            parser = amf.AMF.raml10Parser();
+            profileName = amf.ProfileNames.RAML10;
         } else if (this.editorSection() === "open-api") {
-            amf.Core.parser("OAS 2.0", "application/json").parseStringAsync(this.shapeEditor.getValue())
-                .then((parsed: amf.model.document.Document) => {
-                    this.parseEditorSyntax(parsed, 'open-api');
-                }).catch((e) => {
-                    console.log("Error parsing JSON Schema");
-                })
+            toParse = this.shapeEditor.getValue();
+            parser = amf.AMF.oas20Parser();
+            profileName = amf.ProfileNames.OAS20;
         } else {
-            const input = JSON.parse(this.shapeEditor.getValue());
-            const toParse = {
+            toParse = JSON.stringify({
                 "@id": "https://mulesoft-labs.github.io/amf-playground",
                 "@type": [
                     "http://a.ml/vocabularies/document#Fragment",
                     "http://a.ml/vocabularies/document#Unit"
                 ],
-                "http://a.ml/vocabularies/document#encodes": [input]
-            };
-            amf.Core.parser("AMF Graph", "application/ld+json").parseStringAsync(JSON.stringify(toParse))
-                .then((parsed: amf.model.document.Document) => {
-                    this.parseEditorSyntax(parsed, 'api-model');
-                }).catch((e) => {
-                    console.log("Error parsing SHACL constraint");
-                });
+                "http://a.ml/vocabularies/document#encodes": [
+                    JSON.parse(this.shapeEditor.getValue())
+                ]
+            });
+            parser = amf.AMF.amfGraphParser();
+            profileName = amf.ProfileNames.AMF;
         }
+        parser.parseStringAsync(toParse)
+            .then((parsed: amf.model.document.Document) => {
+                doc = parsed;
+                return parser.reportValidation(profileName)
+            })
+            .then((report) => {
+                // Only save section content if it's valid
+                if (report.conforms) {
+                    this.parseEditorSyntax(doc, this.editorSection());
+                } else {
+                    console.log("Invalid section content", this.editorSection());
+                }
+            })
+            .catch((e) => {
+                console.log("Error parsing editor section", this.editorSection());
+            });
     }
 
     public onEditorContentChange() {
@@ -170,23 +177,26 @@ export class ViewModel {
     private onEditorSectionChange(section: string) {
         if (this.model != null) {
              if (section === "raml") {
-                 amf.Core.generator("RAML 1.0", "application/yaml").generateString(this.model).then((generated) => {
-                     let lines = generated.split("\n");
-                     lines.shift();
-                     this.shapeEditor.setModel(createModel(lines.join("\n"), "yaml"));
-                 });
+                 amf.AMF.raml10Generator().generateString(this.model)
+                     .then((generated) => {
+                         let lines = generated.split("\n");
+                         lines.shift();
+                         this.shapeEditor.setModel(createModel(lines.join("\n"), "yaml"));
+                     });
             } else if (section === "open-api") {
-                 amf.Core.generator("OAS 2.0", "application/json").generateString(this.model).then((generated) => {
-                     const shape = JSON.parse(generated);
-                     delete shape["x-amf-fragmentType"];
-                     this.shapeEditor.setModel(createModel(JSON.stringify(shape, null, 2), "json"));
-                 });
+                 amf.AMF.oas20Generator().generateString(this.model)
+                     .then((generated) => {
+                         const shape = JSON.parse(generated);
+                         delete shape["x-amf-fragmentType"];
+                         this.shapeEditor.setModel(createModel(JSON.stringify(shape, null, 2), "json"));
+                     });
             } else if (section === "api-model") {
-                 amf.AMF.amfGraphGenerator().generateString(this.model, new amf.render.RenderOptions().withCompactUris).then((generated) => {
-                     const json = JSON.parse(generated);
-                     const shape = json[0]["doc:encodes"][0];
-                     this.shapeEditor.setModel(createModel(JSON.stringify(shape, null, 2), "json"));
-                 });
+                 amf.AMF.amfGraphGenerator().generateString(this.model, new amf.render.RenderOptions().withCompactUris)
+                     .then((generated) => {
+                         const json = JSON.parse(generated);
+                         const shape = json[0]["doc:encodes"][0];
+                         this.shapeEditor.setModel(createModel(JSON.stringify(shape, null, 2), "json"));
+                     });
             }
             window['resizeFn']();
         }
