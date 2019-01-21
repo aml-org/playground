@@ -35,19 +35,20 @@ export class ViewModel {
     public RELOAD_PERIOD = 1000;
 
 
-    public init(): Promise<any> {
-        return amf.AMF.init();
-    }
-
     public constructor(public dataEditor: any, public shapeEditor: any) {
         this.editorSection.subscribe((section) => this.onEditorSectionChange(section));
-        this.init().then(this.parseEditorContent.bind(this))
+        this.shapeEditor.onDidChangeModelContent(this.onEditorContentChange.bind(this));
+        this.dataEditor.onDidChangeModelContent(this.onEditorContentChange.bind(this));
+    }
+
+    public loadShapes() {
+        return amf.AMF.init()
+            .then(() => {
+                return this.parseEditorContent()
+            })
             .catch((e) => {
                 console.log("ERROR!!! " + e);
             });
-
-        this.shapeEditor.onDidChangeModelContent(this.onEditorContentChange.bind(this));
-        this.dataEditor.onDidChangeModelContent(this.onEditorContentChange.bind(this));
     }
 
     public parseEditorContent() {
@@ -74,7 +75,7 @@ export class ViewModel {
             parser = amf.AMF.amfGraphParser();
             profileName = amf.ProfileNames.AMF;
         }
-        parser.parseStringAsync(toParse)
+        return parser.parseStringAsync(toParse)
             .then((parsed: amf.model.document.Document) => {
                 doc = parsed;
                 return parser.reportValidation(profileName)
@@ -82,7 +83,7 @@ export class ViewModel {
             .then((report) => {
                 // Only save section content if it's valid
                 if (report.conforms) {
-                    this.parseEditorSyntax(doc, this.editorSection());
+                    return this.parseEditorSyntax(doc, this.editorSection());
                 } else {
                     console.log("Invalid section content", this.editorSection());
                 }
@@ -129,7 +130,6 @@ export class ViewModel {
     }
 
     public hasError(shape: AnyShape): boolean {
-        console.log("ERROR? " + shape.id);
         const errors = this.errorsMapShape || {};
         return errors[(shape.id||"").split("document/type")[1]] || false;
     }
@@ -159,7 +159,6 @@ export class ViewModel {
                 this.errors(report.results);
                 this.errorsMapShape = this.errors()
                     .map(e  => {
-                        console.log(e.validationId.split("document/type")[1]);
                         return e.validationId.split("document/type")[1]
                     })
                     .reduce((a, s) => { a[s] = true; return a}, {});

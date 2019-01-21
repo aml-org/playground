@@ -20,7 +20,8 @@
     </aside>
 
     <script type="text/html" id="shape-template">
-        <li class="navigator-item" data-bind="if: ($data.constructor.name.indexOf('NodeShape') > -1)">
+        <!-- NodeShape -->
+        <li class="navigator-item" data-bind="if: ($data.properties !== undefined)">
             <a data-bind="css: { 'with-error': viewModel.hasError($data) }">
                 <i class="fa fa-cubes" style="float: left"></i>
                 <span class="menu-label submenu-label imported"
@@ -36,7 +37,8 @@
                 </span>
             </ul>
         </li>
-        <li class="navigator-item" data-bind="if: ($data.constructor.name.indexOf('PropertyShape') > -1)">
+        <!-- PropertyShape -->
+        <li class="navigator-item" data-bind="if: ($data.path !== undefined)">
             <a data-bind="css: { 'with-error': viewModel.hasError($data) }">
                 <i class="fa fa-cube" style="float: left"></i>
                 <span class="menu-label submenu-label imported"
@@ -47,10 +49,10 @@
             </a>
             <ul class="menu-list">
                 <li class="navigator-item" data-bind="text: '/' + ($data.path.value()||'').split('#')[1]"></li>
-                <li data-bind="if: ($data.range != null && $data.range.constructor.name.indexOf('ScalarShape') == -1)">
+                <li data-bind="if: ($data.range != null && $data.range.dataType === undefined)">
                     <span data-bind="template: {name: 'shape-template', data: $data.range}"></span>
                 </li>
-                <li data-bind="if: ($data.range.isNull != null && $data.range.constructor.name.indexOf('ScalarShape') > -1)">
+                <li data-bind="if: ($data.range.isNull != null && $data.dataType !== undefined)">
                     <h2 data-bind="text: 'xsd:' + ($data.range.dataType.value() ||'').split('#')[1]"></h2>
                 </li>
             </ul>

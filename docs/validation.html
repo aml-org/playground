@@ -198,6 +198,7 @@
 
                     window.appModel = new amf_playground_validation.ViewModel(editorData,editorShape);
                     window.appModel.apply(document.getElementById("the-app"));
+                    window.appModel.loadShapes();
                     setTimeout(function() {
                         document.getElementById("preloader").style.display = "none";
                         var brand = document.getElementById("brand");
