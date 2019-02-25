@@ -1,7 +1,4 @@
 function customizeMonaco () {
-  console.log('>>>>>>>>>>>>>>>>>>>> TEST')
-
-
   // Register a new language
   monaco.languages.register({ id: 'raml' });
 
