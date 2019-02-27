@@ -8,8 +8,8 @@ import {DiffGenerator, NodeDiff} from "./diff_generator";
 export class Graph {
     private options: vis.Options = {};
     public network: vis.Network;
-    public minScale: number = null;
-    public maxScale: number = null;
+    public minScale: number = 0;
+    public maxScale: number = 0;
 
     constructor(public diff: DiffGenerator) {
         const container = document.getElementById("graphContainer");
