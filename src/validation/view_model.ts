@@ -59,6 +59,13 @@ export class ViewModel {
             profileName = amf.ProfileNames.RAML10;
         } else if (this.editorSection() === "open-api") {
             toParse = this.shapeEditor.getValue();
+            toParse = JSON.stringify({
+                swagger: '2.0',
+                info: {title: 'asd', version: '123'},
+                definitions: {
+                    Root: JSON.parse(toParse)
+                }
+            });
             parser = amf.AMF.oas20Parser();
             profileName = amf.ProfileNames.OAS20;
         } else {
@@ -90,6 +97,7 @@ export class ViewModel {
             })
             .catch((e) => {
                 console.log("Error parsing editor section", this.editorSection());
+                console.log(e.toString());
             });
     }
 
@@ -111,11 +119,21 @@ export class ViewModel {
         const oldShapes = this.shapes();
         const oldErrors = this.errors();
         try {
-            if (parsed.encodes != null && parsed.encodes instanceof AnyShape) {
-                this.model = parsed;
+            let shape
+            if (parsed.declares !== undefined && parsed.declares[0] !== undefined) {
+                shape = parsed.declares[0]
+            } else {
+                shape = parsed.encodes
+            }
+            if (shape != null && shape instanceof AnyShape) {
+                if (this.model !== null) {
+                    this.model = this.model.withEncodes(shape);
+                } else {
+                    this.model = parsed;
+                }
                 this.modelSyntax = syntax;
                 this.modelText = this.shapeEditor.getValue();
-                const parsedShape = parsed.encodes as AnyShape;
+                const parsedShape = shape as AnyShape;
                 this.selectedShape(parsedShape);
                 this.shapes([parsedShape]);
                 this.doValidate();
