@@ -189,6 +189,9 @@ export class ViewModel implements amf.resource.ResourceLoader {
         });
 
         this.editor.onDidChangeModelContent(() => {
+            if (this.selectedFormat() !== "aml") {
+                return;
+            }
             this.changesFromLastUpdate++;
             this.documentModelChanged = true;
             ((number) => {
