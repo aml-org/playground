@@ -47,8 +47,8 @@ export class ViewModel {
     public RELOAD_PERIOD = 1000;
 
     public ramlParser?
-    public profileName?: string;
-
+    public profilePath = "file://PlaygroundValidationProfile.aml";
+    public profileName: amf.ProfileName;
 
     public init(): Promise<any> {
         return amf.AMF.init()
@@ -75,17 +75,18 @@ export class ViewModel {
         };
 
         const parsingProfileFn = (cb?: () => void) => {
+            const self = this;
             if (this.validationSection() === "custom") {
-                this.customValidation = dataEditor.getValue();
-                amf.AMF.loadValidationProfileText(this.customValidation).then(() => {
-                    this.profileName = this.customValidation.match(/profile:\s*(.+)\s*/)[1];
-                    this.loadShapes();
-                    if (cb) {
-                        cb();
-                    } else {
-                        this.doValidate()
-                    }
-                })
+                amf.AMF.loadValidationProfile(this.profilePath, this.getEnv(dataEditor))
+                    .then((profileName) => {
+                        self.profileName = profileName;
+                        this.loadShapes();
+                        if (cb) {
+                            cb();
+                        } else {
+                            this.doValidate()
+                        }
+                    })
             }
         };
 
@@ -126,6 +127,22 @@ export class ViewModel {
         });
     }
 
+    public getEnv(dataEditor: any) {
+        const profilePath = this.profilePath;
+        const EditorProfileLoader = {
+            fetch: function (resource) {
+                return new Promise(function(resolve, reject) {
+                    resolve(new amf.client.remote.Content(
+                        dataEditor.getValue(), profilePath));
+                })
+            },
+            accepts: function (resource) {
+                return true;
+            }
+         };
+        const env = new amf.client.environment.Environment()
+        return env.addClientLoader(EditorProfileLoader)
+    }
 
     public hasError(shape: AnyShape): boolean {
         console.log("ERROR? " + shape.id);
@@ -148,7 +165,7 @@ export class ViewModel {
     public doValidate() {
         const model = this.selectedModel();
         if (model != null) {
-            this.ramlParser.reportValidation((this.profileName || "RAML 1.0"), "RAML").then((report) => {
+            this.ramlParser.reportValidation(this.profileName).then((report) => {
                 var violations = report.results.filter((result) => {
                     return result.level == "Violation"
                 });
