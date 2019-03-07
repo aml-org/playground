@@ -56,36 +56,35 @@ export class ViewModel {
 
     public constructor(public dataEditor: any, public shapeEditor: any) {
         const parsingApiFn = () => {
+            console.log('>> in parsingApiFn', this.editorSection())
             if (this.editorSection() === "raml") {
                 const toParse = shapeEditor.getValue();
-                this.ramlParser.parseStringAsync(toParse).then((parsed: amf.model.document.Document) => {
-                    this.selectedModel(parsed);
-                    const oldErrors = this.errors();
-                    try {
-                        this.doValidate();
-                    } catch (e) {
-                        console.log("Exception parsing API");
-                        console.log(e);
-                        this.errors(oldErrors);
-                    }
-                }).catch((e) => {
-                    console.log("Error parsing RAML API");
-                })
+                return this.ramlParser.parseStringAsync(toParse)
+                    .then((parsed: amf.model.document.Document) => {
+                        this.selectedModel(parsed);
+                        console.log('>> parsed', parsed)
+                        const oldErrors = this.errors();
+                        try {
+                            this.doValidate();
+                        } catch (e) {
+                            console.log("Exception parsing API");
+                            console.log(e);
+                            this.errors(oldErrors);
+                        }
+                    }).catch((e) => {
+                        console.log("Error parsing RAML API");
+                    })
             }
         };
 
-        const parsingProfileFn = (cb?: () => void) => {
+        const parsingProfileFn = () => {
             const self = this;
             if (this.validationSection() === "custom") {
-                amf.AMF.loadValidationProfile(this.profilePath, this.getEnv(dataEditor))
+                return amf.AMF.loadValidationProfile(this.profilePath, this.getEnv(dataEditor))
                     .then((profileName) => {
                         self.profileName = profileName;
-                        this.loadShapes();
-                        if (cb) {
-                            cb();
-                        } else {
-                            this.doValidate()
-                        }
+                        // this.loadShapes();
+                        this.doValidate()
                     })
             }
         };
@@ -95,8 +94,11 @@ export class ViewModel {
 
         this.init().then(() => {
             this.ramlParser = amf.AMF.raml10Parser();
-            parsingProfileFn(parsingApiFn);
-            this.loadShapes();
+            return parsingProfileFn();
+        }).then(() => {
+            return parsingApiFn();
+        }).then(() => {
+            // this.loadShapes();
         }).catch((e) => {
             console.log("ERROR!!! " + e);
         });
@@ -195,14 +197,16 @@ export class ViewModel {
     private onEditorSectionChange(section: string) {
         if (this.selectedModel() != null) {
              if (section === "raml") {
-                 amf.Core.generator("RAML 1.0", "application/yaml").generateString(this.selectedModel()).then((generated) => {
-                     this.shapeEditor.setModel(createModel(generated, "yaml"));
-                 });
+                 amf.Core.generator("RAML 1.0", "application/yaml").generateString(this.selectedModel())
+                     .then((generated) => {
+                         this.shapeEditor.setModel(createModel(generated, "yaml"));
+                     });
             } else if (section === "api-model") {
-                 amf.AMF.amfGraphGenerator().generateString(this.selectedModel(), new amf.render.RenderOptions().withCompactUris).then((generated) => {
-                     const json = JSON.parse(generated);
-                     this.shapeEditor.setModel(createModel(JSON.stringify(json, null, 2), "json"));
-                 });
+                 amf.AMF.amfGraphGenerator().generateString(this.selectedModel(), new amf.render.RenderOptions().withCompactUris)
+                     .then((generated) => {
+                         const json = JSON.parse(generated);
+                         this.shapeEditor.setModel(createModel(JSON.stringify(json, null, 2), "json"));
+                     });
             }
             window['resizeFn']();
         }
@@ -248,11 +252,13 @@ export class ViewModel {
 
     protected loadShapes() {
         const shapes = amf.plugins.features.AMFValidation.emitShaclShapes(this.profileName);
-        const shapesModels = JSON.parse(shapes).map((n) => {
-            let id = n["@id"].replace("http://a.ml/vocabularies/amf/parser#", "amf-parser").replace("http://a.ml/vocabularies/data#", "");
-            let isCustom = n["@id"].indexOf("amf/parser#") > -1;
-            let message = (n["http://www.w3.org/ns/shacl#message"] || {})["@value"] || "";
-            let targetId = ((n["http://www.w3.org/ns/shacl#targetClass"]||[])[0] || {})["@id"] || "";
+        const shapesModels = JSON.parse(shapes).map((mdl) => {
+            let id = mdl["@id"]
+                .replace("http://a.ml/vocabularies/amf/parser#", "amf-parser")
+                .replace("http://a.ml/vocabularies/data#", "");
+            let isCustom = mdl["@id"].indexOf("amf/parser#") > -1;
+            let message = (mdl["http://www.w3.org/ns/shacl#message"] || {})["@value"] || "";
+            let targetId = ((mdl["http://www.w3.org/ns/shacl#targetClass"]||[])[0] || {})["@id"] || "";
             let target = this.ui.bindingLabel({token: 'uri', value: targetId});
             return {
                 id,
