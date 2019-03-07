@@ -56,13 +56,11 @@ export class ViewModel {
 
     public constructor(public dataEditor: any, public shapeEditor: any) {
         const parsingApiFn = () => {
-            console.log('>> in parsingApiFn', this.editorSection())
             if (this.editorSection() === "raml") {
                 const toParse = shapeEditor.getValue();
                 return this.ramlParser.parseStringAsync(toParse)
                     .then((parsed: amf.model.document.Document) => {
                         this.selectedModel(parsed);
-                        console.log('>> parsed', parsed)
                         const oldErrors = this.errors();
                         try {
                             this.doValidate();
