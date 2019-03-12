@@ -81,7 +81,7 @@ export class ViewModel {
                 return amf.AMF.loadValidationProfile(this.profilePath, this.getEnv(dataEditor))
                     .then((profileName) => {
                         self.profileName = profileName;
-                        // this.loadShapes();
+                        this.loadShapes();
                         this.doValidate()
                     })
             }
@@ -96,7 +96,7 @@ export class ViewModel {
         }).then(() => {
             return parsingApiFn();
         }).then(() => {
-            // this.loadShapes();
+            this.loadShapes();
         }).catch((e) => {
             console.log("ERROR!!! " + e);
         });
@@ -215,7 +215,7 @@ export class ViewModel {
             this.dataEditor.setModel(createModel(this.customValidation, "yaml"))
         } else {
             this.customValidation = this.dataEditor.getValue();
-            const shapes = amf.plugins.features.AMFValidation.emitShaclShapes(this.profileName);
+            const shapes = amf.AMF.emitShapesGraph(this.profileName);
             const json = JSON.parse(shapes);
             this.dataEditor.setModel(createModel(JSON.stringify(json, null, 2), "json"));
         }
@@ -249,7 +249,7 @@ export class ViewModel {
     }
 
     protected loadShapes() {
-        const shapes = amf.plugins.features.AMFValidation.emitShaclShapes(this.profileName);
+        const shapes = amf.AMF.emitShapesGraph(this.profileName);
         const shapesModels = JSON.parse(shapes).map((mdl) => {
             let id = mdl["@id"]
                 .replace("http://a.ml/vocabularies/amf/parser#", "amf-parser")
