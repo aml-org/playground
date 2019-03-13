@@ -3,6 +3,8 @@
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+    <meta name="viewport" content="width=device-width, target-densitydpi=device-dpi, initial-scale=1, maximum-scale=1, user-scalable=yes">
+    <meta charset="UTF-8">
 
     <!-- polyfills -->
     <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
@@ -14,7 +16,6 @@
     <link rel="stylesheet" href="css/validation_styles.css">
     <link rel="stylesheet" href="css/vis.min.css">
     <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
-    <meta charset="UTF-8">
     <title>AMF Diff</title>
 </head>
 <body>
@@ -50,7 +51,8 @@
         var loadApp = function(cb) {
             var assets = [
                 "js/amf_playground_diff.js",
-                "js/monaco-editor/min/vs/loader.js"
+                "js/monaco-editor/min/vs/loader.js",
+                "js/monaco-editor/monaco-customize.js"
             ];
             var loaded = 0;
             var preload = new createjs.LoadQueue();
@@ -123,9 +125,10 @@
                     window.resizeFn = resize;
                     resize();
 
+                    customizeMonaco();
+
                     var editorLeft = monaco.editor.create(document.getElementById("editor-left-container"), {
                         automaticLayout: true,
-                        // theme: "vs-dark",
                         fontSize: 16,
                         fontWeight: "bold",
                         scrollBeyondLastLine: false,
@@ -153,7 +156,7 @@
                             '          properties:\n' +
                             '            description: string'
                         ].join('\n'),
-                        language: 'yaml',
+                        language: 'raml',
                         minimap: {
                             enabled: false
                         }
@@ -161,7 +164,6 @@
 
                     var editorRight = monaco.editor.create(document.getElementById("editor-right-container"), {
                         automaticLayout: true,
-                        // theme: "vs-dark",
                         fontSize: 16,
                         fontWeight: "bold",
                         scrollBeyondLastLine: false,
@@ -208,7 +210,7 @@
                             '/products:\n' +
                             '  get:'
                         ].join('\n'),
-                        language: 'yaml',
+                        language: 'raml',
                         minimap: {
                             enabled: false
                         }
