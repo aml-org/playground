@@ -18,7 +18,7 @@ export class ViewModel {
     public navigatorSection: KnockoutObservable<NavigatorSection> = ko.observable<NavigatorSection>("shapes");
 
     public shapes: KnockoutObservableArray<AnyShape> = ko.observableArray<AnyShape>([]);
-    public errors: KnockoutObservableArray<amf.validate.ValidationResult> = ko.observableArray<amf.validate.ValidationResult>([]);
+    public errors: KnockoutObservableArray<amf.client.validate.ValidationResult> = ko.observableArray<amf.validate.ValidationResult>([]);
 
     public editorSection: KnockoutObservable<string> = ko.observable<string>("raml");
 

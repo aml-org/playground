@@ -127,43 +127,46 @@ export class AstGraph {
         }
     }
 
-    protected traverse(id: string, edges: vis.Edge[], nodes: vis.Node[], mappings: any) {
-        const mapping = mappings[id];
-        const classTerm = mapping.nodetypeMapping.value();
-        nodes.push({
-            id: id,
-            label: this.defaultLabel(classTerm),
-            title: this.defaultLabel(classTerm),
-            color: this.NODE_COLOR
-        });
-        mapping.propertiesMapping().forEach((property) => {
-            const label = property.name().value();
+    protected traverse(id: string, edges: vis.Edge[], nodes: vis.Node[], mappings: any, acc: {} = {}) {
+        if (acc[id] == null) {
+            acc[id] = true;
+            const mapping = mappings[id];
+            const classTerm = mapping.nodetypeMapping.value();
+            nodes.push({
+                id: id,
+                label: this.defaultLabel(classTerm),
+                title: this.defaultLabel(classTerm),
+                color: this.NODE_COLOR
+            });
+            mapping.propertiesMapping().forEach((property) => {
+                const label = property.name().value();
 
-            if (property.literalRange().isNull === false) {
-                edges.push({
-                    from: id,
-                    to: property.id,
-                    label: label,
-                    font: {strokeWidth: 0}
-                });
-                nodes.push({
-                    id: property.id,
-                    label: this.defaultLabel(property.literalRange().value()),
-                    color: this.PROPERTY_COLOR
-                });
-            } else {
-                property.objectRange().forEach((obj) => {
-                    const targetId = obj.value();
+                if (property.literalRange().isNull === false) {
                     edges.push({
                         from: id,
-                        to: targetId,
+                        to: property.id,
                         label: label,
                         font: {strokeWidth: 0}
                     });
-                    this.traverse(targetId, edges, nodes, mappings);
-                });
-            }
-        });
+                    nodes.push({
+                        id: property.id,
+                        label: this.defaultLabel(property.literalRange().value()),
+                        color: this.PROPERTY_COLOR
+                    });
+                } else {
+                    property.objectRange().forEach((obj) => {
+                        const targetId = obj.value();
+                        edges.push({
+                            from: id,
+                            to: targetId,
+                            label: label,
+                            font: {strokeWidth: 0}
+                        });
+                        this.traverse(targetId, edges, nodes, mappings, acc);
+                    });
+                }
+            });
+        }
     }
 
     PROPERTY_COLOR = "#aa00ff";
