@@ -9,6 +9,7 @@ import {AstGraph} from "./ast_graph";
 import {RdfGraph} from "./rdf_graph";
 import {PredefinedQuery, Query} from "../view_models/query";
 import { UI } from "../view_models/ui";
+import {Unit} from "../main/units_model";
 
 export type NavigatorSection = "files"
 export type Formats = "aml" | "jsonld" | "taxonomy" | "taxonomy-properties" | "query"
@@ -20,7 +21,7 @@ interface Ref {
     jsonld?: string,
     aml?: string,
     model?: any
-    errors?: amf.validate.ValidationReport
+    errors?: amf.client.validate.ValidationReport
 }
 
 export class ViewModel implements amf.resource.ResourceLoader {
@@ -44,16 +45,22 @@ export class ViewModel implements amf.resource.ResourceLoader {
 
     public vocabsFiles: KnockoutObservableArray<Ref> = ko.observableArray([
         {"name": "music.yaml", "url": this.base + "vocabs/music/vocabulary/music.yaml", "kind": "vocabulary"},
-        {"name": "music_curation.yaml", "url": this.base + "vocabs/music/vocabulary/music_curation.yaml", "kind": "vocabulary"}
+        {"name": "music_curation.yaml", "url": this.base + "vocabs/music/vocabulary/music_curation.yaml", "kind": "vocabulary"},
+        {"name": "asynchronous.yaml", "url": this.base + "vocabs/asynchronous_apis/vocabulary/asynchronous.yaml", "kind": "vocabulary"}
+
     ]);
 
+    public asyncAPIDialect = {"name": "async_api.yaml", "url": this.base + "vocabs/asynchronous_apis/dialect/async_api.yaml", "kind": "dialect"}
     public dialectFiles: KnockoutObservableArray<Ref> = ko.observableArray([
-        {"name": "playlist.yaml", "url": this.base + "vocabs/music/dialect/playlist.yaml", "kind": "dialect"}
+        {"name": "playlist.yaml", "url": this.base + "vocabs/music/dialect/playlist.yaml", "kind": "dialect"},
+        this.asyncAPIDialect
     ]);
 
     public instanceFiles: KnockoutObservableArray<Ref> = ko.observableArray([
         {"name": "playlist1.yaml", "url": this.base + "vocabs/music/instances/playlist1.yaml", "kind": "document"},
-        {"name": "playlist2.yaml", "url": this.base + "vocabs/music/instances/playlist2.yaml", "kind": "document"}
+        {"name": "playlist2.yaml", "url": this.base + "vocabs/music/instances/playlist2.yaml", "kind": "document"},
+        {"name": "basic.yaml", "url": this.base + "vocabs/asynchronous_apis/instances/basic.yaml", "kind": "document"},
+        {"name": "slack.yaml", "url": this.base + "vocabs/asynchronous_apis/instances/slack.yaml", "kind": "document"}
     ]);
 
     public vocabularyPredefinedQueries = [
@@ -216,6 +223,12 @@ export class ViewModel implements amf.resource.ResourceLoader {
 
         this.init().then((res) => {
             console.log("** AMF Initialised");
+            setTimeout(() => {
+                this.parse(this.asyncAPIDialect, (err) => {
+                    console.log("Finished initial parsing of async API");
+                    console.log(err);
+                });
+            }, 1000);
         })
     }
 
@@ -259,7 +272,9 @@ export class ViewModel implements amf.resource.ResourceLoader {
         amf.plugins.features.AMFValidation.register();
         amf.plugins.document.Vocabularies.register();
         amf.plugins.document.WebApi.register();
-        this.amlParser = new amf.Aml10Parser();
+        this.env = new amf.client.environment.Environment();
+        this.env = this.env["addClientLoader"](this);
+        this.amlParser = new amf.Aml10Parser("application/yaml", this.env);
         this.jsonldRenderer = amf.AMF.amfGraphGenerator();
         return amf.Core.init();
     }
@@ -269,6 +284,9 @@ export class ViewModel implements amf.resource.ResourceLoader {
         this.selectedFormat("aml");
         if (file.aml != null) {
             this.setEditorRawFileText(file.aml, "yaml");
+            if (file.jsonld == null) {
+                this.parse(file, () => {})
+            }
         }
     }
 
@@ -277,7 +295,7 @@ export class ViewModel implements amf.resource.ResourceLoader {
         this.editor.setModel(model);
     }
 
-    public loadFile(file: string) {
+    public loadFile(file: string, cb:(Ref) => Unit = null) {
         const xhttp = new XMLHttpRequest();
         const that = this;
         xhttp.onreadystatechange = function() {
@@ -291,7 +309,8 @@ export class ViewModel implements amf.resource.ResourceLoader {
                 );
                 doc.aml = text;
                 // this is the one we load by default
-                if (file.indexOf("music.yaml") > -1) { that.selectNavigatorFile(doc); }
+                if (file.indexOf("asynchronous.yaml") > -1) { that.selectNavigatorFile(doc); }
+                if (cb != null) { cb(doc) }
             }
         };
         xhttp.open("GET", file, true);
@@ -331,7 +350,7 @@ export class ViewModel implements amf.resource.ResourceLoader {
         })
     }
 
-    protected parse(doc: Ref, cb:(report: amf.validate.ValidationReport) => void) {
+    protected parse(doc: Ref, cb:(report: amf.client.validate.ValidationReport) => void) {
         if (this.amlParser == null) {
             setTimeout(() => {
                 this.parse(doc, cb);
@@ -380,8 +399,9 @@ export class ViewModel implements amf.resource.ResourceLoader {
         }
     }
 
-    protected buildMonacoErro(error: amf.validate.ValidationResult): any {
+    protected buildMonacoErro(error: amf.client.validate.ValidationResult): any {
         console.log("BUILDING ERROR " + error.targetNode);
+        console.log(error);
         const startLineNumber = error.position.start.line;
         const startColumn = error.position.start.column;
         const endLineNumber = error.position.end.line;
