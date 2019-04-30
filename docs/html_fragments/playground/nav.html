@@ -1,34 +1,33 @@
 <!DOCTYPE html>
 
 <div class="box imported is-paddingless">
-    <nav class="navbar">
-        <div class="navbar-brand">
-            <div class="logo-wrapper navbar-item">
-                <span class="nav-logo-img">
-                    <img src='./images/AML_white.svg'>
-                </span>
-                <span style="margin-left: 5px" class="nav-logo-text" class="nav-logo-text">AMF Playground</span>
-            </div>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="logo-wrapper navbar-item">
+        <span class="nav-logo-img">
+          <img src='./images/AML_white.svg'>
+        </span>
+        <span style="margin-left: 5px" class="nav-logo-text" class="nav-logo-text">AMF Playground</span>
+      </div>
+    </div>
+    <div class="navbar-start navbar-menu">
+    </div>
+    <div class="navbar-end navbar-menu">
+      <span class="navbar-item">
+        <a class="button" data-bind="click: loadModal.show.bind(loadModal)">
+          <span class="icon">
+            <i class="fa fa-folder-open-o"></i>
+          </span>
+          <span>Load API Specification</span>
+        </a>
+      </span>
+      <span class="navbar-item">
+        <div class="dropdown is-right">
+          <select name="raml-demo" class="raml-demo-select" onchange="(function(el) {window.location = el.value})(this)">
+            <option value="playground.html" selected>Demo: Playground</option>
+          </select>
         </div>
-        <div class="navbar-start navbar-menu">
-        </div>
-        <div class="navbar-end navbar-menu">
-            <span class="navbar-item">
-                <a class="button" data-bind="click: loadModal.show.bind(loadModal)">
-                    <span class="icon">
-                        <i class="fa fa-folder-open-o"></i>
-                    </span>
-                    <span>Load API Specification</span>
-                </a>
-            </span>
-            <span class="navbar-item">
-                <div class="dropdown is-right">
-                  <select name="raml-demo" class="raml-demo-select"
-                    onchange="(function(el) {window.location = el.value})(this)">
-                      <option value="playground.html" selected>Demo: Playground</option>
-                  </select>
-                </div>
-            </span>
-        </div>
-    </nav>
+      </span>
+    </div>
+  </nav>
 </div>
