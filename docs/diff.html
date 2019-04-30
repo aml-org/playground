@@ -127,92 +127,86 @@
                     customizeMonaco();
 
                     var editorLeft = monaco.editor.create(document.getElementById("editor-left-container"), {
-                        automaticLayout: true,
-                        fontSize: 16,
-                        fontWeight: "bold",
-                        scrollBeyondLastLine: false,
-                        readOnly: false,
-                        value: [
-                            '#%RAML 1.0\n' +
-                            '\n' +
-                            'title: Uber API\n' +
-                            'description: Move your app forward with the Uber API\n' +
-                            'version: 1.2\n' +
-                            'baseUri: api.uber.com/v12\n' +
-                            '\n' +
-                            'types:\n' +
-                            '  Activity:\n' +
-                            '    properties:\n' +
-                            '      uuid:\n' +
-                            '        required: false\n' +
-                            '        type: string\n' +
-                            '    \n' +
-                            '/products:\n' +
-                            '  get:\n' +
-                            '    responses:\n' +
-                            '      200:\n' +
-                            '        body:\n' +
-                            '          properties:\n' +
-                            '            description: string'
-                        ].join('\n'),
-                        language: 'raml',
-                        minimap: {
-                            enabled: false
-                        }
+                      value: [
+                          '#%RAML 1.0\n' +
+                          '\n' +
+                          'title: Uber API\n' +
+                          'description: Move your app forward with the Uber API\n' +
+                          'version: 1.2\n' +
+                          'baseUri: api.uber.com/v12\n' +
+                          '\n' +
+                          'types:\n' +
+                          '  Activity:\n' +
+                          '    properties:\n' +
+                          '      uuid:\n' +
+                          '        required: false\n' +
+                          '        type: string\n' +
+                          '    \n' +
+                          '/products:\n' +
+                          '  get:\n' +
+                          '    responses:\n' +
+                          '      200:\n' +
+                          '        body:\n' +
+                          '          properties:\n' +
+                          '            description: string'
+                      ].join('\n'),
+                      language: 'raml',
+                      automaticLayout: true,
+                      scrollBeyondLastLine: false,
+                      minimap: {
+                        enabled: false
+                      }
                     });
 
                     var editorRight = monaco.editor.create(document.getElementById("editor-right-container"), {
-                        automaticLayout: true,
-                        fontSize: 16,
-                        fontWeight: "bold",
-                        scrollBeyondLastLine: false,
-                        readOnly: false,
-                        value: [
-                            '#%RAML 1.0\n' +
-                            '\n' +
-                            'title: Uber API\n' +
-                            'description: Move your app forward with the Uber API\n' +
-                            'version: 1.3\n' +
-                            'baseUri: api.uber.com/v13\n' +
-                            '\n' +
-                            'mediaType: application/json\n' +
-                            'protocols: https\n' +
-                            '\n' +
-                            'types:\n' +
-                            '  Activity:\n' +
-                            '    properties:\n' +
-                            '      uuid:\n' +
-                            '        required: false\n' +
-                            '        type: string\n' +
-                            '  Error:\n' +
-                            '    properties:\n' +
-                            '      reason: string\n' +
-                            '\n' +
-                            '/history:\n' +
-                            '  get:\n' +
-                            '    description: "Paginated List of activities"\n' +
-                            '    queryParameters:\n' +
-                            '      limit: integer\n' +
-                            '      offset: integer\n' +
-                            '    responses:\n' +
-                            '      200:\n' +
-                            '        description: History information for the given user\n' +
-                            '        body:\n' +
-                            '          type: Activity\n' +
-                            '      default:\n' +
-                            '        description: Unexpected error\n' +
-                            '        body:\n' +
-                            '          type: Error\n' +
-                            '/me:\n' +
-                            '  get:\n' +
-                            '    \n' +
-                            '/products:\n' +
-                            '  get:'
-                        ].join('\n'),
-                        language: 'raml',
-                        minimap: {
-                            enabled: false
-                        }
+                      value: [
+                          '#%RAML 1.0\n' +
+                          '\n' +
+                          'title: Uber API\n' +
+                          'description: Move your app forward with the Uber API\n' +
+                          'version: 1.3\n' +
+                          'baseUri: api.uber.com/v13\n' +
+                          '\n' +
+                          'mediaType: application/json\n' +
+                          'protocols: https\n' +
+                          '\n' +
+                          'types:\n' +
+                          '  Activity:\n' +
+                          '    properties:\n' +
+                          '      uuid:\n' +
+                          '        required: false\n' +
+                          '        type: string\n' +
+                          '  Error:\n' +
+                          '    properties:\n' +
+                          '      reason: string\n' +
+                          '\n' +
+                          '/history:\n' +
+                          '  get:\n' +
+                          '    description: "Paginated List of activities"\n' +
+                          '    queryParameters:\n' +
+                          '      limit: integer\n' +
+                          '      offset: integer\n' +
+                          '    responses:\n' +
+                          '      200:\n' +
+                          '        description: History information for the given user\n' +
+                          '        body:\n' +
+                          '          type: Activity\n' +
+                          '      default:\n' +
+                          '        description: Unexpected error\n' +
+                          '        body:\n' +
+                          '          type: Error\n' +
+                          '/me:\n' +
+                          '  get:\n' +
+                          '    \n' +
+                          '/products:\n' +
+                          '  get:'
+                      ].join('\n'),
+                      language: 'raml',
+                      automaticLayout: true,
+                      scrollBeyondLastLine: false,
+                      minimap: {
+                        enabled: false
+                      }
                     });
 
                     window.appModel = new amf_playground_diff.ViewModel(editorLeft,editorRight);

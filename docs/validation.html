@@ -143,58 +143,50 @@
                     customizeMonaco();
 
                     var editorData = monaco.editor.create(document.getElementById("editor-data-container"), {
-                        automaticLayout: true,
-                        fontSize: 16,
-                        fontWeight: "bold",
-                        scrollBeyondLastLine: false,
-                        readOnly: false,
-                        value: [
-                        '{\n  "name": "Timothy",\n  "surname": "Berners-Lee"\n}'
-                        ].join('\n'),
-                        language: 'raml',
-                        minimap: {
-                            enabled: false
-                        }
+                      value: '{\n  "name": "Timothy",\n  "surname": "Berners-Lee"\n}',
+                      language: 'raml',
+                      automaticLayout: true,
+                      scrollBeyondLastLine: false,
+                      minimap: {
+                        enabled: false
+                      }
                     });
 
                     var editorShape = monaco.editor.create(document.getElementById("editor-shape-container"), {
-                        automaticLayout: true,
-                        fontSize: 16,
-                        fontWeight: "bold",
-                        scrollBeyondLastLine: false,
-                        readOnly: false,
-                        value: [
-                            "type: object\n" +
-                            "additionalProperties: false\n" +
-                            "properties:\n" +
-                            "  address:\n" +
-                            "    properties:\n" +
-                            "      city: string\n" +
-                            "      country: string\n" +
-                            "      postcode: string\n" +
-                            "      street: string\n" +
-                            "  age:\n" +
-                            "    minimum: 17\n" +
-                            "    type: integer\n" +
-                            "  scores:\n" +
-                            "    items: integer\n" +
-                            "    type: array\n" +
-                            "    minItems: 3\n" +
-                            "    maxItems: 5\n" +
-                            "  gender:\n" +
-                            "    enum:\n" +
-                            "      - female\n" +
-                            "      - male\n" +
-                            "    type: string\n" +
-                            "  name: string\n" +
-                            "  surname:\n" +
-                            "    required: false\n" +
-                            "    type: string"
-                        ].join('\n'),
-                        language: 'raml',
-                        minimap: {
-                            enabled: false
-                        }
+                      value: [
+                          "type: object\n" +
+                          "additionalProperties: false\n" +
+                          "properties:\n" +
+                          "  address:\n" +
+                          "    properties:\n" +
+                          "      city: string\n" +
+                          "      country: string\n" +
+                          "      postcode: string\n" +
+                          "      street: string\n" +
+                          "  age:\n" +
+                          "    minimum: 17\n" +
+                          "    type: integer\n" +
+                          "  scores:\n" +
+                          "    items: integer\n" +
+                          "    type: array\n" +
+                          "    minItems: 3\n" +
+                          "    maxItems: 5\n" +
+                          "  gender:\n" +
+                          "    enum:\n" +
+                          "      - female\n" +
+                          "      - male\n" +
+                          "    type: string\n" +
+                          "  name: string\n" +
+                          "  surname:\n" +
+                          "    required: false\n" +
+                          "    type: string"
+                      ].join('\n'),
+                      language: 'raml',
+                      automaticLayout: true,
+                      scrollBeyondLastLine: false,
+                      minimap: {
+                        enabled: false
+                      }
                     });
 
 

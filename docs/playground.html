@@ -164,18 +164,13 @@
                     customizeMonaco();
 
                     var editor = monaco.editor.create(document.getElementById("editor-container"), {
-                        automaticLayout: true,
-                        fontSize: 16,
-                        fontWeight: "bold",
-                        scrollBeyondLastLine: false,
-                        readOnly: false,
-                        value: [
-                            '# no data loaded'
-                        ].join('\n'),
-                        language: 'raml',
-                        minimap: {
-                            enabled: false
-                        }
+                      value: '# no data',
+                      language: 'raml',
+                      automaticLayout: true,
+                      scrollBeyondLastLine: false,
+                      minimap: {
+                        enabled: false
+                      }
                     });
 
                     window.appModel = new amf_playground.ViewModel(editor);

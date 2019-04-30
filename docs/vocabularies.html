@@ -139,18 +139,13 @@
                     customizeMonaco();
 
                     var editorData = monaco.editor.create(document.getElementById("editor-aml-container"), {
-                        automaticLayout: true,
-                        fontSize: 16,
-                        fontWeight: "bold",
-                        scrollBeyondLastLine: false,
-                        readOnly: false,
-                        value: [
-                            '# loading data'
-                        ].join('\n'),
-                        language: 'raml',
-                        minimap: {
-                            enabled: false
-                        }
+                      value: '# no data',
+                      language: 'raml',
+                      automaticLayout: true,
+                      scrollBeyondLastLine: false,
+                      minimap: {
+                        enabled: false
+                      }
                     });
 
 
