@@ -1,18 +1,17 @@
 'use strict'
 
-var gulp = require('gulp')
-
-var browserify = require('browserify')
-var tsify = require('tsify')
-var watchify = require('watchify')
-var babelify = require('babelify')
-var source = require('vinyl-source-stream')
-var buffer = require('vinyl-buffer')
-var gutil = require('gulp-util')
-var sourcemaps = require('gulp-sourcemaps')
-var browserSync = require('browser-sync').create()
-var bower = require('gulp-bower')
-var sass = require('gulp-sass')
+const gulp = require('gulp')
+const browserify = require('browserify')
+const tsify = require('tsify')
+const watchify = require('watchify')
+const babelify = require('babelify')
+const source = require('vinyl-source-stream')
+const buffer = require('vinyl-buffer')
+const gutil = require('gulp-util')
+const sourcemaps = require('gulp-sourcemaps')
+const browserSync = require('browser-sync').create()
+const bower = require('gulp-bower')
+const sass = require('gulp-sass')
 
 gulp.task('bower', function () {
   return bower({cwd: 'docs'})
