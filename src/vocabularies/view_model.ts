@@ -43,23 +43,23 @@ export class ViewModel implements amf.resource.ResourceLoader {
   public base = window.location.href.toString().replace('vocabularies.html', '');
 
   public vocabsFiles: KnockoutObservableArray<Ref> = ko.observableArray([
-    { 'name': 'music.yaml', 'url': this.base + 'vocabs/music/vocabulary/music.yaml', 'kind': 'vocabulary' },
-    { 'name': 'music_curation.yaml', 'url': this.base + 'vocabs/music/vocabulary/music_curation.yaml', 'kind': 'vocabulary' },
-    { 'name': 'asynchronous.yaml', 'url': this.base + 'vocabs/asynchronous_apis/vocabulary/asynchronous.yaml', 'kind': 'vocabulary' }
+    { 'name': 'music.yaml', 'url': this.base + 'spec_examples/vocabs/music/vocabulary/music.yaml', 'kind': 'vocabulary' },
+    { 'name': 'music_curation.yaml', 'url': this.base + 'spec_examples/vocabs/music/vocabulary/music_curation.yaml', 'kind': 'vocabulary' },
+    { 'name': 'asynchronous.yaml', 'url': this.base + 'spec_examples/vocabs/asynchronous_apis/vocabulary/asynchronous.yaml', 'kind': 'vocabulary' }
 
   ]);
 
-  public asyncAPIDialect = { 'name': 'async_api.yaml', 'url': this.base + 'vocabs/asynchronous_apis/dialect/async_api.yaml', 'kind': 'dialect' }
+  public asyncAPIDialect = { 'name': 'async_api.yaml', 'url': this.base + 'spec_examples/vocabs/asynchronous_apis/dialect/async_api.yaml', 'kind': 'dialect' }
   public dialectFiles: KnockoutObservableArray<Ref> = ko.observableArray([
-    { 'name': 'playlist.yaml', 'url': this.base + 'vocabs/music/dialect/playlist.yaml', 'kind': 'dialect' },
+    { 'name': 'playlist.yaml', 'url': this.base + 'spec_examples/vocabs/music/dialect/playlist.yaml', 'kind': 'dialect' },
     this.asyncAPIDialect
   ]);
 
   public instanceFiles: KnockoutObservableArray<Ref> = ko.observableArray([
-    { 'name': 'playlist1.yaml', 'url': this.base + 'vocabs/music/instances/playlist1.yaml', 'kind': 'document' },
-    { 'name': 'playlist2.yaml', 'url': this.base + 'vocabs/music/instances/playlist2.yaml', 'kind': 'document' },
-    { 'name': 'basic.yaml', 'url': this.base + 'vocabs/asynchronous_apis/instances/basic.yaml', 'kind': 'document' },
-    { 'name': 'slack.yaml', 'url': this.base + 'vocabs/asynchronous_apis/instances/slack.yaml', 'kind': 'document' }
+    { 'name': 'playlist1.yaml', 'url': this.base + 'spec_examples/vocabs/music/instances/playlist1.yaml', 'kind': 'document' },
+    { 'name': 'playlist2.yaml', 'url': this.base + 'spec_examples/vocabs/music/instances/playlist2.yaml', 'kind': 'document' },
+    { 'name': 'basic.yaml', 'url': this.base + 'spec_examples/vocabs/asynchronous_apis/instances/basic.yaml', 'kind': 'document' },
+    { 'name': 'slack.yaml', 'url': this.base + 'spec_examples/vocabs/asynchronous_apis/instances/slack.yaml', 'kind': 'document' }
   ]);
 
   public vocabularyPredefinedQueries = [

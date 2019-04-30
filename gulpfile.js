@@ -25,9 +25,9 @@ gulp.task('sass', function () {
 })
 
 const options = {'standalone': 'amf_playground'}
-const b = watchify(browserify(options))
-function bundle () {
-  return b
+const bPlayground = watchify(browserify(options))
+gulp.task('bundlePlayground', function () {
+  return bPlayground
     .add([
       'src/playground/view_model.ts'
     ])
@@ -45,11 +45,12 @@ function bundle () {
     .pipe(sourcemaps.write('./')) // writes .map file
     .pipe(gulp.dest('./docs/js'))
     .pipe(browserSync.stream({once: true}))
-}
+
+})
 
 const optionsValidation = {'standalone': 'amf_playground_validation'}
 const bValidation = watchify(browserify(optionsValidation))
-function bundleValidation () {
+gulp.task('bundleValidation', function () {
   return bValidation
     .add([
       'src/validation/view_model.ts'
@@ -68,11 +69,11 @@ function bundleValidation () {
     .pipe(sourcemaps.write('./')) // writes .map file
     .pipe(gulp.dest('./docs/js'))
     .pipe(browserSync.stream({once: true}))
-}
+})
 
 const optionsDiff = {'standalone': 'amf_playground_diff'}
 const bDiff = watchify(browserify(optionsDiff))
-function bundleDiff () {
+gulp.task('bundleDiff', function () {
   return bDiff
     .add([
       'src/diff/view_model.ts'
@@ -91,12 +92,12 @@ function bundleDiff () {
     .pipe(sourcemaps.write('./')) // writes .map file
     .pipe(gulp.dest('./docs/js'))
     .pipe(browserSync.stream({once: true}))
-}
+})
 
-const optionsVocabs = {'standalone': 'amf_playground_vocabs'}
-const bVocabs = watchify(browserify(optionsVocabs))
-function bundleVocabs () {
-  return bVocabs
+const optionsVocabularies = {'standalone': 'amf_playground_vocabs'}
+const bVocabularies = watchify(browserify(optionsVocabularies))
+gulp.task('bundleVocabularies', function () {
+  return bVocabularies
     .add([
       'src/vocabularies/view_model.ts'
     ])
@@ -114,11 +115,11 @@ function bundleVocabs () {
     .pipe(sourcemaps.write('./')) // writes .map file
     .pipe(gulp.dest('./docs/js'))
     .pipe(browserSync.stream({once: true}))
-}
+})
 
 const optionsCustomValidation = {'standalone': 'amf_playground_custom_validation'}
 const bCustomValidation = watchify(browserify(optionsCustomValidation))
-function bundleCustomValidation () {
+gulp.task('bundleCustomValidation', function () {
   return bCustomValidation
     .add([
       'src/custom_validation/view_model.ts'
@@ -137,52 +138,64 @@ function bundleCustomValidation () {
     .pipe(sourcemaps.write('./')) // writes .map file
     .pipe(gulp.dest('./docs/js'))
     .pipe(browserSync.stream({once: true}))
-}
-
-gulp.task('bundle_validation', bundleValidation) // so you can run `gulp js` to build the file
-gulp.task('bundle_diff', bundleDiff) // so you can run `gulp js` to build the file
-gulp.task('bundle_vocabs', bundleVocabs) // so you can run `gulp js` to build the file
-gulp.task('bundle_custom_validation', bundleCustomValidation) // so you can run `gulp js` to build the file
-gulp.task('bundle', bundle) // so you can run `gulp js` to build the file
-b.on('update', bundle) // on any dep update, runs the bundler
-b.on('log', gutil.log) // output build logs to terminal
-
-gulp.task('serve', ['bower'], function () {
-  bundle()
-  browserSync.init({
-    server: 'docs',
-    startPath: '/playground.html'
-  })
 })
 
-gulp.task('serve_validation', ['bower'], function () {
-  bundleValidation()
-  browserSync.init({
-    server: 'docs',
-    startPath: '/validation.html'
-  })
-})
+gulp.task('servePlayground', gulp.series(
+  'sass',
+  'bower',
+  'bundlePlayground',
+  function () {
+    browserSync.init({
+      server: 'docs',
+      startPath: '/playground.html'
+    })
+  }
+))
 
-gulp.task('serve_diff', ['bower'], function () {
-  bundleDiff()
-  browserSync.init({
-    server: 'docs',
-    startPath: '/diff.html'
-  })
-})
+gulp.task('serveValidation', gulp.series(
+  'sass',
+  'bower',
+  'bundleValidation',
+  function () {
+    browserSync.init({
+      server: 'docs',
+      startPath: '/validation.html'
+    })
+  }
+))
 
-gulp.task('serve_vocabs', ['bower'], function () {
-  bundleVocabs()
-  browserSync.init({
-    server: 'docs',
-    startPath: '/vocabularies.html'
-  })
-})
+gulp.task('serveDiff', gulp.series(
+  'sass',
+  'bower',
+  'bundleDiff',
+  function () {
+    browserSync.init({
+      server: 'docs',
+      startPath: '/diff.html'
+    })
+  }
+))
 
-gulp.task('serve_custom_validation', ['bower'], function () {
-  bundleCustomValidation()
-  browserSync.init({
-    server: 'docs',
-    startPath: '/custom_validation.html'
-  })
-})
+gulp.task('serveVocabularies', gulp.series(
+  'sass',
+  'bower',
+  'bundleVocabularies',
+  function () {
+    browserSync.init({
+      server: 'docs',
+      startPath: '/vocabularies.html'
+    })
+  }
+))
+
+gulp.task('serveCustomValidation', gulp.series(
+  'sass',
+  'bower',
+  'bundleCustomValidation',
+  function () {
+    browserSync.init({
+      server: 'docs',
+      startPath: '/custom_validation.html'
+    })
+  }
+))

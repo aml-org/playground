@@ -18,12 +18,12 @@ export class LoadModal {
     { name: 'OpenAPI 2.0', key: 'open-api' }
   ]);
   public apiExamples: KnockoutObservableArray<any> = ko.observableArray([
-    { name: 'Banking API (RAML)', key: 'raml', url: getBaseUrl() + 'raml/banking-api/api.raml' },
-    { name: 'World Music API (RAML)', key: 'raml', url: getBaseUrl() + 'raml/world-music-api/api.raml' },
-    { name: 'Mobile Order API (RAML)', key: 'raml', url: getBaseUrl() + 'raml/mobile-order-api/api.raml' },
-    { name: 'Spotify (RAML)', key: 'raml', url: getBaseUrl() + 'raml/spotify/api.raml' },
-    { name: 'Pet Store API (Open API)', key: 'open-api', url: getBaseUrl() + 'openapi/petstore.yaml' },
-    { name: 'Uber API (Open API)', key: 'open-api', url: getBaseUrl() + 'openapi/uber.yaml' }
+    { name: 'Banking API (RAML)', key: 'raml', url: getBaseUrl() + 'spec_examles/raml/banking-api/api.raml' },
+    { name: 'World Music API (RAML)', key: 'raml', url: getBaseUrl() + 'spec_examles/raml/world-music-api/api.raml' },
+    { name: 'Mobile Order API (RAML)', key: 'raml', url: getBaseUrl() + 'spec_examles/raml/mobile-order-api/api.raml' },
+    { name: 'Spotify (RAML)', key: 'raml', url: getBaseUrl() + 'spec_examles/raml/spotify/api.raml' },
+    { name: 'Pet Store API (Open API)', key: 'open-api', url: getBaseUrl() + 'spec_examles/openapi/petstore.yaml' },
+    { name: 'Uber API (Open API)', key: 'open-api', url: getBaseUrl() + 'spec_examles/openapi/uber.yaml' }
   ]);
 
   public selectedParserType: KnockoutObservable<any> = ko.observable<any>(this.parserTypes[0]);
