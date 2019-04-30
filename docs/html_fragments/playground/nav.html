@@ -7,7 +7,7 @@
                 <span class="nav-logo-img">
                     <img src='./images/AML_white.svg'>
                 </span>
-                <span style="color:white; margin-left: 5px" class="nav-logo-text" class="nav-logo-text">AMF Playground</span>
+                <span style="margin-left: 5px" class="nav-logo-text" class="nav-logo-text">AMF Playground</span>
             </div>
         </div>
         <div class="navbar-start navbar-menu">
@@ -22,15 +22,12 @@
                 </a>
             </span>
             <span class="navbar-item">
-                <p class="control">
-                    <!-- <label class="label">Level</label> -->
-                    <span class="select">
-                        <select data-bind="options: nav.documentLevelOptions,
-                                           optionsText: 'name',
-                                           value: nav.selectedDocumentLevel">
-                        </select>
-                    </span>
-                </p>
+                <div class="dropdown is-right">
+                  <select name="raml-demo" class="raml-demo-select"
+                    onchange="(function(el) {window.location = el.value})(this)">
+                      <option value="playground.html" selected>Demo: Playground</option>
+                  </select>
+                </div>
             </span>
         </div>
     </nav>
