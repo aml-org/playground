@@ -10,10 +10,10 @@
     <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
 
     <script src="js/preload.js"></script>
+    <script src="js/monaco-customize.js"></script>
 
     <link rel="stylesheet" href="bower_components/bulma/css/bulma.css">
-    <link rel="stylesheet" href="css/app.css">
-    <link rel="stylesheet" href="css/validation_styles.css">
+    <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
     <title>AMF Payload Validation</title>
 </head>
@@ -54,8 +54,7 @@
         var loadApp = function(cb) {
             var assets = [
                 "js/amf_playground_validation.js",
-                "js/monaco-editor/min/vs/loader.js",
-                "js/monaco-editor/monaco-customize.js"
+                "js/monaco-editor/min/vs/loader.js"
             ];
             var loaded = 0;
             var preload = new createjs.LoadQueue();
@@ -152,7 +151,7 @@
                         value: [
                         '{\n  "name": "Timothy",\n  "surname": "Berners-Lee"\n}'
                         ].join('\n'),
-                        language: 'json',
+                        language: 'raml',
                         minimap: {
                             enabled: false
                         }
@@ -192,7 +191,7 @@
                             "    required: false\n" +
                             "    type: string"
                         ].join('\n'),
-                        language: 'yaml',
+                        language: 'raml',
                         minimap: {
                             enabled: false
                         }
