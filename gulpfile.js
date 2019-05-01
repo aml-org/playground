@@ -47,29 +47,6 @@ gulp.task('bundlePlayground', function () {
 
 })
 
-const optionsValidation = {'standalone': 'amf_playground_validation'}
-const bValidation = watchify(browserify(optionsValidation))
-gulp.task('bundleValidation', function () {
-  return bValidation
-    .add([
-      'src/validation/view_model.ts'
-    ])
-    .plugin(tsify, { target: 'es5' })
-  // .transform(babelify, { extensions: [ '.tsx', '.ts' ] })
-    .bundle()
-  // log errors if they happen
-    .on('error', gutil.log.bind(gutil, 'Browserify Error'))
-    .pipe(source('amf_playground_validation.js'))
-  // optional, remove if you don't need to buffer file contents
-    .pipe(buffer())
-  // optional, remove if you dont want sourcemaps
-    .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
-  // Add transformation tasks to the pipeline here.
-    .pipe(sourcemaps.write('./')) // writes .map file
-    .pipe(gulp.dest('./docs/js'))
-    .pipe(browserSync.stream({once: true}))
-})
-
 const optionsDiff = {'standalone': 'amf_playground_diff'}
 const bDiff = watchify(browserify(optionsDiff))
 gulp.task('bundleDiff', function () {
@@ -116,29 +93,6 @@ gulp.task('bundleVocabularies', function () {
     .pipe(browserSync.stream({once: true}))
 })
 
-const optionsCustomValidation = {'standalone': 'amf_playground_custom_validation'}
-const bCustomValidation = watchify(browserify(optionsCustomValidation))
-gulp.task('bundleCustomValidation', function () {
-  return bCustomValidation
-    .add([
-      'src/custom_validation/view_model.ts'
-    ])
-    .plugin(tsify, { target: 'es5' })
-  // .transform(babelify, { extensions: [ '.tsx', '.ts' ] })
-    .bundle()
-  // log errors if they happen
-    .on('error', gutil.log.bind(gutil, 'Browserify Error'))
-    .pipe(source('amf_playground_custom_validation.js'))
-  // optional, remove if you don't need to buffer file contents
-    .pipe(buffer())
-  // optional, remove if you dont want sourcemaps
-    .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
-  // Add transformation tasks to the pipeline here.
-    .pipe(sourcemaps.write('./')) // writes .map file
-    .pipe(gulp.dest('./docs/js'))
-    .pipe(browserSync.stream({once: true}))
-})
-
 gulp.task('servePlayground', gulp.series(
   'sass',
   'bower',
@@ -147,18 +101,6 @@ gulp.task('servePlayground', gulp.series(
     browserSync.init({
       server: 'docs',
       startPath: '/playground.html'
-    })
-  }
-))
-
-gulp.task('serveValidation', gulp.series(
-  'sass',
-  'bower',
-  'bundleValidation',
-  function () {
-    browserSync.init({
-      server: 'docs',
-      startPath: '/validation.html'
     })
   }
 ))
@@ -187,14 +129,33 @@ gulp.task('serveVocabularies', gulp.series(
   }
 ))
 
-gulp.task('serveCustomValidation', gulp.series(
+
+const optionsValidation = {'standalone': 'aml_playground_validation'}
+const bCustomValidation = watchify(browserify(optionsValidation))
+gulp.task('bundleValidation', function () {
+  return bCustomValidation
+    .add([
+      'src/validation/view_model.ts'
+    ])
+    .plugin(tsify, { target: 'es5' })
+    .bundle()
+    .on('error', gutil.log.bind(gutil, 'Browserify Error'))
+    .pipe(source('aml_playground_validation.js'))
+    .pipe(buffer())
+    .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
+    .pipe(sourcemaps.write('./')) // writes .map file
+    .pipe(gulp.dest('./docs/js'))
+    .pipe(browserSync.stream({once: true}))
+})
+
+gulp.task('serveValidation', gulp.series(
   'sass',
   'bower',
-  'bundleCustomValidation',
+  'bundleValidation',
   function () {
     browserSync.init({
       server: 'docs',
-      startPath: '/custom_validation.html'
+      startPath: '/validation.html'
     })
   }
 ))

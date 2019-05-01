@@ -5,9 +5,9 @@
     <div class="navbar-brand">
       <div class="logo-wrapper navbar-item">
         <span class="nav-logo-img">
-          <img src='./images/AML_white.svg'>
+          <img src='images/AML_white.svg'>
         </span>
-        <span style="color:white; margin-left: 5px" class="nav-logo-text" class="nav-logo-text">Payload Validation</span>
+        <span style="color:white; margin-left: 5px" class="nav-logo-text" class="nav-logo-text">Custom Validation</span>
       </div>
     </div>
     <div class="navbar-start navbar-menu">
@@ -16,6 +16,14 @@
       <div class="navbar-item">
         <span style="font-size: 14px; font-weight: bolder" class="tag is-success" data-bind="visible: (errors()||[]).length === 0">No Errors</span>
         <span style="font-size: 14px; font-weight: bolder" class="tag is-danger" data-bind="visible: (errors()||[]).length > 0, text: ((errors()||[]).length)+' errors'"></span>
+      </div>
+    </div>
+    <div class="navbar-item">
+      <div class="dropdown is-right">
+      <select name="aml-demo" class="aml-demo-select"
+        onchange="(function(el) {window.location = el.value})(this)">
+        <option value="validation.html" selected>Demo: Validation</option>
+      </select>
       </div>
     </div>
   </nav>

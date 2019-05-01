@@ -4,25 +4,37 @@
 
 import * as ko from 'knockout'
 import * as amf from 'amf-client-js'
+import { UI } from '../view_models/ui'
 import AnyShape = amf.model.domain.AnyShape
 
 export type NavigatorSection = 'shapes' | 'errors'
+
+interface Shape {
+  id: string,
+  target: string,
+  message: string,
+  isCustom: boolean
+}
 
 const createModel = function (text, mode) {
   return window['monaco'].editor.createModel(text, mode)
 }
 
 export class ViewModel {
-  public navigatorSection: KnockoutObservable<NavigatorSection> = ko.observable<NavigatorSection>('shapes');
+  public env: amf.client.environment.Environment = null;
+  public navigatorSection: KnockoutObservable<NavigatorSection> = ko.observable<NavigatorSection>('errors');
 
-  public shapes: KnockoutObservableArray<AnyShape> = ko.observableArray<AnyShape>([]);
-  public errors: KnockoutObservableArray<amf.client.validate.ValidationResult> = ko.observableArray<amf.validate.ValidationResult>([]);
+  public shapes: KnockoutObservableArray<Shape> = ko.observableArray<Shape>([]);
+  public errors: KnockoutObservableArray<amf.validate.ValidationResult> = ko.observableArray<amf.validate.ValidationResult>([]);
+  public selectedModel: KnockoutObservable<amf.model.document.BaseUnit|null> = ko.observable(null);
 
   public editorSection: KnockoutObservable<string> = ko.observable<string>('raml');
+  public validationSection: KnockoutObservable<string> = ko.observable<string>('custom');
+  public customValidation?: string;
 
-  public selectedShape: KnockoutObservable<AnyShape> = ko.observable<AnyShape>();
   public selectedError: KnockoutObservable<any> = ko.observable<any>();
   public errorsMapShape: {[id: string]: boolean} = {};
+  public ui: UI = new UI();
 
   public model: any | null = null;
   public modelSyntax: string | null = null;
@@ -32,127 +44,108 @@ export class ViewModel {
   public documentModelChanged = false;
   public RELOAD_PERIOD = 1000;
 
-  public constructor (public dataEditor: any, public shapeEditor: any) {
-    this.editorSection.subscribe((section) => this.onEditorSectionChange(section))
-    this.shapeEditor.onDidChangeModelContent(this.onEditorContentChange.bind(this))
-    this.dataEditor.onDidChangeModelContent(this.onEditorContentChange.bind(this))
-  }
+  public ramlParser?
+  public profilePath = 'file://PlaygroundValidationProfile.aml';
+  public profileName: amf.ProfileName;
 
-  public loadShapes () {
+  public init (): Promise<any> {
     return amf.AMF.init()
-      .then(() => {
-        return this.parseEditorContent()
-      })
-      .catch((e) => {
-        console.log('ERROR!!! ' + e)
-      })
   }
 
-  public parseEditorContent () {
-    let toParse, parser, doc, profileName
-    if (this.editorSection() === 'raml') {
-      toParse = '#%RAML 1.0 DataType\n' + this.shapeEditor.getValue()
-      parser = amf.AMF.raml10Parser()
-      profileName = amf.ProfileNames.RAML10
-    } else if (this.editorSection() === 'open-api') {
-      toParse = this.shapeEditor.getValue()
-      toParse = JSON.stringify({
-        swagger: '2.0',
-        info: { title: 'asd', version: '123' },
-        definitions: {
-          Root: JSON.parse(toParse)
-        }
-      })
-      parser = amf.AMF.oas20Parser()
-      profileName = amf.ProfileNames.OAS20
-    } else {
-      toParse = JSON.stringify({
-        '@id': 'https://mulesoft-labs.github.io/amf-playground',
-        '@type': [
-          'http://a.ml/vocabularies/document#Fragment',
-          'http://a.ml/vocabularies/document#Unit'
-        ],
-        'http://a.ml/vocabularies/document#encodes': [
-          JSON.parse(this.shapeEditor.getValue())
-        ]
-      })
-      parser = amf.AMF.amfGraphParser()
-      profileName = amf.ProfileNames.AMF
-    }
-    return parser.parseStringAsync(toParse)
-      .then((parsed: amf.model.document.Document) => {
-        doc = parsed
-        return parser.reportValidation(profileName)
-      })
-      .then((report) => {
-        // Only save section content if it's valid
-        if (report.conforms) {
-          return this.parseEditorSyntax(doc, this.editorSection())
-        } else {
-          console.log('Invalid section content', this.editorSection())
-        }
-      })
-      .catch((e) => {
-        console.log('Error parsing editor section', this.editorSection())
-        console.log(e.toString())
-      })
-  }
-
-  public onEditorContentChange () {
-    this.changesFromLastUpdate++
-    this.documentModelChanged = true;
-    ((number) => {
-      setTimeout(() => {
-        if (this.changesFromLastUpdate === number) {
-          this.changesFromLastUpdate = 0
-          this.parseEditorContent()
-        }
-      }, this.RELOAD_PERIOD)
-    })(this.changesFromLastUpdate)
-  }
-
-  public parseEditorSyntax (parsed: amf.model.document.Document, syntax: string) {
-    const oldShape = this.selectedShape()
-    const oldShapes = this.shapes()
-    const oldErrors = this.errors()
-    try {
-      let shape
-      if (parsed.declares !== undefined && parsed.declares[0] !== undefined) {
-        shape = parsed.declares[0]
-      } else {
-        shape = parsed.encodes
+  public constructor (public dataEditor: any, public shapeEditor: any) {
+    const parsingApiFn = () => {
+      if (this.editorSection() === 'raml') {
+        const toParse = shapeEditor.getValue()
+        return this.ramlParser.parseStringAsync(toParse)
+          .then((parsed: amf.model.document.Document) => {
+            this.selectedModel(parsed)
+            const oldErrors = this.errors()
+            try {
+              this.doValidate()
+            } catch (e) {
+              console.log('Exception parsing API')
+              console.log(e)
+              this.errors(oldErrors)
+            }
+          }).catch((e) => {
+            console.log('Error parsing RAML API')
+          })
       }
-      if (shape != null && shape instanceof AnyShape) {
-        if (this.model !== null) {
-          this.model = this.model.withEncodes(shape)
-        } else {
-          this.model = parsed
-        }
-        this.modelSyntax = syntax
-        this.modelText = this.shapeEditor.getValue()
-        const parsedShape = shape as AnyShape
-        this.selectedShape(parsedShape)
-        this.shapes([parsedShape])
-        this.doValidate()
-      }
-    } catch (e) {
-      console.log('Exception parsing shape')
-      console.log(e)
-      this.selectedShape(oldShape)
-      this.shapes(oldShapes)
-      this.errors(oldErrors)
     }
+
+    const parsingProfileFn = () => {
+      const self = this
+      if (this.validationSection() === 'custom') {
+        return amf.AMF.loadValidationProfile(this.profilePath, this.getEnv(dataEditor))
+          .then((profileName) => {
+            self.profileName = profileName
+            this.loadShapes()
+            this.doValidate()
+          })
+      }
+    }
+
+    this.editorSection.subscribe((section) => this.onEditorSectionChange(section))
+    this.validationSection.subscribe((section) => this.onValidationSectionChange(section))
+
+    this.init().then(() => {
+      this.ramlParser = amf.AMF.raml10Parser()
+      return parsingProfileFn()
+    }).then(() => {
+      return parsingApiFn()
+    }).then(() => {
+      this.loadShapes()
+    }).catch((e) => {
+      console.log('ERROR!!! ' + e)
+    })
+
+    shapeEditor.onDidChangeModelContent(() => {
+      this.changesFromLastUpdate++
+      this.documentModelChanged = true;
+      ((number) => {
+        setTimeout(() => {
+          if (this.changesFromLastUpdate === number) {
+            this.changesFromLastUpdate = 0
+            parsingApiFn()
+          }
+        }, this.RELOAD_PERIOD)
+      })(this.changesFromLastUpdate)
+    })
+    dataEditor.onDidChangeModelContent(() => {
+      this.changesFromLastUpdate++
+      this.documentModelChanged = true;
+      ((number) => {
+        setTimeout(() => {
+          if (this.changesFromLastUpdate === number) {
+            this.changesFromLastUpdate = 0
+            parsingProfileFn()
+          }
+        }, this.RELOAD_PERIOD)
+      })(this.changesFromLastUpdate)
+    })
+  }
+
+  public getEnv (dataEditor: any) {
+    const profilePath = this.profilePath
+    const EditorProfileLoader = {
+      fetch: function (resource) {
+        return new Promise(function (resolve, reject) {
+          resolve(new amf.client.remote.Content(
+            dataEditor.getValue(), profilePath))
+        })
+      },
+      accepts: function (resource) {
+        return true
+      }
+    }
+    const env = new amf.client.environment.Environment()
+    return env.addClientLoader(EditorProfileLoader)
   }
 
   public hasError (shape: AnyShape): boolean {
+    console.log('ERROR? ' + shape.id)
     const errors = this.errorsMapShape || {}
     return errors[(shape.id || '').split('document/type')[1]] || false
-  }
-
-  public selectShape (shape: AnyShape) {
-    if (this.selectedShape() == null || this.selectedShape().id !== shape.id) {
-      this.selectedShape(shape)
-    }
   }
 
   public selectError (error: any) {
@@ -167,51 +160,105 @@ export class ViewModel {
   }
 
   public doValidate () {
-    const shape = this.selectedShape()
-    if (shape != null) {
-      shape.validate(this.dataEditor.getValue()).then((report) => {
-        this.errors(report.results)
+    const model = this.selectedModel()
+    if (model != null) {
+      this.ramlParser.reportValidation(this.profileName).then((report) => {
+        var violations = report.results.filter((result) => {
+          return result.level == 'Violation'
+        })
+
+        const editorModel = this.shapeEditor.getModel()
+        const monacoErrors = report.results.map((result) => this.buildMonacoErro(result))
+        monaco.editor.setModelMarkers(editorModel, editorModel.id, monacoErrors)
+
+        this.errors(violations)
+        console.log('CONFORMS: ' + report.conforms)
+        console.log(report.results)
         this.errorsMapShape = this.errors()
           .map(e => {
+            console.log(e.validationId.split('document/type')[1])
             return e.validationId.split('document/type')[1]
           })
           .reduce((a, s) => { a[s] = true; return a }, {})
-        // just triggering a redraw
-        const last = this.shapes.pop()
-        this.shapes.push(last)
         window['resizeFn']()
       }).catch((e) => {
-        console.log('Error parsing and validating JSON data')
+        console.log('Error validating API')
         console.error(e)
       })
     }
   }
 
   private onEditorSectionChange (section: string) {
-    if (this.model != null) {
+    if (this.selectedModel() != null) {
       if (section === 'raml') {
-        amf.AMF.raml10Generator().generateString(this.model)
+        amf.Core.generator('RAML 1.0', 'application/yaml').generateString(this.selectedModel())
           .then((generated) => {
-            let lines = generated.split('\n')
-            lines.shift()
-            this.shapeEditor.setModel(createModel(lines.join('\n'), 'yaml'))
-          })
-      } else if (section === 'open-api') {
-        amf.AMF.oas20Generator().generateString(this.model)
-          .then((generated) => {
-            const shape = JSON.parse(generated)
-            delete shape['x-amf-fragmentType']
-            this.shapeEditor.setModel(createModel(JSON.stringify(shape, null, 2), 'json'))
+            this.shapeEditor.setModel(createModel(generated, 'yaml'))
           })
       } else if (section === 'api-model') {
-        amf.AMF.amfGraphGenerator().generateString(this.model, new amf.render.RenderOptions().withCompactUris)
+        amf.AMF.amfGraphGenerator().generateString(this.selectedModel(), new amf.render.RenderOptions().withCompactUris)
           .then((generated) => {
             const json = JSON.parse(generated)
-            const shape = json[0]['doc:encodes'][0]
-            this.shapeEditor.setModel(createModel(JSON.stringify(shape, null, 2), 'json'))
+            this.shapeEditor.setModel(createModel(JSON.stringify(json, null, 2), 'json'))
           })
       }
       window['resizeFn']()
     }
+  }
+
+  private onValidationSectionChange (section: string) {
+    if (section === 'custom') {
+      this.dataEditor.setModel(createModel(this.customValidation, 'yaml'))
+    } else {
+      this.customValidation = this.dataEditor.getValue()
+      const shapes = amf.AMF.emitShapesGraph(this.profileName)
+      const json = JSON.parse(shapes)
+      this.dataEditor.setModel(createModel(JSON.stringify(json, null, 2), 'json'))
+    }
+  }
+
+  Hint = 1;
+  Info = 2;
+  Warning = 4;
+  Error = 8;
+
+  protected buildMonacoErro (error: amf.validate.ValidationResult): any {
+    console.log('BUILDING ERROR ' + error.targetNode)
+    let severity = this.Info
+    if (error.level == 'Violation') { severity = this.Error }
+    if (error.level === 'Warning') { severity = this.Warning }
+    const startLineNumber = error.position.start.line
+    const startColumn = error.position.start.column
+    const endLineNumber = error.position.end.line
+    const endColumn = error.position.end.column
+    const message = error.message
+    return {
+      severity, // hardcoded error severity
+      startLineNumber,
+      startColumn,
+      endLineNumber,
+      endColumn,
+      message
+    }
+  }
+
+  protected loadShapes () {
+    const shapes = amf.AMF.emitShapesGraph(this.profileName)
+    const shapesModels = JSON.parse(shapes).map((mdl) => {
+      let id = mdl['@id']
+        .replace('http://a.ml/vocabularies/amf/parser#', 'amf-parser')
+        .replace('http://a.ml/vocabularies/data#', '')
+      let isCustom = mdl['@id'].indexOf('amf/parser#') > -1
+      let message = (mdl['http://www.w3.org/ns/shacl#message'] || {})['@value'] || ''
+      let targetId = ((mdl['http://www.w3.org/ns/shacl#targetClass'] || [])[0] || {})['@id'] || ''
+      let target = this.ui.bindingLabel({ token: 'uri', value: targetId })
+      return {
+        id,
+        target,
+        isCustom,
+        message
+      }
+    })
+    this.shapes(shapesModels)
   }
 }
