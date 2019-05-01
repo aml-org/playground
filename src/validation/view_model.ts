@@ -193,7 +193,7 @@ export class ViewModel {
       if (section === 'raml') {
         amf.Core.generator('RAML 1.0', 'application/yaml').generateString(this.selectedModel())
           .then((generated) => {
-            this.shapeEditor.setModel(createModel(generated, 'yaml'))
+            this.shapeEditor.setModel(createModel(generated, 'aml'))
           })
       } else if (section === 'api-model') {
         amf.AMF.amfGraphGenerator().generateString(this.selectedModel(), new amf.render.RenderOptions().withCompactUris)
@@ -208,7 +208,7 @@ export class ViewModel {
 
   private onValidationSectionChange (section: string) {
     if (section === 'custom') {
-      this.dataEditor.setModel(createModel(this.customValidation, 'yaml'))
+      this.dataEditor.setModel(createModel(this.customValidation, 'aml'))
     } else {
       this.customValidation = this.dataEditor.getValue()
       const shapes = amf.AMF.emitShapesGraph(this.profileName)
