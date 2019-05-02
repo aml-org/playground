@@ -20,17 +20,24 @@ export class ViewModel {
     amf.AMF.init()
       .then(() => {
         this.amlParser = new amf.Aml10Parser()
-        return this.loadInitialDialectContent()
+        return this.loadInitialDialect()
       })
       .then(() => {
-        return this.loadInitialDocumentContent()
+        return this.loadInitialDocument()
       })
 
     this.documentEditor.onDidChangeModelContent(() => {
-      this.handleModelContentChange(this.parseDocumentEditorContent)
+      this.handleModelContentChange(this.updateDocumentEditorContent)
     })
     this.dialectEditor.onDidChangeModelContent(() => {
-      this.handleModelContentChange(this.registerDialectEditorContent)
+      this.handleModelContentChange(() => {
+        return this.registerDialectEditorContent()
+          .then(() => {
+            // It's necessary to re-parse document in terms of new dialect to
+            // make validation work.
+            return this.updateDocumentEditorContent()
+          })
+      })
     })
   }
 
@@ -56,7 +63,7 @@ export class ViewModel {
     })(this.changesFromLastUpdate)
   }
 
-  public loadInitialDialectContent () {
+  public loadInitialDialect () {
     this.changesFromLastUpdate = 0
     const dialectPath = `${this.base}spec_examples/music/dialect.yaml`
     return this.amlParser.parseFileAsync(dialectPath)
@@ -64,6 +71,9 @@ export class ViewModel {
         this.dialectModel = model
         this.dialectEditor.setModel(this.createModel(this.dialectModel.raw, 'aml'))
         return this.registerDialectEditorContent()
+      })
+      .then(() => {
+        return this.updateDocumentEditorContent()
       })
   }
 
@@ -76,11 +86,10 @@ export class ViewModel {
     return Vocabularies.registerDialect(location, editorValue)
       .then(dialect => {
         this.profileName = new amf.ProfileName(dialect.nameAndVersion())
-        this.doValidate()
       })
   }
 
-  public loadInitialDocumentContent () {
+  public loadInitialDocument () {
     this.changesFromLastUpdate = 0
     const documentPath = `${this.base}spec_examples/music/document.yaml`
     return this.amlParser.parseFileAsync(documentPath)
@@ -91,8 +100,11 @@ export class ViewModel {
       })
   }
 
-  public parseDocumentEditorContent () {
+  public updateDocumentEditorContent () {
     const editorValue = this.documentEditor.getValue()
+    if (!editorValue) {
+      return
+    }
     return this.amlParser.parseStringAsync(editorValue)
       .then(model => {
         this.documentModel = model
