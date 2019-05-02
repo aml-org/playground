@@ -43,9 +43,22 @@ export class ViewModel {
     return window['monaco'].editor.createModel(text, mode)
   }
 
+  public handleModelContentChange (parsingFn) {
+    this.changesFromLastUpdate++
+    this.someModelChanged = true;
+    ((number) => {
+      setTimeout(() => {
+        if (this.changesFromLastUpdate === number) {
+          this.changesFromLastUpdate = 0
+          parsingFn.call(this)
+        }
+      }, this.RELOAD_PERIOD)
+    })(this.changesFromLastUpdate)
+  }
+
   public loadInitialDialectContent () {
     this.changesFromLastUpdate = 0
-    const dialectPath = `${this.base}spec-examples/music/dialect.yaml`
+    const dialectPath = `${this.base}spec_examples/music/dialect.yaml`
     return this.amlParser.parseFileAsync(dialectPath)
       .then(model => {
         this.dialectModel = model
@@ -54,39 +67,26 @@ export class ViewModel {
       })
   }
 
-  public loadInitialDocumentContent () {
-    this.changesFromLastUpdate = 0
-    const documentPath = `${this.base}spec-examples/music/document.yaml`
-    return this.amlParser.parseFileAsync(documentPath)
-      .then(model => {
-        this.documentEditor.setModel(this.createModel(model.raw, 'aml'))
-        this.documentModel = model
-        this.doValidate()
-      })
-  }
-
-  public handleModelContentChange (parsingFn) {
-    this.changesFromLastUpdate++
-    this.someModelChanged = true;
-    ((number) => {
-      setTimeout(() => {
-        if (this.changesFromLastUpdate === number) {
-          this.changesFromLastUpdate = 0
-          parsingFn()
-        }
-      }, this.RELOAD_PERIOD)
-    })(this.changesFromLastUpdate)
-  }
-
   public registerDialectEditorContent () {
     const editorValue = this.dialectEditor.getValue()
     if (!editorValue) {
       return
     }
-    const location = this.dialectModel.location() || this.defaultDocUrl
+    const location = this.dialectModel.location || this.defaultDocUrl
     return Vocabularies.registerDialect(location, editorValue)
       .then(dialect => {
         this.profileName = new amf.ProfileName(dialect.nameAndVersion())
+        this.doValidate()
+      })
+  }
+
+  public loadInitialDocumentContent () {
+    this.changesFromLastUpdate = 0
+    const documentPath = `${this.base}spec_examples/music/document.yaml`
+    return this.amlParser.parseFileAsync(documentPath)
+      .then(model => {
+        this.documentEditor.setModel(this.createModel(model.raw, 'aml'))
+        this.documentModel = model
         this.doValidate()
       })
   }
@@ -109,10 +109,10 @@ export class ViewModel {
     }
     amf.AMF.validate(this.documentModel, this.profileName, amf.MessageStyles.RAML)
       .then(report => {
-        const model = this.documentEditor.getModel()
         const monacoErrors = report.results.map((result) => {
           return this.buildMonacoError(result)
         })
+        const model = this.documentEditor.getModel()
         monaco.editor.setModelMarkers(model, model.id, monacoErrors)
         window['resizeFn']()
       })
@@ -121,19 +121,14 @@ export class ViewModel {
       })
   }
 
-  Hint = 1;
-  Info = 2;
-  Warning = 4;
-  Error = 8;
-
   protected buildMonacoError (error: amf.validate.ValidationResult): any {
     let severity
     if (error.level === 'Violation') {
-      severity = this.Error
+      severity = monaco.MarkerSeverity.Error
     } else if (error.level === 'Warning') {
-      severity = this.Warning
+      severity = monaco.MarkerSeverity.Warning
     } else {
-      severity = this.Info
+      severity = monaco.MarkerSeverity.Info
     }
     return {
       severity: severity,

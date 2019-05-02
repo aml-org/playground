@@ -51,7 +51,7 @@
       // ************
       var loadApp = function(cb) {
         var assets = [
-          "js/amf_playground_validation.js",
+          "js/aml_playground_validation.js",
           "js/monaco-editor/min/vs/loader.js"
         ];
         var loaded = 0;
@@ -115,19 +115,6 @@
                   containerDiv.setAttribute("style", "height: " + (height - 150) + "px");
                 }
               });
-
-              var navigatorHeight = getHeight("navigator");
-              var navigatorContainerHeight = getHeight("navigator-container");
-
-              if (navigatorContainerHeight - navigatorHeight < 154) {
-                document.getElementById("navigator").style.height = (navigatorContainerHeight - 154) + "px";
-              } else {
-                document.getElementById("navigator").style.height = "auto";
-              }
-
-              document.getElementById("shapes-list").style.height = (height - 200) + "px";
-              document.getElementById("shapes-list").style.overflow = "scroll";
-
             };
 
             var getHeight = function(containerId) {
