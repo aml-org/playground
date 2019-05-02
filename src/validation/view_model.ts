@@ -1,56 +1,73 @@
 import * as ko from 'knockout'
 import * as amf from 'amf-client-js'
-import { UI } from '../view_models/ui'
-import AnyShape = amf.model.domain.AnyShape
+const Vocabularies = amf.plugins.document.Vocabularies
 
 export class ViewModel {
-  public env: amf.client.environment.Environment = null;
-
-  public errors: KnockoutObservableArray<amf.validate.ValidationResult> = ko.observableArray<amf.validate.ValidationResult>([]);
-  public selectedModel: KnockoutObservable<amf.model.document.BaseUnit|null> = ko.observable(null);
-
-  // TODO: Remove later
-  public editorSection: KnockoutObservable<string> = ko.observable<string>('document');
-  public validationSection: KnockoutObservable<string> = ko.observable<string>('dialect');
-
-  public customValidation?: string;
-
-  public errorsMapShape: {[id: string]: boolean} = {};
-  public ui: UI = new UI();
-
-  public model: any | null = null;
-  public modelSyntax: string | null = null;
-  public modelText: string | null = null;
+  public dialectModel: any | null = null;
+  public documentModel: any | null = null;
 
   public changesFromLastUpdate = 0;
-  public documentModelChanged = false;
+  public someModelChanged = false;
   public RELOAD_PERIOD = 1000;
 
   public amlParser?
-  public profilePath = 'file://PlaygroundValidationProfile.aml';
   public profileName: amf.ProfileName;
+
+  public base = window.location.href.toString().replace('validation.html', '')
+  public defaultDocUrl = 'http://a.ml/amf/default_document'
 
   public constructor (public dialectEditor: any, public documentEditor: any) {
     amf.AMF.init()
       .then(() => {
         this.amlParser = new amf.Aml10Parser()
-        return this.parseDialectEditorContent()
+        return this.loadInitialDialectContent()
       })
       .then(() => {
-        return this.parseDocumentEditorContent()
+        return this.loadInitialDocumentContent()
       })
 
     this.documentEditor.onDidChangeModelContent(() => {
       this.handleModelContentChange(this.parseDocumentEditorContent)
     })
     this.dialectEditor.onDidChangeModelContent(() => {
-      this.handleModelContentChange(this.parseDialectEditorContent)
+      this.handleModelContentChange(this.registerDialectEditorContent)
     })
+  }
+
+  public apply (location: Node) {
+    window['viewModel'] = this
+    ko.applyBindings(this)
+  }
+
+  public createModel (text, mode) {
+    return window['monaco'].editor.createModel(text, mode)
+  }
+
+  public loadInitialDialectContent () {
+    this.changesFromLastUpdate = 0
+    const dialectPath = `${this.base}spec-examples/music/dialect.yaml`
+    return this.amlParser.parseFileAsync(dialectPath)
+      .then(model => {
+        this.dialectModel = model
+        this.dialectEditor.setModel(this.createModel(this.dialectModel.raw, 'aml'))
+        return this.registerDialectEditorContent()
+      })
+  }
+
+  public loadInitialDocumentContent () {
+    this.changesFromLastUpdate = 0
+    const documentPath = `${this.base}spec-examples/music/document.yaml`
+    return this.amlParser.parseFileAsync(documentPath)
+      .then(model => {
+        this.documentEditor.setModel(this.createModel(model.raw, 'aml'))
+        this.documentModel = model
+        this.doValidate()
+      })
   }
 
   public handleModelContentChange (parsingFn) {
     this.changesFromLastUpdate++
-    this.documentModelChanged = true;
+    this.someModelChanged = true;
     ((number) => {
       setTimeout(() => {
         if (this.changesFromLastUpdate === number) {
@@ -61,10 +78,15 @@ export class ViewModel {
     })(this.changesFromLastUpdate)
   }
 
-  public parseDialectEditorContent () {
-    return amf.AMF.loadValidationProfile(this.profilePath, this.getEnv())
-      .then((profileName) => {
-        this.profileName = profileName
+  public registerDialectEditorContent () {
+    const editorValue = this.dialectEditor.getValue()
+    if (!editorValue) {
+      return
+    }
+    const location = this.dialectModel.location() || this.defaultDocUrl
+    return Vocabularies.registerDialect(location, editorValue)
+      .then(dialect => {
+        this.profileName = new amf.ProfileName(dialect.nameAndVersion())
         this.doValidate()
       })
   }
@@ -72,71 +94,29 @@ export class ViewModel {
   public parseDocumentEditorContent () {
     const editorValue = this.documentEditor.getValue()
     return this.amlParser.parseStringAsync(editorValue)
-      .then((parsed: amf.model.document.Document) => {
-        this.selectedModel(parsed)
-        const oldErrors = this.errors()
-        try {
-          this.doValidate()
-        } catch (err) {
-          console.error(`Failed to parse document: ${err}`)
-          this.errors(oldErrors)
-        }
+      .then(model => {
+        this.documentModel = model
+        this.doValidate()
       })
       .catch((err) => {
         console.error(`Failed to parse document: ${err}`)
       })
   }
 
-  public getEnv () {
-    const profilePath = this.profilePath
-    const EditorProfileLoader = {
-      fetch: function (resource) {
-        return new Promise(function (resolve, reject) {
-          resolve(new amf.client.remote.Content(
-            this.dialectEditor.getValue(), profilePath))
-        })
-      },
-      accepts: function (resource) {
-        return true
-      }
-    }
-    const env = new amf.client.environment.Environment()
-    return env.addClientLoader(EditorProfileLoader)
-  }
-
-  public hasError (shape: AnyShape): boolean {
-    const errors = this.errorsMapShape || {}
-    return errors[(shape.id || '').split('document/type')[1]] || false
-  }
-
-  public apply (location: Node) {
-    window['viewModel'] = this
-    ko.applyBindings(this)
-  }
-
   public doValidate () {
-    const model = this.selectedModel()
-    if (model === null) {
+    if (this.dialectModel === null || this.documentModel === null) {
       return
     }
-    this.amlParser.reportValidation(this.profileName)
-      .then((report) => {
-        var violations = report.results.filter((result) => {
-          return result.level === 'Violation'
+    amf.AMF.validate(this.documentModel, this.profileName, amf.MessageStyles.RAML)
+      .then(report => {
+        const model = this.documentEditor.getModel()
+        const monacoErrors = report.results.map((result) => {
+          return this.buildMonacoError(result)
         })
-        const editorModel = this.documentEditor.getModel()
-        const monacoErrors = report.results.map((result) => { this.buildMonacoError(result) })
-        monaco.editor.setModelMarkers(editorModel, editorModel.id, monacoErrors)
-
-        this.errors(violations)
-        this.errorsMapShape = this.errors()
-          .map(e => {
-            return e.validationId.split('document/type')[1]
-          })
-          .reduce((a, s) => { a[s] = true; return a }, {})
+        monaco.editor.setModelMarkers(model, model.id, monacoErrors)
         window['resizeFn']()
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(`Failed to validate document: ${err}`)
       })
   }
@@ -147,21 +127,21 @@ export class ViewModel {
   Error = 8;
 
   protected buildMonacoError (error: amf.validate.ValidationResult): any {
-    let severity = this.Info
-    if (error.level === 'Violation') { severity = this.Error }
-    if (error.level === 'Warning') { severity = this.Warning }
-    const startLineNumber = error.position.start.line
-    const startColumn = error.position.start.column
-    const endLineNumber = error.position.end.line
-    const endColumn = error.position.end.column
-    const message = error.message
+    let severity
+    if (error.level === 'Violation') {
+      severity = this.Error
+    } else if (error.level === 'Warning') {
+      severity = this.Warning
+    } else {
+      severity = this.Info
+    }
     return {
-      severity, // hardcoded error severity
-      startLineNumber,
-      startColumn,
-      endLineNumber,
-      endColumn,
-      message
+      severity: severity,
+      startLineNumber: error.position.start.line,
+      startColumn: error.position.start.column,
+      endLineNumber: error.position.end.line,
+      endColumn: error.position.end.column,
+      message: error.message
     }
   }
 }
