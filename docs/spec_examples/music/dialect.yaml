@@ -1,0 +1,86 @@
+#%Dialect 1.0
+
+dialect: Playlist
+version: 1.0
+
+external:
+  schema-org: http://schema.org/
+
+documents:
+  root:
+    encodes: PlaylistNode
+    declares:
+      artists: ArtistNode
+
+nodeMappings:
+
+  PlaylistNode:
+    classTerm: schema-org.MusicPlaylist
+    idTemplate: https://aml.example/v1/{author}/playlists/{spotifyId}
+    mapping:
+      spotifyId:
+        propertyTerm: schema-org.identifier
+        range: string
+        mandatory: true
+      author:
+        propertyTerm: schema-org.name
+        range: string
+        mandatory: true
+      title:
+        propertyTerm: schema-org.name
+        range: string
+        mandatory: true
+      description:
+        propertyTerm: schema-org.description
+        range: string
+      date:
+        propertyTerm: schema-org.dateCreated
+        range: date
+      items:
+        propertyTerm: schema-org.track
+        range: RecordingNode
+        allowMultiple: true
+
+  RecordingNode:
+    classTerm: schema-org.MusicRecording
+    mapping:
+      track:
+        propertyTerm: schema-org.track
+        range: TrackNode
+        mandatory: true
+      artist:
+        propertyTerm: schema-org.performer
+        range: ArtistNode
+        mandatory: true
+      position:
+        propertyTerm: schema-org.position
+        range: integer
+
+  TrackNode:
+    classTerm: schema-org.MusicRecording
+    idTemplate: https://aml.example/v1/tracks/{spotifyId}
+    mapping:
+      spotifyId:
+        propertyTerm: schema-org.identifier
+        range: string
+        mandatory: true
+      title:
+        propertyTerm: schema-org.name
+        range: string
+        mandatory: true
+      duration:
+        propertyTerm: schema-org.duration
+        range: integer
+
+  ArtistNode:
+    classTerm: schema-org.Person
+    idTemplate: https://aml.example/v1/artists/{spotifyId}
+    mapping:
+      spotifyId:
+        propertyTerm: schema-org.identifier
+        range: string
+        mandatory: true
+      name:
+        propertyTerm: schema-org.name
+        range: string
+        mandatory: true

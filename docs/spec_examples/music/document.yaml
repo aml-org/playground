@@ -1,0 +1,43 @@
+#%Playlist 1.0
+
+title: Favs from Tse
+description: Some classical compositions
+author: johndoe
+spotifyId: 5Qzm0PDPxbNrLvIu0OVinc
+
+date: 2017-11-10
+
+artists:
+  Kamu:
+    spotifyId: okkokamu
+    name: Okko Kamu
+  Casals:
+    spotifyId: cuartetocasals
+    name: Cuarteto Casals
+  Hiliard:
+    spotifyId: thehiliardensemble
+    name: The Hiliard Ensemble
+
+items:
+  - position: 1
+    track:
+      spotifyId: 1fdylFrFz7xU6GFEKroIzk
+      title: Sederunt Principes
+      duration: 705
+    artist: Hiliard
+
+  - position: 2
+    track:
+      spotifyId: 1mEXZtRMEnjqdPTmZfNzU2
+      title:
+        String Quintet in C Major G 324, Op 30, No 6
+        "La Musica notturna delle strade di Madrid"
+      duration: 134
+    artist: Casals
+
+  - position: 3
+    track:
+      spotifyId: 1nqyxZH4AX0o2S9th6kRZL
+      title: Tapiola, Op 112
+      duration: 1088
+    artist: Kamu
