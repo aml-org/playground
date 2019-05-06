@@ -129,6 +129,7 @@ gulp.task('serveVocabularies', gulp.series(
   }
 ))
 
+//
 
 const optionsValidation = {'standalone': 'aml_playground_validation'}
 const bCustomValidation = watchify(browserify(optionsValidation))
@@ -156,6 +157,36 @@ gulp.task('serveValidation', gulp.series(
     browserSync.init({
       server: 'docs',
       startPath: '/validation.html'
+    })
+  }
+))
+
+const optionsVisualization = {'standalone': 'aml_playground_visualization'}
+const bCustomVisualization = watchify(browserify(optionsVisualization))
+gulp.task('bundleVisualization', function () {
+  return bCustomVisualization
+    .add([
+      'src/visualization/view_model.ts'
+    ])
+    .plugin(tsify, { target: 'es5' })
+    .bundle()
+    .on('error', gutil.log.bind(gutil, 'Browserify Error'))
+    .pipe(source('aml_playground_visualization.js'))
+    .pipe(buffer())
+    .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
+    .pipe(sourcemaps.write('./')) // writes .map file
+    .pipe(gulp.dest('./docs/js'))
+    .pipe(browserSync.stream({once: true}))
+})
+
+gulp.task('serveVisualization', gulp.series(
+  'sass',
+  'bower',
+  'bundleVisualization',
+  function () {
+    browserSync.init({
+      server: 'docs',
+      startPath: '/visualization.html'
     })
   }
 ))
