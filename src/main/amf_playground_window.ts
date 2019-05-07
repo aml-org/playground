@@ -1,7 +1,7 @@
 import { ModelProxy } from './model_proxy'
 import * as amf from 'amf-client-js'
 
-export type ModelType = 'raml' | 'open-api' | 'api-model';
+export type ModelType = 'raml' | 'open-api' | 'api-model' | 'aml';
 
 export class AmfPlaygroundWindow {
   static functions: string[] = [

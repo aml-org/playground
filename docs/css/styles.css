@@ -7779,6 +7779,9 @@ header {
 .tool-remove {
   display: none; }
 
+.link-tools {
+  display: none; }
+
 .modal-card-body .select select:focus, .modal-card-body .select select:active, #query .select select:focus, #query .select select:active {
   border-color: #007bff; }
 

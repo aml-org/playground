@@ -47,7 +47,6 @@ export class ModelProxy {
    * @param cb
    */
   toRaml (level: ModelLevel, options: any, cb) {
-    console.log(`** Generating RAML with level ${level}`)
     try {
       if (level == 'document') {
         const text = ramlGenerator.generateString(this.model).then((text) => {
@@ -72,7 +71,6 @@ export class ModelProxy {
    * @param cb
    */
   toOpenAPI (level: ModelLevel, options: any, cb) {
-    console.log(`** Generating OAS with level ${level}`)
     try {
       if (level == 'document') {
         const text = openAPIGenerator.generateString(this.model).then((text) => {
@@ -92,11 +90,12 @@ export class ModelProxy {
   }
 
   update (location: string, text: string, modelType: ModelType, cb: (e: any) => void): void {
-    console.log('*** TRYING TO RUN THE UPDATE FOR ' + location)
     // finding the parser
     var parser
     if (modelType === 'raml') {
       parser = ramlParser
+    } else if (modelType === 'aml') {
+      parser = openAPIParser
     } else if (modelType === 'open-api') {
       parser = openAPIParser
     } else {
@@ -108,8 +107,6 @@ export class ModelProxy {
         this.model = model
         this.raw = model.raw
       }).catch((e) => {
-        console.log('Error updating refs')
-        console.log(e)
       })
     } else {
       // we need to update one reference in the document model
@@ -126,20 +123,16 @@ export class ModelProxy {
           this.model.withReferences(newRefs)
           cb(model)
         }).catch((e) => {
-          console.log('Error updating refs')
-          console.log(e)
         })
       }
     }
   }
 
   toAPIModel (level: ModelLevel, options: any, cb) {
-    console.log(`** Generating API Model JSON-LD with level ${level}`)
     this.toAPIModelProcessed(level, true, true, options, cb)
   }
 
   toAPIModelProcessed (level: ModelLevel, compacted: boolean, stringify: boolean, options: any, cb) {
-    console.log(`** Generating API Model JSON-LD with level ${level}`)
     try {
       const liftedModel = (level === 'document') ? this.model : amf.Core.resolver('RAML 1.0').resolve(this.model)
       const res = apiModelGenerator.generateString(liftedModel).then((res) => {
@@ -157,9 +150,6 @@ export class ModelProxy {
 
           jsonld.compact(parsed, context, (err, compacted) => {
             if (err != null) {
-              console.log('ERROR COMPACTING')
-              console.log(err)
-              console.log(JSON.stringify(parsed, null, 2))
             }
             const finalJson = (err == null) ? compacted : parsed
             this.apiModelString = JSON.stringify(finalJson, null, 2)
@@ -179,7 +169,6 @@ export class ModelProxy {
         }
       }).catch(cb)
     } catch (e) {
-      console.log('Error generating JSON-LD ' + e)
       cb(e)
     }
   }
@@ -240,6 +229,7 @@ export class ModelProxy {
 
   elementLexicalInfo (id: string): amf.core.parser.Range | undefined {
     const element = this.findElement(id)
+    console.log(id, element, this.model.location)
     if (element != null) {
       return element.position
     }

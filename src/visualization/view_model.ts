@@ -1,6 +1,7 @@
 import * as ko from 'knockout'
 import { Document } from '../main/units_model'
-import { Diagram } from '../view_models/diagram'
+import { ModelProxy } from '../main/model_proxy'
+import { PlaygroundGraph } from '../view_models/graph'
 import * as amf from 'amf-client-js'
 
 export type EditorSection = 'document' | 'dialect';
@@ -9,9 +10,11 @@ export class ViewModel {
   public editorSection: ko.KnockoutObservable<EditorSection> = ko.observable<EditorSection>('document');
   public documentUnits: ko.KnockoutObservableArray<Document> = ko.observableArray<Document>([]);
 
-  public documentModel?: amf.model.document.BaseUnit = undefined;
-  public dialectModel?: amf.model.document.BaseUnit = undefined;
-  public diagram: any;
+  public documentModel?: ModelProxy = undefined;
+  public dialectModel?: ModelProxy = undefined;
+  public selectedModel?: ModelProxy = undefined;
+
+  public graph: any;
   public amlParser?
 
   public base = window.location.href.toString().replace('visualization.html', '')
@@ -23,27 +26,44 @@ export class ViewModel {
   public RELOAD_PERIOD = 1000;
 
   constructor (public editor: any) {
-    amf.AMF.init()
-      .then(() => {
-        this.amlParser = new amf.Aml10Parser()
-        return this.loadInitialDocument()
-      })
-      .then(() => {
-        return this.loadInitialDialect()
-      })
+    this.amlParser = new amf.Aml10Parser()
 
-    this.editor.onDidChangeModelContent(this.handleModelContentChange)
+    this.editor.onDidChangeModelContent(
+      this.handleModelContentChange.call(this))
+
     this.editorSection.subscribe((oldSection) => {
+      this.someModelChanged = true
       this.updateModel(oldSection)
     }, null, 'beforeChange')
+
     this.editorSection.subscribe((section) => {
       this.onEditorSectionChange(section)
     })
   }
 
+  private onEditorSectionChange (section: EditorSection) {
+    if (section === 'document') {
+      this.selectedModel = this.documentModel
+    } else {
+      this.selectedModel = this.dialectModel
+    }
+    this.editor.setModel(this.createModel(this.selectedModel!.raw, 'aml'))
+    this.resetUnits(() => { this.resetGraph() })
+  }
+
   public apply (location: Node) {
     window['viewModel'] = this
-    ko.applyBindings(this)
+    amf.AMF.init()
+      .then(() => {
+        ko.applyBindings(this)
+        return this.loadInitialDialect()
+      })
+      .then(() => {
+        return this.loadInitialDocument()
+      })
+      .then(() => {
+        this.resetUnits(() => { this.resetGraph() })
+      })
   }
 
   public createModel (text, mode) {
@@ -57,8 +77,7 @@ export class ViewModel {
       setTimeout(() => {
         if (this.changesFromLastUpdate === number) {
           return this.updateModel().then(() => {
-            this.resetUnits()
-            this.resetDiagram()
+            this.resetUnits(() => { this.resetGraph() })
           })
         }
       }, this.RELOAD_PERIOD)
@@ -73,11 +92,18 @@ export class ViewModel {
     this.changesFromLastUpdate = 0
     section = section || this.editorSection()
     const value = this.editor.getModel().getValue()
-
-    return this.amlParser.parseStringAsync(value)
+    if (!value) {
+      return
+    }
+    const location = this.selectedModel.location()
+    return this.amlParser.parseStringAsync(location, value)
       .then(model => {
-        const modelName = this.getModelName(section)
-        this[modelName] = model
+        this.selectedModel = new ModelProxy(model, null)
+        if (section === 'document') {
+          this.documentModel = this.selectedModel
+        } else {
+          this.dialectModel = this.selectedModel
+        }
       })
       .catch(err => {
         console.error(`Error parsing section "${section}": ${err}`)
@@ -85,43 +111,29 @@ export class ViewModel {
   }
 
   public loadInitialDocument () {
-    this.changesFromLastUpdate = 0
     return this.amlParser.parseFileAsync(this.defaultDocument)
       .then(model => {
-        this.documentModel = model
-        this.editor.setModel(this.createModel(this.documentModel.raw, 'aml'))
+        this.documentModel = new ModelProxy(model, null)
+        this.selectedModel = this.documentModel
+        this.editor.setModel(this.createModel(this.selectedModel.raw, 'aml'))
+        this.someModelChanged = false
+        this.changesFromLastUpdate = 0
       })
   }
 
   public loadInitialDialect () {
-    this.changesFromLastUpdate = 0
     return this.amlParser.parseFileAsync(this.defaultDialect)
       .then(model => {
-        this.dialectModel = model
+        this.dialectModel = new ModelProxy(model, null)
       })
   }
 
-  private onEditorSectionChange (section: EditorSection) {
-    const modelName = this.getModelName()
-    this.editor.setModel(this.createModel(this[modelName]!.raw, 'aml'))
-    this.resetDiagram()
-  }
-
-  public getModelName (section?: EditorSection) {
-    section = section || this.editorSection()
-    const modelName = section === 'document'
-      ? 'documentModel'
-      : 'dialectModel'
-    return modelName
-  }
-
   private resetUnits (cb: () => void = () => {}) {
-    const modelName = this.getModelName()
-    if (this[modelName] === null) {
+    if (this.selectedModel === null) {
       this.documentUnits.removeAll()
       return
     }
-    this[modelName].units('document', (err, units) => {
+    this.selectedModel.units('document', (err, units) => {
       if (err === null) {
         let unitsMap = {}
         this.documentUnits().forEach(unit => {
@@ -141,23 +153,22 @@ export class ViewModel {
     })
   }
 
-  public resetDiagram () {
+  public resetGraph () {
     try {
-      const modelName = this.getModelName()
       document.getElementById('graph-container-inner').innerHTML = ''
-      let oldDiagram = this.diagram
-      this.diagram = new Diagram(
-        this[modelName]!.location(),
-        'domain',
+      let oldGraph = this.graph
+      this.graph = new PlaygroundGraph(
+        this.selectedModel.location(),
+        'document',
         (id: string, unit: any) => {
-          this.onSelectedDiagramId(id, unit)
+          this.onSelectedGraphId(id, unit)
         }
       )
-      this.diagram.process(this.documentUnits())
-      this.diagram.render('graph-container-inner', () => {
-        if (oldDiagram != null) {
-          if (this.diagram.paper) {
-            this.diagram.paperScale(oldDiagram.scaleX, oldDiagram.scaleY)
+      this.graph.process(this.documentUnits())
+      this.graph.render('graph-container-inner', () => {
+        if (oldGraph != null) {
+          if (this.graph.paper) {
+            this.graph.paperScale(oldGraph.scaleX, oldGraph.scaleY)
           }
         }
       })
@@ -168,13 +179,12 @@ export class ViewModel {
 
   private decorations: any = [];
 
-  private onSelectedDiagramId (id, unit) {
-    const modelName = this.getModelName()
-    if (this[modelName] === null || id === undefined || unit === undefined) {
+  private onSelectedGraphId (id, unit) {
+    if (this.selectedModel === null || id === undefined || unit === undefined) {
       return
     }
 
-    const lexicalInfo: amf.core.parser.Range = this[modelName].elementLexicalInfo(id)
+    const lexicalInfo: amf.core.parser.Range = this.selectedModel.elementLexicalInfo(id)
     if (lexicalInfo != null) {
       this.editor.revealRangeInCenter({
         startLineNumber: lexicalInfo.start.line,
