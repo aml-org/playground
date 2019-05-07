@@ -83,8 +83,8 @@ export class Diagram {
             marginY: 50,
             nodeSep: 100,
             edgeSep: 100,
-            // clusterPadding: { top: 30, left: 10, right: 10, bottom: 10 },
-            rankDir: 'LR'
+            rankSep: 100,
+            rankDir: 'TB'
           })
         }
         const maxX = finalCells
