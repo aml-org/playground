@@ -33,16 +33,16 @@ export class ViewModel {
 
     this.editorSection.subscribe((oldSection) => {
       this.someModelChanged = true
-      this.updateModel(oldSection)
+      return this.updateModels(oldSection)
     }, null, 'beforeChange')
 
-    this.editorSection.subscribe((section) => {
-      this.onEditorSectionChange(section)
+    this.editorSection.subscribe((newSection) => {
+      this.onEditorSectionChange(newSection)
     })
   }
 
-  private onEditorSectionChange (section: EditorSection) {
-    if (section === 'document') {
+  private onEditorSectionChange (newSection: EditorSection) {
+    if (newSection === 'document') {
       this.selectedModel = this.documentModel
     } else {
       this.selectedModel = this.dialectModel
@@ -76,15 +76,19 @@ export class ViewModel {
     ((number) => {
       setTimeout(() => {
         if (this.changesFromLastUpdate === number) {
-          return this.updateModel().then(() => {
-            this.resetUnits(() => { this.resetGraph() })
-          })
+          return this.updateModels()
+            .then(() => {
+              this.selectedModel = this.editorSection() === 'document'
+                ? this.documentModel
+                : this.dialectModel
+              this.resetUnits(() => { this.resetGraph() })
+            })
         }
       }, this.RELOAD_PERIOD)
     })(this.changesFromLastUpdate)
   }
 
-  public updateModel (section?: EditorSection) {
+  public updateModels (section?: EditorSection) {
     if (!this.someModelChanged) {
       return
     }
@@ -95,14 +99,15 @@ export class ViewModel {
     if (!value) {
       return
     }
-    const location = this.selectedModel.location()
+    const location = section === 'document'
+      ? this.documentModel.location()
+      : this.dialectModel.location()
     return this.amlParser.parseStringAsync(location, value)
       .then(model => {
-        this.selectedModel = new ModelProxy(model, null)
         if (section === 'document') {
-          this.documentModel = this.selectedModel
+          this.documentModel = new ModelProxy(model, null)
         } else {
-          this.dialectModel = this.selectedModel
+          this.dialectModel = new ModelProxy(model, null)
         }
       })
       .catch(err => {
@@ -187,17 +192,17 @@ export class ViewModel {
     const lexicalInfo: amf.core.parser.Range = this.selectedModel.elementLexicalInfo(id)
     if (lexicalInfo != null) {
       this.editor.revealRangeInCenter({
-        startLineNumber: lexicalInfo.start.line,
+        startLineNumber: lexicalInfo.start.line - 1,
         startColumn: lexicalInfo.start.column,
-        endLineNumber: lexicalInfo.end.line,
+        endLineNumber: lexicalInfo.end.line - 1,
         endColumn: lexicalInfo.end.column
       })
       this.decorations = this.editor.deltaDecorations(this.decorations, [
         {
           range: new monaco.Range(
-            lexicalInfo.start.line,
+            lexicalInfo.start.line - 1,
             lexicalInfo.start.column,
-            lexicalInfo.end.line,
+            lexicalInfo.end.line - 1,
             lexicalInfo.end.column),
           options: {
             linesDecorationsClassName: 'selected-element-line-decoration',

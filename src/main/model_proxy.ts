@@ -94,8 +94,6 @@ export class ModelProxy {
     var parser
     if (modelType === 'raml') {
       parser = ramlParser
-    } else if (modelType === 'aml') {
-      parser = openAPIParser
     } else if (modelType === 'open-api') {
       parser = openAPIParser
     } else {
@@ -229,7 +227,6 @@ export class ModelProxy {
 
   elementLexicalInfo (id: string): amf.core.parser.Range | undefined {
     const element = this.findElement(id)
-    console.log(id, element, this.model.location)
     if (element != null) {
       return element.position
     }
