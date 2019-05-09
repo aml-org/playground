@@ -4,7 +4,7 @@
 <head>
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, target-densitydpi=device-dpi, initial-scale=1, maximum-scale=1, user-scalable=yes">
   <meta charset="UTF-8">
 
   <!-- polyfills -->
@@ -30,7 +30,7 @@
   <link rel="import" href="html_fragments/visualization/nav.html">
   <div class="section" style="padding: 0px">
     <div id="the-app" class="container is-marginless is-fluid">
-      <div class="columns ">
+      <div class="columns">
         <div class="column half-width">
           <link rel="import" href="html_fragments/visualization/editor.html">
         </div>
@@ -139,7 +139,7 @@
             });
 
             window.appModel = new aml_playground_visualization.ViewModel(editor);
-            window.appModel.apply(document.getElementById("the-app"));
+            window.appModel.apply();
             setTimeout(function() {
               document.getElementById("preloader").style.display = "none";
               var brand = document.getElementById("brand");

@@ -41,7 +41,7 @@ export class ViewModel {
     })
   }
 
-  public apply (location: Node) {
+  public apply () {
     window['viewModel'] = this
     ko.applyBindings(this)
   }

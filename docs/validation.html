@@ -150,7 +150,7 @@
 
 
             window.appModel = new aml_playground_validation.ViewModel(dialectEditor, documentEditor);
-            window.appModel.apply(document.getElementById("the-app"));
+            window.appModel.apply();
             setTimeout(function() {
               document.getElementById("preloader").style.display = "none";
               var brand = document.getElementById("brand");

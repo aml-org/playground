@@ -51,7 +51,7 @@ export class ViewModel {
     this.resetUnits(() => { this.resetGraph() })
   }
 
-  public apply (location: Node) {
+  public apply () {
     window['viewModel'] = this
     amf.AMF.init()
       .then(() => {
@@ -90,14 +90,14 @@ export class ViewModel {
 
   public updateModels (section?: EditorSection) {
     if (!this.someModelChanged) {
-      return
+      return Promise.resolve()
     }
     this.someModelChanged = false
     this.changesFromLastUpdate = 0
     section = section || this.editorSection()
     const value = this.editor.getModel().getValue()
     if (!value) {
-      return
+      return Promise.resolve()
     }
     const location = section === 'document'
       ? this.documentModel.location()
