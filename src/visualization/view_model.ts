@@ -28,8 +28,9 @@ export class ViewModel {
   constructor (public editor: any) {
     this.amlParser = new amf.Aml10Parser()
 
-    this.editor.onDidChangeModelContent(
-      this.handleModelContentChange.call(this))
+    this.editor.onDidChangeModelContent(() => {
+      this.handleModelContentChange()
+    })
 
     this.editorSection.subscribe((oldSection) => {
       this.someModelChanged = true
