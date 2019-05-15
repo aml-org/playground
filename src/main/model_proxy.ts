@@ -1,39 +1,21 @@
-import { ModelType } from './amf_playground_window'
 import * as jsonld from 'jsonld'
 import { UnitModel } from './units_model'
 import * as amf from 'amf-client-js'
 import { model } from 'amf-client-js'
+
 export type ModelLevel = 'document' | 'domain';
 
-const ramlGenerator = amf.Core.generator('RAML 1.0', 'application/raml')
-const openAPIGenerator = amf.Core.generator('OAS 2.0', 'application/yaml')
-const apiModelGenerator = amf.Core.generator('AMF Graph', 'application/ld+json')
-
-const ramlParser = amf.Core.parser('RAML 1.0', 'application/raml')
-const openAPIParser = amf.Core.parser('OAS 2.0', 'application/yaml')
-const apiModelParser = amf.Core.parser('AMF Graph', 'application/ld+json')
+const apiModelGenerator = amf.AMF.amfGraphGenerator()
 
 /**
  * A proxy class to interact with the clojure code containing the logic to interact with a API Model
  */
 export class ModelProxy {
   // holders for the generated strings
-  public ramlString: string = '';
-  public generatedRamlModel: amf.model.document.BaseUnit;
-  public openAPIString: string = '';
-  public generatedOpenAPIModel: amf.model.document.BaseUnit;
   public apiModelString: string = '';
   public raw: string = '';
 
-  constructor (public model: amf.model.document.BaseUnit, public sourceType: ModelType) {
-    // we setup the default model with the value passed in the constructor
-    // for the kind of model.
-    if (this.sourceType === 'raml') {
-      this.generatedRamlModel = model
-    } else if (this.sourceType === 'open-api') {
-      this.generatedOpenAPIModel = model
-    }
-
+  constructor (public model: amf.model.document.BaseUnit) {
     this.raw = this.model.raw
   }
 
@@ -41,98 +23,9 @@ export class ModelProxy {
     return this.model.location
   }
 
-  /**
-   * Serialises the model as RAML/YAML document for the provided document level
-   * @param level: document, domain
-   * @param cb
-   */
-  toRaml (level: ModelLevel, options: any, cb) {
-    try {
-      if (level == 'document') {
-        const text = ramlGenerator.generateString(this.model).then((text) => {
-          this.ramlString = text
-          cb(null, text)
-        }).catch(cb)
-      } else { // domain level
-        let resolved = amf.Core.resolver('RAML 1.0').resolve(this.model)
-        const text = ramlGenerator.generateString(resolved).then((text) => {
-          this.ramlString = text
-          cb(null, text)
-        }).catch(cb)
-      }
-    } catch (e) {
-      cb(e)
-    }
-  }
-
-  /**
-   * Serialised the model as a OpenAPI/JSON document for the provided doucmnet level
-   * @param level: document, domain
-   * @param cb
-   */
-  toOpenAPI (level: ModelLevel, options: any, cb) {
-    try {
-      if (level == 'document') {
-        const text = openAPIGenerator.generateString(this.model).then((text) => {
-          this.openAPIString = text
-          cb(null, text)
-        }).catch(cb)
-      } else { // domain level
-        let resolved = amf.Core.resolver('OAS 2.0').resolve(this.model)
-        const text = openAPIGenerator.generateString(resolved).then((text) => {
-          this.openAPIString = text
-          cb(null, text)
-        }).catch(cb)
-      }
-    } catch (e) {
-      cb(e)
-    }
-  }
-
-  update (location: string, text: string, modelType: ModelType, cb: (e: any) => void): void {
-    // finding the parser
-    var parser
-    if (modelType === 'raml') {
-      parser = ramlParser
-    } else if (modelType === 'open-api') {
-      parser = openAPIParser
-    } else {
-      parser = apiModelParser
-    }
-    if (location === this.model.location) {
-      // we need to update the main document model
-      parser.parseStringAsync(location, text).then((model) => {
-        this.model = model
-        this.raw = model.raw
-      }).catch((e) => {
-      })
-    } else {
-      // we need to update one reference in the document model
-      const ref = this.model.references().filter((ref) => ref.location === location)[0]
-      if (ref != null) {
-        parser.parseStringAsync(location, text).then((model) => {
-          const newRefs = this.model.references().map((ref) => {
-            if (ref.location !== location) {
-              return ref
-            } else {
-              return model
-            }
-          })
-          this.model.withReferences(newRefs)
-          cb(model)
-        }).catch((e) => {
-        })
-      }
-    }
-  }
-
-  toAPIModel (level: ModelLevel, options: any, cb) {
-    this.toAPIModelProcessed(level, true, true, options, cb)
-  }
-
   toAPIModelProcessed (level: ModelLevel, compacted: boolean, stringify: boolean, options: any, cb) {
     try {
-      const liftedModel = (level === 'document') ? this.model : amf.Core.resolver('RAML 1.0').resolve(this.model)
+      const liftedModel = (level === 'document') ? this.model : amf.AMF.resolveRaml10(this.model)
       const res = apiModelGenerator.generateString(liftedModel).then((res) => {
         const parsed = JSON.parse(res)[0]
         if (compacted) {
@@ -191,7 +84,7 @@ export class ModelProxy {
         return ref.location === location ||
                   ref.location === location.substring(0, location.length - 1)
       })[0]
-      return new ModelProxy(unit, this.sourceType)
+      return new ModelProxy(unit)
     }
   }
 

@@ -1,7 +1,7 @@
-import * as ko from 'knockout'
 import { Document } from '../main/units_model'
 import { ModelProxy } from '../main/model_proxy'
-import { PlaygroundGraph } from '../view_models/graph'
+import { PlaygroundGraph } from '../main/graph'
+import * as ko from 'knockout'
 import * as amf from 'amf-client-js'
 
 export type EditorSection = 'document' | 'dialect';
@@ -106,9 +106,9 @@ export class ViewModel {
     return this.amlParser.parseStringAsync(location, value)
       .then(model => {
         if (section === 'document') {
-          this.documentModel = new ModelProxy(model, null)
+          this.documentModel = new ModelProxy(model)
         } else {
-          this.dialectModel = new ModelProxy(model, null)
+          this.dialectModel = new ModelProxy(model)
         }
       })
       .catch(err => {
@@ -119,7 +119,7 @@ export class ViewModel {
   public loadInitialDocument () {
     return this.amlParser.parseFileAsync(this.defaultDocument)
       .then(model => {
-        this.documentModel = new ModelProxy(model, null)
+        this.documentModel = new ModelProxy(model)
         this.selectedModel = this.documentModel
         this.editor.setModel(this.createModel(this.selectedModel.raw, 'aml'))
         this.someModelChanged = false
@@ -130,7 +130,7 @@ export class ViewModel {
   public loadInitialDialect () {
     return this.amlParser.parseFileAsync(this.defaultDialect)
       .then(model => {
-        this.dialectModel = new ModelProxy(model, null)
+        this.dialectModel = new ModelProxy(model)
       })
   }
 
