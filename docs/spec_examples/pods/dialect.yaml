@@ -1,0 +1,112 @@
+#%Dialect 1.0
+
+dialect: Kubernetes Pod
+version: 1.0
+
+external:
+  schema-org: http://schema.org/
+
+documents:
+  root:
+    encodes: DescriptionDataNode
+
+nodeMappings:
+  DescriptionDataNode:
+    classTerm: schema-org.APIReference
+    mapping:
+      apiVersion:
+        propertyTerm: schema-org.assemblyVersion
+        range: string
+        mandatory: true
+      kind:
+        propertyTerm: schema-org.name
+        range: string
+        mandatory: true
+      spec:
+        propertyTerm: schema-org.about
+        range: SpecNode
+        mandatory: true
+      metadata:
+        propertyTerm: schema-org.about
+        range: MetadataNode
+        mandatory: true
+
+  MetadataNode:
+    classTerm: schema-org.Intangible
+    mapping:
+      name:
+        propertyTerm: schema-org.name
+        range: string
+        mandatory: true
+
+  SpecNode:
+    classTerm: schema-org.Intangible
+    mapping:
+      restartPolicy:
+        propertyTerm: schema-org.description
+        range: string
+        mandatory: true
+      volumes:
+        propertyTerm: schema-org.about
+        range: VolumeNode
+        allowMultiple: true
+      containers:
+        propertyTerm: schema-org.about
+        range: ContainerNode
+        allowMultiple: true
+
+  VolumeNode:
+    classTerm: schema-org.Intangible
+    mapping:
+      name:
+        propertyTerm: schema-org.name
+        range: string
+        mandatory: true
+      emptyDir:
+        propertyTerm: schema-org.text
+        range: EmptydirNode
+        mandatory: true
+
+  EmptydirNode:
+    classTerm: schema-org.Intangible
+    mapping:
+      medium:
+        propertyTerm: schema-org.name
+        range: string
+
+  ContainerNode:
+    classTerm: schema-org.Intangible
+    mapping:
+      name:
+        propertyTerm: schema-org.name
+        range: string
+        mandatory: true
+      image:
+        propertyTerm: schema-org.text
+        range: string
+        mandatory: true
+      volumeMounts:
+        propertyTerm: schema-org.about
+        range: MountNode
+        allowMultiple: true
+        mandatory: true
+      command:
+        propertyTerm: schema-org.text
+        range: string
+        allowMultiple: true
+      args:
+        propertyTerm: schema-org.text
+        range: string
+        allowMultiple: true
+
+  MountNode:
+    classTerm: schema-org.Intangible
+    mapping:
+      name:
+        propertyTerm: schema-org.name
+        range: string
+        mandatory: true
+      mountPath:
+        propertyTerm: schema-org.text
+        range: string
+        mandatory: true

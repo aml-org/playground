@@ -18,8 +18,8 @@ export class ViewModel {
   public amlParser?
 
   public base = window.location.href.toString().replace('visualization.html', '')
-  public defaultDialect = `${this.base}spec_examples/music/dialect.yaml`
-  public defaultDocument = `${this.base}spec_examples/music/document.yaml`
+  public defaultDialect = `${this.base}spec_examples/pods/dialect.yaml`
+  public defaultDocument = `${this.base}spec_examples/pods/document.yaml`
 
   public changesFromLastUpdate = 0;
   public someModelChanged = false;
