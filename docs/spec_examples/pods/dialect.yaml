@@ -22,13 +22,13 @@ nodeMappings:
         propertyTerm: schema-org.name
         range: string
         mandatory: true
-      spec:
-        propertyTerm: schema-org.about
-        range: SpecNode
-        mandatory: true
       metadata:
         propertyTerm: schema-org.about
         range: MetadataNode
+        mandatory: true
+      spec:
+        propertyTerm: schema-org.about
+        range: SpecNode
         mandatory: true
 
   MetadataNode:
