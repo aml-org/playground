@@ -3,7 +3,6 @@
 const gulp = require('gulp')
 const browserify = require('browserify')
 const tsify = require('tsify')
-const watchify = require('watchify')
 const source = require('vinyl-source-stream')
 const buffer = require('vinyl-buffer')
 const gutil = require('gulp-util')
@@ -23,7 +22,7 @@ gulp.task('sass', function () {
 })
 
 const optionsValidation = {'standalone': 'aml_playground_validation'}
-const bCustomValidation = watchify(browserify(optionsValidation))
+const bCustomValidation = browserify(optionsValidation)
 gulp.task('bundleValidation', function () {
   return bCustomValidation
     .add([
@@ -33,6 +32,24 @@ gulp.task('bundleValidation', function () {
     .bundle()
     .on('error', gutil.log.bind(gutil, 'Browserify Error'))
     .pipe(source('aml_playground_validation.js'))
+    .pipe(buffer())
+    .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
+    .pipe(sourcemaps.write('./')) // writes .map file
+    .pipe(gulp.dest('./docs/js'))
+    .pipe(browserSync.stream({once: true}))
+})
+
+const optionsVisualization = {'standalone': 'aml_playground_visualization'}
+const bCustomVisualization = browserify(optionsVisualization)
+gulp.task('bundleVisualization', function () {
+  return bCustomVisualization
+    .add([
+      'src/visualization/view_model.ts'
+    ])
+    .plugin(tsify, { target: 'es5' })
+    .bundle()
+    .on('error', gutil.log.bind(gutil, 'Browserify Error'))
+    .pipe(source('aml_playground_visualization.js'))
     .pipe(buffer())
     .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
     .pipe(sourcemaps.write('./')) // writes .map file
@@ -51,24 +68,6 @@ gulp.task('serveValidation', gulp.series(
     })
   }
 ))
-
-const optionsVisualization = {'standalone': 'aml_playground_visualization'}
-const bCustomVisualization = watchify(browserify(optionsVisualization))
-gulp.task('bundleVisualization', function () {
-  return bCustomVisualization
-    .add([
-      'src/visualization/view_model.ts'
-    ])
-    .plugin(tsify, { target: 'es5' })
-    .bundle()
-    .on('error', gutil.log.bind(gutil, 'Browserify Error'))
-    .pipe(source('aml_playground_visualization.js'))
-    .pipe(buffer())
-    .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
-    .pipe(sourcemaps.write('./')) // writes .map file
-    .pipe(gulp.dest('./docs/js'))
-    .pipe(browserSync.stream({once: true}))
-})
 
 gulp.task('serveVisualization', gulp.series(
   'sass',
