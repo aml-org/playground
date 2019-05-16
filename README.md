@@ -1,13 +1,17 @@
 # AML Playground
 ![AML Playground Logo](docs/images/AML_white.svg)
 
-This repository contains the code for the AML Playground hosted under [this URL](http://a.ml/amf-playground/).
+## Demos
+* [Validation](https://a.ml/amf-playground/validation.html)
+* [Visualization](https://a.ml/amf-playground/visualization.html)
 
 ## Running this project
-This project already contains all necessary dependencies in the `docs/js/` folder. It contains the "web" version of the AMF library that you can update to the latest development version from [here](https://github.com/aml-org/amf) by following the instructions for the "web" build.
-
-Execute:
-
+Validation demo:
 ```bash
-$ gulp servePlayground
+$ gulp serveValidation
+```
+
+Visualization demo:
+```bash
+$ gulp serveVisualization
 ```
