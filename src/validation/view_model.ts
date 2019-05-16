@@ -65,7 +65,7 @@ export class ViewModel {
 
   public loadInitialDialect () {
     this.changesFromLastUpdate = 0
-    const dialectPath = `${this.base}spec_examples/pods/dialect.yaml`
+    const dialectPath = `${this.base}spec_examples/music/dialect.yaml`
     return this.amlParser.parseFileAsync(dialectPath)
       .then(model => {
         this.dialectModel = model
@@ -91,7 +91,7 @@ export class ViewModel {
 
   public loadInitialDocument () {
     this.changesFromLastUpdate = 0
-    const documentPath = `${this.base}spec_examples/pods/document.yaml`
+    const documentPath = `${this.base}spec_examples/music/document.yaml`
     return this.amlParser.parseFileAsync(documentPath)
       .then(model => {
         this.documentEditor.setModel(this.createModel(model.raw, 'aml'))

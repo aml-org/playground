@@ -27,7 +27,7 @@ nodeMappings:
         range: MetadataNode
         mandatory: true
       spec:
-        propertyTerm: schema-org.about
+        propertyTerm: schema-org.mainEntity
         range: SpecNode
         mandatory: true
 
@@ -51,7 +51,7 @@ nodeMappings:
         range: VolumeNode
         allowMultiple: true
       containers:
-        propertyTerm: schema-org.about
+        propertyTerm: schema-org.mainEntity
         range: ContainerNode
         allowMultiple: true
 
@@ -63,7 +63,7 @@ nodeMappings:
         range: string
         mandatory: true
       emptyDir:
-        propertyTerm: schema-org.text
+        propertyTerm: schema-org.desctiption
         range: EmptydirNode
         mandatory: true
 
@@ -82,7 +82,7 @@ nodeMappings:
         range: string
         mandatory: true
       image:
-        propertyTerm: schema-org.text
+        propertyTerm: schema-org.description
         range: string
         mandatory: true
       volumeMounts:
