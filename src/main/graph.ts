@@ -80,57 +80,40 @@ export class PlaygroundGraph {
           joint.layout.DirectedGraph.layout(finalCells, {
             marginX: 50,
             marginY: 50,
-            nodeSep: 100,
-            edgeSep: 100,
+            nodeSep: 50,
+            edgeSep: 50,
             rankSep: 100,
             rankDir: 'LR'
           })
         }
-        const maxX = finalCells
-          .map(c => c['attributes'].position ? (c['attributes'].position.x + c['attributes'].size.width) : 0)
-          .sort((a, b) => {
-            if (a > b) {
-              return -1
-            } else if (a < b) {
-              return 1
-            } else {
-              return 0
-            }
-          })[0]
-        const maxY = finalCells
-          .map(c => c['attributes'].position ? (c['attributes'].position.y + c['attributes'].size.height) : 0)
-          .sort((a, b) => {
-            if (a > b) {
-              return -1
-            } else if (a < b) {
-              return 1
-            } else {
-              return 0
-            }
-          })[0]
-        finalCells.map(c => c['attributes'].position ? c['attributes'].position.x : 0)
+        const maxX = Math.max(...finalCells.map(c => {
+          return c['attributes'].position
+            ? (c['attributes'].position.x + c['attributes'].size.width)
+            : 0
+        }))
+        const maxY = Math.max(...finalCells.map(c => {
+          return c['attributes'].position
+            ? (c['attributes'].position.y + c['attributes'].size.height)
+            : 0
+        }))
 
         const graph: any = new Graph()
-        let width = maxX + 100
-        let height = maxY + 100
 
         if (graphContainer != null) {
           graphContainer.innerHTML = ''
 
-          let minWidth = graphContainer.clientWidth
-          let minHeight = graphContainer.clientHeight
+          let width = graphContainer.clientWidth
+          let height = graphContainer.clientHeight
 
           const options = {
             el: graphContainer,
-            width: (minWidth > width ? minWidth : width),
-            height: (minHeight > height ? minHeight : height),
+            width: width,
+            height: height,
             gridSize: 1,
             interactive: false
           }
           options['model'] = graph
           this.paper = new Paper(options)
-          this.paper.removeTools()
-          this.paper.scaleContentToFit()
 
           this.paper.on('cell:pointerdown',
             (cellView, evt, x, y) => {
@@ -141,17 +124,7 @@ export class PlaygroundGraph {
           )
 
           graph.addCells(finalCells)
-
-          let zoomx = 1
-          let zoomy = 1
-          if (minWidth < width) {
-            zoomx = minWidth / width
-          }
-          if (minHeight < height) {
-            zoomy = minHeight / height
-          }
-          let zoom = zoomy < zoomx ? zoomy : zoomx
-          this.paperScale(zoom, zoom)
+          this.paper.removeTools()
           if (cb) {
             cb()
           } else {
