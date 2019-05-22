@@ -83,7 +83,7 @@ export class PlaygroundGraph {
             nodeSep: 100,
             edgeSep: 100,
             rankSep: 100,
-            rankDir: 'TB'
+            rankDir: 'LR'
           })
         }
         const maxX = finalCells
@@ -118,32 +118,29 @@ export class PlaygroundGraph {
           graphContainer.innerHTML = ''
 
           let minWidth = graphContainer.clientWidth
-          // let minHeight = graphContainer.clientHeight;
-          let minHeight = window.innerHeight - 300
+          let minHeight = graphContainer.clientHeight
 
           const options = {
             el: graphContainer,
             width: (minWidth > width ? minWidth : width),
             height: (minHeight > height ? minHeight : height),
             gridSize: 1,
-            highlighting: false
+            interactive: false
           }
           options['model'] = graph
           this.paper = new Paper(options)
+          this.paper.removeTools()
+          this.paper.scaleContentToFit()
 
           this.paper.on('cell:pointerdown',
             (cellView, evt, x, y) => {
               const nodeId = cellView.model.attributes.attrs.nodeId
               const unit = cellView.model.attributes.attrs.unit
-              // console.log(cellView);
-              // console.log(nodeId);
               this.handler(nodeId, unit)
             }
           )
 
           graph.addCells(finalCells)
-          // this.paper.fitToContent();
-          // this.resetZoom();
 
           let zoomx = 1
           let zoomy = 1
@@ -245,7 +242,6 @@ export class PlaygroundGraph {
       const domainKind = element.kind
       switch (domainKind) {
         case 'APIDocumentation': {
-          // console.log("Processing APIDomain in graph " + element.id);
           this.makeNode(element, 'domain', element)
           this.makeLink(parentId, element.id, 'encodes');
           ((element as APIDocumentation).endpoints || []).forEach(endpoint => {
@@ -254,7 +250,6 @@ export class PlaygroundGraph {
           break
         }
         case 'EndPoint': {
-          // console.log("Processing EndPoint in graph " + element.id);
           this.makeNode(element, 'domain', element)
           this.makeLink(parentId, element.id, 'endpoint');
           ((element as EndPoint).operations || []).forEach(operation => {
@@ -263,7 +258,6 @@ export class PlaygroundGraph {
           break
         }
         case 'Operation': {
-          // console.log("Processing Operation in graph " + element.id);
           this.makeNode({ id: element.id, label: (element as Operation).method }, 'domain', element)
           this.makeLink(parentId, element.id, 'supportedOperation');
           ((element as Operation).requests || []).forEach(request => {
@@ -275,7 +269,6 @@ export class PlaygroundGraph {
           break
         }
         case 'Response': {
-          // console.log("Processing Response in graph " + element.id);
           this.makeNode({ id: element.id, label: (element as Response).status }, 'domain', element)
           this.makeLink(parentId, element.id, 'returns');
           ((element as Response).payloads || []).forEach(payload => {
@@ -284,7 +277,6 @@ export class PlaygroundGraph {
           break
         }
         case 'Request': {
-          // console.log("Processing Request in graph " + element.id);
           this.makeNode({ id: element.id, label: 'request' }, 'domain', element)
           this.makeLink(parentId, element.id, 'expects');
           ((element as Request).payloads || []).forEach(payload => {
@@ -293,20 +285,17 @@ export class PlaygroundGraph {
           break
         }
         case 'Payload': {
-          // console.log("Processing Payload in graph " + element.id);
           this.makeNode({ id: element.id, label: (element as Payload).mediaType || '*/*' }, 'domain', element)
           this.makeLink(parentId, element.id, 'payload')
           this.processDomainElement(element.id, (element as Payload).schema)
           break
         }
         case 'Shape': {
-          // console.log("Processing Schema in graph " + element.id);
           this.makeNode(element, 'domain', element)
           this.makeLink(parentId, element.id, 'shape')
           break
         }
         case 'Include': {
-          // console.log("Processing Schema in graph " + parentId + " <-> " + element.id + " <-> " + (element as IncludeRelationship).target);
           this.makeNode(element, 'relationship', element)
           this.makeLink(parentId, element.id, 'include')
           this.makeLink(element.id, (element as IncludeRelationship).target, 'includes')
@@ -359,7 +348,6 @@ export class PlaygroundGraph {
       })
       this.nodes[node.id].attributes.attrs.nodeId = node.id
       this.nodes[node.id].attributes.attrs.unit = unit
-      // console.log("GENERATING NODE " + node.id + " => " + this.nodes[node.id].id);
     }
   }
 
