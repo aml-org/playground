@@ -171,13 +171,7 @@ export class ViewModel {
         }
       )
       this.graph.process(this.documentUnits())
-      this.graph.render('graph-container-inner', () => {
-        if (oldGraph != null) {
-          if (this.graph.paper) {
-            this.graph.paperScale(oldGraph.scaleX, oldGraph.scaleY)
-          }
-        }
-      })
+      this.graph.render('graph-container-inner')
     } catch (err) {
       console.error(`Failed to reset graph: ${err}`)
     }
