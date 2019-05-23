@@ -38,24 +38,14 @@ export class PlaygroundGraph {
   public scaleY = 1;
   public elements: (DocumentId & Unit)[];
 
-  constructor (public selectedId: string, public level: 'domain' | 'document' | 'files', public handler: (id: string, unit: any) => void) {}
+  constructor (public selectedId: string, public level: 'domain' | 'document', public handler: (id: string, unit: any) => void) {}
 
   process (elements: (DocumentId & Unit)[]) {
     this.nodes = {}
     this.links = []
     this.elements = elements
     this.elements.forEach(element => {
-      if (element.kind === 'Fragment') {
-        this.processFragmentNode(element as Fragment)
-      } else if (element.kind === 'Module') {
-        this.processModuleNode(element as Module)
-      } else if (element.kind === 'Document') {
-        this.processDocumentNode(element as Document)
-      }
-    })
-
-    this.elements.forEach(element => {
-      this.processReferences(element)
+      this.processDocumentNode(element as Document)
     })
   }
 
@@ -160,45 +150,20 @@ export class PlaygroundGraph {
     this.paperScale(this.scaleX, this.scaleY)
   }
 
-  private processFragmentNode (element: Fragment) {
-    this.makeNode(element, 'unit', element)
-    if (element.encodes != null && this.level !== 'files') {
-      const encodes = element.encodes
-      const encoded = encodes.domain ? encodes.domain.root : undefined
-      if (encoded && this.level === 'domain') {
-        this.processDomainElement(element.id, encodes.domain ? encodes.domain.root : undefined)
-      } else if (this.level === 'document') {
-        this.makeNode(encodes, 'domain', encodes)
-        this.makeLink(element.id, encodes.id, 'encodes')
-      }
-    }
-  }
-
-  private processModuleNode (element: Module) {
-    this.makeNode(element, 'unit', element)
-    if (element.declares != null && this.level !== 'files') {
-      element.declares.forEach(declaration => {
-        if (this.nodes[declaration.id] == null) {
-          this.makeNode(declaration, 'declaration', declaration)
-        }
-        this.makeLink(element.id, declaration.id, 'declares')
-      })
-    }
-  }
-
   private processDocumentNode (document: Document) {
     this.makeNode(document, 'unit', document)
     // first declarations to avoid refs in the domain level pointing
     // to declarations not added yet
-    if (document.declares != null && this.level !== 'files') {
+    if (document.declares != null) {
       document.declares.forEach(declaration => {
         if (this.nodes[declaration.id] == null) {
           this.makeNode(declaration, 'declaration', declaration)
         }
+        console.log(declaration)
         this.makeLink(document.id, declaration.id, 'declares')
       })
     }
-    if (document.encodes != null && this.level !== 'files') {
+    if (document.encodes != null) {
       const encodes = document.encodes
       const encoded = encodes.domain ? encodes.domain.root : undefined
       if (encoded && this.level === 'domain') {
@@ -284,17 +249,6 @@ export class PlaygroundGraph {
     }
   }
 
-  private processReferences (element: DocumentId & Unit) {
-    if (element.references) {
-      element.references.forEach(ref => {
-        const reference = ref as DocumentId
-        if (reference.id && this.nodes[reference.id] != null) {
-          this.makeLink(element.id, reference.id, 'references')
-        }
-      })
-    }
-  }
-
   private makeNode (node: {id: string, label: string}, kind: string, unit: any) {
     const label = node.label != null ? node.label : utils.label(node.id)
     if (this.nodes[node.id] == null) {
@@ -310,10 +264,7 @@ export class PlaygroundGraph {
             fill: 'black'
           }
         },
-        position: {
-          x: 0,
-          y: 0
-        },
+        position: {x: 0, y: 0},
         size: {
           width: label.length * CHAR_SIZE,
           height: 30
