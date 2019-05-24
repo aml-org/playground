@@ -150,7 +150,14 @@
 
 
             window.appModel = new aml_playground_validation.ViewModel(dialectEditor, documentEditor);
-            window.appModel.apply();
+            window.appModel.apply()
+              .then(() => {
+                return window.appModel.loadInitialDialect();
+              })
+              .then(() => {
+                return window.appModel.loadInitialDocument();
+              })
+
             setTimeout(function() {
               document.getElementById("preloader").style.display = "none";
               var brand = document.getElementById("brand");

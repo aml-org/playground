@@ -1,5 +1,6 @@
 import * as ko from 'knockout'
 import * as amf from 'amf-client-js'
+
 const Vocabularies = amf.plugins.document.Vocabularies
 
 export class ViewModel {
@@ -13,30 +14,21 @@ export class ViewModel {
   public amlParser?
   public profileName: amf.ProfileName;
 
-  public base = window.location.href.toString().replace('validation.html', '')
+  public base = window.location.origin
   public defaultDocUrl = 'http://a.ml/amf/default_document'
 
+  public DIALECT_QUERY_PARAM = 'dialect'
+  public DOCUMENT_QUERY_PARAM = 'document'
+
   public constructor (public dialectEditor: any, public documentEditor: any) {
-    amf.AMF.init()
-      .then(() => {
-        this.amlParser = new amf.Aml10Parser()
-        return this.loadInitialDialect()
-      })
-      .then(() => {
-        return this.loadInitialDocument()
-      })
+    this.amlParser = new amf.Aml10Parser()
 
     this.documentEditor.onDidChangeModelContent(() => {
       this.handleModelContentChange(this.updateDocumentEditorContent)
     })
     this.dialectEditor.onDidChangeModelContent(() => {
       this.handleModelContentChange(() => {
-        return this.registerDialectEditorContent()
-          .then(() => {
-            // It's necessary to re-parse document in terms of new dialect to
-            // make validation work.
-            return this.updateDocumentEditorContent()
-          })
+        return this.updateDialectEditorContent()
       })
     })
   }
@@ -44,10 +36,57 @@ export class ViewModel {
   public apply () {
     window['viewModel'] = this
     ko.applyBindings(this)
+    return amf.AMF.init()
   }
 
   public createModel (text, mode) {
     return window['monaco'].editor.createModel(text, mode)
+  }
+
+  public loadInitialDialect () {
+    const params = new URLSearchParams(window.location.search)
+    let value = params.get('dialect')
+    if (!value) {
+      return this.loadDialectFromUrl(
+        `${this.base}/spec_examples/pods/dialect.yaml`)
+    }
+    try {
+      new URL(value) // Try to wrap it in URL to see if it's actually a url
+      return this.loadDialectFromUrl(value.trim())
+    } catch (e) {
+      // Query param value is an AML file content
+      try { value = decodeURIComponent(value) } catch (err) {}
+      this.dialectEditor.setValue(value.trim())
+      this.changesFromLastUpdate = 0
+      this.someModelChanged = false
+      return this.updateDialectEditorContent()
+        .catch(err => {
+          console.error(`Failed to load AML from query string: ${err}`)
+        })
+    }
+  }
+
+  public loadInitialDocument () {
+    const params = new URLSearchParams(window.location.search)
+    let value = params.get('document')
+    if (!value) {
+      return this.loadDocumentFromUrl(
+        `${this.base}/spec_examples/pods/document.yaml`)
+    }
+    try {
+      new URL(value) // Try to wrap it in URL to see if it's actually a url
+      return this.loadDocumentFromUrl(value.trim())
+    } catch (e) {
+      // Query param value is an AML file content
+      try { value = decodeURIComponent(value) } catch (err) {}
+      this.documentEditor.setValue(value.trim())
+      this.changesFromLastUpdate = 0
+      this.someModelChanged = false
+      return this.updateDocumentEditorContent()
+        .catch(err => {
+          console.error(`Failed to load AML from query string: ${err}`)
+        })
+    }
   }
 
   public handleModelContentChange (parsingFn) {
@@ -57,41 +96,54 @@ export class ViewModel {
       setTimeout(() => {
         if (this.changesFromLastUpdate === number) {
           this.changesFromLastUpdate = 0
+          this.someModelChanged = false
           parsingFn.call(this)
         }
       }, this.RELOAD_PERIOD)
     })(this.changesFromLastUpdate)
   }
 
-  public loadInitialDialect () {
+  public loadDialectFromUrl (dialectPath) {
     this.changesFromLastUpdate = 0
-    const dialectPath = `${this.base}spec_examples/pods/dialect.yaml`
     return this.amlParser.parseFileAsync(dialectPath)
       .then(model => {
+        this.dialectEditor.setModel(this.createModel(model.raw, 'aml'))
         this.dialectModel = model
-        this.dialectEditor.setModel(this.createModel(this.dialectModel.raw, 'aml'))
         return this.registerDialectEditorContent()
       })
-      .then(() => {
-        return this.updateDocumentEditorContent()
+  }
+
+  public updateDialectEditorContent () {
+    const editorValue = this.dialectEditor.getValue()
+    if (!editorValue) {
+      return
+    }
+    return this.amlParser.parseStringAsync(editorValue)
+      .then(model => {
+        this.dialectEditor.setModel(this.createModel(model.raw, 'aml'))
+        this.dialectModel = model
+        return this.registerDialectEditorContent()
+      })
+      .catch((err) => {
+        console.error(`Failed to parse dialect: ${err}`)
       })
   }
 
   public registerDialectEditorContent () {
     const editorValue = this.dialectEditor.getValue()
-    if (!editorValue) {
-      return
-    }
-    const location = this.dialectModel.location || this.defaultDocUrl
+    const location = this.dialectModel.location
     return Vocabularies.registerDialect(location, editorValue)
       .then(dialect => {
         this.profileName = new amf.ProfileName(dialect.nameAndVersion())
+
+        // It's necessary to re-parse document in terms of new dialect to
+        // make validation work.
+        return this.updateDocumentEditorContent()
       })
   }
 
-  public loadInitialDocument () {
+  public loadDocumentFromUrl (documentPath) {
     this.changesFromLastUpdate = 0
-    const documentPath = `${this.base}spec_examples/pods/document.yaml`
     return this.amlParser.parseFileAsync(documentPath)
       .then(model => {
         this.documentEditor.setModel(this.createModel(model.raw, 'aml'))
@@ -107,6 +159,7 @@ export class ViewModel {
     }
     return this.amlParser.parseStringAsync(editorValue)
       .then(model => {
+        this.documentEditor.setModel(this.createModel(model.raw, 'aml'))
         this.documentModel = model
         this.doValidate()
       })
