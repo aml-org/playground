@@ -17,9 +17,6 @@ export class ViewModel {
   public base = window.location.origin
   public defaultDocUrl = 'http://a.ml/amf/default_document'
 
-  public DIALECT_QUERY_PARAM = 'dialect'
-  public DOCUMENT_QUERY_PARAM = 'document'
-
   public constructor (public dialectEditor: any, public documentEditor: any) {
     this.amlParser = new amf.Aml10Parser()
 
