@@ -129,7 +129,6 @@
             customizeMonaco();
 
             var dialectEditor = monaco.editor.create(document.getElementById("editor-dialect-container"), {
-              value: '',
               language: 'aml',
               automaticLayout: true,
               scrollBeyondLastLine: false,
@@ -139,7 +138,6 @@
             });
 
             var documentEditor = monaco.editor.create(document.getElementById("editor-document-container"), {
-              value: '',
               language: 'aml',
               automaticLayout: true,
               scrollBeyondLastLine: false,

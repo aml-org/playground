@@ -104,7 +104,9 @@ export class ViewModel {
     this.changesFromLastUpdate = 0
     return this.amlParser.parseFileAsync(dialectPath)
       .then(model => {
-        this.dialectEditor.setModel(this.createModel(model.raw, 'aml'))
+        if (this.dialectModel === null) {
+          this.dialectEditor.setModel(this.createModel(model.raw, 'aml'))
+        }
         this.dialectModel = model
         return this.registerDialectEditorContent()
       })
@@ -117,7 +119,9 @@ export class ViewModel {
     }
     return this.amlParser.parseStringAsync(editorValue)
       .then(model => {
-        this.dialectEditor.setModel(this.createModel(model.raw, 'aml'))
+        if (this.dialectModel === null) {
+          this.dialectEditor.setModel(this.createModel(model.raw, 'aml'))
+        }
         this.dialectModel = model
         return this.registerDialectEditorContent()
       })
@@ -143,7 +147,9 @@ export class ViewModel {
     this.changesFromLastUpdate = 0
     return this.amlParser.parseFileAsync(documentPath)
       .then(model => {
-        this.documentEditor.setModel(this.createModel(model.raw, 'aml'))
+        if (this.documentModel === null) {
+          this.documentEditor.setModel(this.createModel(model.raw, 'aml'))
+        }
         this.documentModel = model
         this.doValidate()
       })
@@ -156,7 +162,9 @@ export class ViewModel {
     }
     return this.amlParser.parseStringAsync(editorValue)
       .then(model => {
-        this.documentEditor.setModel(this.createModel(model.raw, 'aml'))
+        if (this.documentModel === null) {
+          this.documentEditor.setModel(this.createModel(model.raw, 'aml'))
+        }
         this.documentModel = model
         this.doValidate()
       })
