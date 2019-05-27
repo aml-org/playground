@@ -36,13 +36,13 @@ nodeMappings:
     mapping:
       name:
         propertyTerm: schema-org.name
-        range: string
+        range: string # Try making it a "number"
         mandatory: true
 
   SpecNode:
     classTerm: schema-org.Intangible
     mapping:
-      restartPolicy:
+      restartPolicy: # Try removing this property block
         propertyTerm: schema-org.description
         range: string
         mandatory: true
