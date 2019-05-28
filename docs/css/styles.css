@@ -7791,3 +7791,6 @@ header {
 .aml-demo-select {
   border: none;
   background-color: transparent; }
+
+.link-tools {
+  display: none; }

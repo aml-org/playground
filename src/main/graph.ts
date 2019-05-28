@@ -104,6 +104,7 @@ export class PlaygroundGraph {
           }
           options['model'] = graph
           this.paper = new Paper(options)
+          this.paper.removeTools()
 
           this.paper.on('cell:pointerdown',
             (cellView, evt, x, y) => {
@@ -130,6 +131,7 @@ export class PlaygroundGraph {
     this.scaleX = sx
     this.scaleY = sy
     this.paper.scale(sx, sy)
+    this.paper.fitToContent()
   }
 
   zoomOut () {
