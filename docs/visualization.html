@@ -102,13 +102,14 @@
 
             var resize = function() {
               var height = document.documentElement.clientHeight;
-              var containers = ["editor-container-inner", "graph-container-inner"];
+              var containers = ["editor-container-inner", "graph-container"];
               containers.forEach(function(contId) {
                 var containerDiv = document.getElementById(contId);
                 var style = window.getComputedStyle(containerDiv);
                 var hidden = style.display == "none";
                 if (!hidden) {
-                  containerDiv.setAttribute("style", "height: " + (height - 207) + "px");
+                  containerDiv.style.maxHeight = (height - 200) + "px";
+                  containerDiv.style.height = (height - 200) + "px";
                 }
               });
             };

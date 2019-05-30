@@ -88,23 +88,25 @@ export class PlaygroundGraph {
         }))
 
         const graph: any = new Graph()
+        let width = maxX + 100
+        let height = maxY + 100
 
         if (graphContainer != null) {
           graphContainer.innerHTML = ''
 
-          let width = graphContainer.clientWidth
-          let height = graphContainer.clientHeight
+          let minWidth = graphContainer.clientWidth
+          // let minHeight = graphContainer.clientHeight;
+          let minHeight = window.innerHeight - 300
 
           const options = {
             el: graphContainer,
-            width: width,
-            height: height,
+            width: (minWidth > width ? minWidth : width),
+            height: (minHeight > height ? minHeight : height),
             gridSize: 1,
             interactive: false
           }
           options['model'] = graph
           this.paper = new Paper(options)
-          this.paper.removeTools()
 
           this.paper.on('cell:pointerdown',
             (cellView, evt, x, y) => {
@@ -115,6 +117,16 @@ export class PlaygroundGraph {
           )
 
           graph.addCells(finalCells)
+          let zoomx = 1
+          let zoomy = 1
+          if (minWidth < width) {
+            zoomx = minWidth / width
+          }
+          if (minHeight < height) {
+            zoomy = minHeight / height
+          }
+          let zoom = zoomy < zoomx ? zoomy : zoomx
+          this.paperScale(zoom, zoom)
           this.paper.removeTools()
           if (cb) {
             cb()
@@ -161,7 +173,6 @@ export class PlaygroundGraph {
         if (this.nodes[declaration.id] == null) {
           this.makeNode(declaration, 'declaration', declaration)
         }
-        console.log(declaration)
         this.makeLink(document.id, declaration.id, 'declares')
       })
     }
@@ -278,6 +289,7 @@ export class PlaygroundGraph {
   }
 
   private makeLink (sourceId: string, targetId: string, label: string) {
+    console.log(sourceId, targetId, label)
     if (this.nodes[sourceId] && this.nodes[targetId]) {
       this.links.push(new Link({
         source: { id: this.nodes[sourceId].id },
