@@ -73,7 +73,7 @@ export class PlaygroundGraph {
             nodeSep: 50,
             edgeSep: 50,
             rankSep: 100,
-            rankDir: 'LR'
+            rankDir: 'TB'
           })
         }
         const maxX = Math.max(...finalCells.map(c => {
@@ -144,6 +144,20 @@ export class PlaygroundGraph {
     this.scaleY = sy
     this.paper.scale(sx, sy)
     this.paper.fitToContent()
+    this.centerGraphX()
+  }
+
+  centerGraphX () {
+    let container = document.getElementById('graph-container')
+    let containerWidth = container.clientWidth
+    let contentWidth = this.paper.getContentBBox().width
+    let offset = (containerWidth - contentWidth) / 2
+    if (contentWidth + offset > containerWidth) {
+      container.scroll(Math.abs(offset), 0)
+    } else {
+      this.paper.translate(offset)
+      this.paper.setDimensions('100%')
+    }
   }
 
   zoomOut () {
