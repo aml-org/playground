@@ -3,10 +3,10 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: two-containers
+  name: two-containers # Try making this an integer
 
 spec:
-  restartPolicy: never
+  restartPolicy: never # Try deleting this line
   volumes:
     - name: shared-data
       emptyDir: {}
