@@ -17,9 +17,9 @@ export class ViewModel {
   public graph: any;
   public amlParser?
 
-  public base = window.location.href.toString().replace('visualization.html', '')
-  public defaultDialect = `${this.base}spec_examples/pods/dialect.yaml`
-  public defaultDocument = `${this.base}spec_examples/pods/document.yaml`
+  public base = window.location.origin
+  public defaultDialect = `${this.base}/examples/pods/dialect.yaml`
+  public defaultDocument = `${this.base}/examples/pods/document.yaml`
 
   public changesFromLastUpdate = 0;
   public someModelChanged = false;

@@ -45,7 +45,7 @@ export class ViewModel {
     let value = params.get('dialect')
     if (!value) {
       return this.loadDialectFromUrl(
-        `${this.base}/spec_examples/pods/dialect.yaml`)
+        `${this.base}/examples/pods/dialect.yaml`)
     }
     try {
       new URL(value) // Try to wrap it in URL to see if it's actually a url
@@ -68,7 +68,7 @@ export class ViewModel {
     let value = params.get('document')
     if (!value) {
       return this.loadDocumentFromUrl(
-        `${this.base}/spec_examples/pods/document.yaml`)
+        `${this.base}/examples/pods/document.yaml`)
     }
     try {
       new URL(value) // Try to wrap it in URL to see if it's actually a url
