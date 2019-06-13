@@ -202,9 +202,14 @@ export class ViewModel {
     }
 
     const lexicalInfo: amf.core.parser.Range = this.selectedModel.elementLexicalInfo(id)
+
+    let startLine = this.editorSection() === 'dialect'
+      ? lexicalInfo.start.line - 1
+      : lexicalInfo.start.line
+
     if (lexicalInfo != null) {
       this.editor.revealRangeInCenter({
-        startLineNumber: lexicalInfo.start.line - 1,
+        startLineNumber: startLine,
         startColumn: lexicalInfo.start.column,
         endLineNumber: lexicalInfo.end.line - 1,
         endColumn: lexicalInfo.end.column
@@ -212,7 +217,7 @@ export class ViewModel {
       this.decorations = this.editor.deltaDecorations(this.decorations, [
         {
           range: new monaco.Range(
-            lexicalInfo.start.line - 1,
+            startLine,
             lexicalInfo.start.column,
             lexicalInfo.end.line - 1,
             lexicalInfo.end.column),
