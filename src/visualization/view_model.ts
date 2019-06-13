@@ -133,7 +133,7 @@ export class ViewModel {
       })
   }
 
-  public collectTreeNodes (data, parentId) {
+  public collectTreeNodes (data: object, parentId: string, defaultLabel?: string) {
     let elements = []
     if (typeof data !== 'object') {
       return elements
@@ -148,20 +148,17 @@ export class ViewModel {
       let nameNode = data['http://schema.org/name'] ||
                      data['http://www.w3.org/ns/shacl#name'] ||
                      [{}]
-      let label = nameNode[0]['@value']
+      let label = nameNode[0]['@value'] || defaultLabel
       if (label) {
         elements.push({
           id: data['@id'],
           parentId: parentId,
           label: label
         })
+        parentId = data['@id']
       }
-      parentId = data['@id']
     }
     Object.entries(data).forEach(([key, val]) => {
-      // if (!key.endsWith('#range')) {
-      //   elements.push(...this.collectTreeNodes(val, parentId))
-      // }
       elements.push(...this.collectTreeNodes(val, parentId))
     })
     return elements
@@ -174,8 +171,8 @@ export class ViewModel {
     }
     return amf.AMF.amfGraphGenerator().generateString(this.selectedModel.model)
       .then(gen => {
-        let data = JSON.parse(gen)
-        this.documentUnits.push(...this.collectTreeNodes(data, undefined))
+        let data = JSON.parse(gen)[0]
+        this.documentUnits.push(...this.collectTreeNodes(data, undefined, 'Root'))
         if (cb) { cb() }
       })
   }
