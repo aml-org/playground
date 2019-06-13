@@ -1,4 +1,3 @@
-import { Document } from '../main/units_model'
 import { ModelProxy } from '../main/model_proxy'
 import { PlaygroundGraph } from '../main/graph'
 import * as ko from 'knockout'
@@ -8,7 +7,7 @@ export type EditorSection = 'document' | 'dialect';
 
 export class ViewModel {
   public editorSection: ko.KnockoutObservable<EditorSection> = ko.observable<EditorSection>('document');
-  public documentUnits: ko.KnockoutObservableArray<Document> = ko.observableArray<Document>([]);
+  public documentUnits: ko.KnockoutObservableArray<any> = ko.observableArray<any>([]);
 
   public documentModel?: ModelProxy = undefined;
   public dialectModel?: ModelProxy = undefined;
@@ -134,35 +133,56 @@ export class ViewModel {
       })
   }
 
+  public collectTreeNodes (data, parentId) {
+    let elements = []
+    if (typeof data !== 'object') {
+      return elements
+    }
+    if (Array.isArray(data)) {
+      data.forEach(el => {
+        elements.push(...this.collectTreeNodes(el, parentId))
+      })
+      return elements
+    }
+    if (data['@id']) {
+      let nameNode = data['http://schema.org/name'] ||
+                     data['http://www.w3.org/ns/shacl#name'] ||
+                     [{}]
+      let label = nameNode[0]['@value']
+      if (label) {
+        elements.push({
+          id: data['@id'],
+          parentId: parentId,
+          label: label
+        })
+      }
+      parentId = data['@id']
+    }
+    Object.entries(data).forEach(([key, val]) => {
+      // if (!key.endsWith('#range')) {
+      //   elements.push(...this.collectTreeNodes(val, parentId))
+      // }
+      elements.push(...this.collectTreeNodes(val, parentId))
+    })
+    return elements
+  }
+
   private resetUnits (cb: () => void = () => {}) {
+    this.documentUnits.removeAll()
     if (this.selectedModel === null) {
-      this.documentUnits.removeAll()
       return
     }
-    this.selectedModel.units('document', (err, units) => {
-      if (err === null) {
-        let unitsMap = {}
-        this.documentUnits().forEach(unit => {
-          unitsMap[unit.id] = unit
-        })
-        this.documentUnits.removeAll()
-        units.documents.forEach(doc => {
-          if (unitsMap[doc.id] != null) {
-            doc['expanded'] = unitsMap[doc.id]['expanded']
-          }
-          this.documentUnits.push(doc)
-        })
-      } else {
-        console.error(`Error loading units: ${err}`)
-      }
-      if (cb) { cb() }
-    })
+    return amf.AMF.amfGraphGenerator().generateString(this.selectedModel.model)
+      .then(gen => {
+        let data = JSON.parse(gen)
+        this.documentUnits.push(...this.collectTreeNodes(data, undefined))
+        if (cb) { cb() }
+      })
   }
 
   public resetGraph () {
     try {
       document.getElementById('graph-container-inner').innerHTML = ''
-      let oldGraph = this.graph
       this.graph = new PlaygroundGraph(
         this.selectedModel.location(),
         'document',

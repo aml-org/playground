@@ -1,5 +1,4 @@
 import * as jsonld from 'jsonld'
-import { UnitModel } from './units_model'
 import * as amf from 'amf-client-js'
 import { model } from 'amf-client-js'
 
@@ -22,49 +21,6 @@ export class ModelProxy {
   location (): string {
     return this.model.location
   }
-
-  toAPIModelProcessed (level: ModelLevel, compacted: boolean, stringify: boolean, options: any, cb) {
-    try {
-      const liftedModel = (level === 'document') ? this.model : amf.AMF.resolveRaml10(this.model)
-      const res = apiModelGenerator.generateString(liftedModel).then((res) => {
-        const parsed = JSON.parse(res)[0]
-        if (compacted) {
-          const context = {
-            'raml-doc': 'http://a.ml/vocabularies/document#',
-            'raml-http': 'http://a.ml/vocabularies/http#',
-            'raml-shapes': 'http://a.ml/vocabularies/shapes#',
-            'hydra': 'http://www.w3.org/ns/hydra/core#',
-            'shacl': 'http://www.w3.org/ns/shacl#',
-            'schema-org': 'http://schema.org/',
-            'xsd': 'http://www.w3.org/2001/XMLSchema#'
-          }
-
-          jsonld.compact(parsed, context, (err, compacted) => {
-            if (err != null) {
-            }
-            const finalJson = (err == null) ? compacted : parsed
-            this.apiModelString = JSON.stringify(finalJson, null, 2)
-            if (stringify) {
-              cb(err, this.apiModelString)
-            } else {
-              cb(err, finalJson)
-            }
-          })
-        } else {
-          this.apiModelString = JSON.stringify(parsed, null, 2)
-          if (stringify) {
-            cb(null, this.apiModelString)
-          } else {
-            cb(null, parsed)
-          }
-        }
-      }).catch(cb)
-    } catch (e) {
-      cb(e)
-    }
-  }
-
-  public units (modelLevel: ModelLevel, cb) { new UnitModel(this).process(modelLevel, cb) }
 
   /**
    * Returns all the files referenced in a document model

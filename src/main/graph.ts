@@ -1,16 +1,7 @@
 import * as joint from 'jointjs'
-import {
-  DocumentId, Fragment, Module, Document, Unit,
-  DomainElement } from '../main/units_model'
-import * as domain from '../main/domain_model'
-import {
-  APIDocumentation, EndPoint, Operation,
-  Response, Request, Payload,
-  IncludeRelationship } from '../main/domain_model'
 import * as utils from '../utils'
 import Rect = joint.shapes.basic.Rect;
 import Link = joint.dia.Link;
-import Generic = joint.shapes.basic.Generic;
 import Cell = joint.dia.Cell;
 import Graph = joint.dia.Graph;
 import Paper = joint.dia.Paper;
@@ -19,7 +10,6 @@ const CHAR_SIZE = 10
 
 const DEFAULT_LINK_COLOR = '#748599'
 const SELECTED_STROKE_COLOR = '#748599'
-const DEFAULT_LABEL_COLOR = '#748599'
 const NODE_TEXT_COLOR = '#fff'
 
 const COLORS = {
@@ -38,16 +28,19 @@ export class PlaygroundGraph {
   public paper: Paper;
   public scaleX = 1;
   public scaleY = 1;
-  public elements: (DocumentId & Unit)[];
+  public elements: any[];
 
   constructor (public selectedId: string, public level: 'domain' | 'document', public handler: (id: string, unit: any) => void) {}
 
-  process (elements: (DocumentId & Unit)[]) {
+  process (elements: any[]) {
     this.nodes = {}
     this.links = []
     this.elements = elements
     this.elements.forEach(element => {
-      this.processDocumentNode(element as Document)
+      this.makeNode(element, 'domain', element)
+      if (element.parentId) {
+        this.makeLink(element.parentId, element.id)
+      }
     })
   }
 
@@ -62,7 +55,7 @@ export class PlaygroundGraph {
 
         let cells: Cell[] = (classes).concat(this.links)
         let acc = {}
-        cells.forEach(c => acc[c.id] = true)
+        cells.forEach(c => { acc[c.id] = true })
 
         const finalCells = cells.filter(c => {
           return (c.attributes.source == null) || (acc[c.attributes.source.id] && acc[c.attributes.target.id])
@@ -180,104 +173,6 @@ export class PlaygroundGraph {
     this.paperScale(this.scaleX, this.scaleY)
   }
 
-  private processDocumentNode (document: Document) {
-    this.makeNode(document, 'unit', document)
-    // first declarations to avoid refs in the domain level pointing
-    // to declarations not added yet
-    if (document.declares != null) {
-      document.declares.forEach(declaration => {
-        if (this.nodes[declaration.id] == null) {
-          this.makeNode(declaration, 'declaration', declaration)
-        }
-        this.makeLink(document.id, declaration.id, 'declares')
-      })
-    }
-    if (document.encodes != null) {
-      const encodes = document.encodes
-      const encoded = encodes.domain ? encodes.domain.root : undefined
-      if (encoded && this.level === 'domain') {
-        this.processDomainElement(document.id, encodes.domain ? encodes.domain.root : undefined)
-      } else {
-        this.makeNode(encodes, 'domain', encodes)
-        this.makeLink(document.id, encodes.id, 'encodes')
-      }
-    }
-  }
-
-  private processDomainElement (parentId: string, element: domain.DomainElement | undefined) {
-    if (element) {
-      const domainKind = element.kind
-      switch (domainKind) {
-        case 'APIDocumentation': {
-          this.makeNode(element, 'domain', element)
-          this.makeLink(parentId, element.id, 'encodes');
-          ((element as APIDocumentation).endpoints || []).forEach(endpoint => {
-            this.processDomainElement(element.id, endpoint)
-          })
-          break
-        }
-        case 'EndPoint': {
-          this.makeNode(element, 'domain', element)
-          this.makeLink(parentId, element.id, 'endpoint');
-          ((element as EndPoint).operations || []).forEach(operation => {
-            this.processDomainElement(element.id, operation)
-          })
-          break
-        }
-        case 'Operation': {
-          this.makeNode({ id: element.id, label: (element as Operation).method }, 'domain', element)
-          this.makeLink(parentId, element.id, 'supportedOperation');
-          ((element as Operation).requests || []).forEach(request => {
-            this.processDomainElement(element.id, request)
-          });
-          ((element as Operation).responses || []).forEach(response => {
-            this.processDomainElement(element.id, response)
-          })
-          break
-        }
-        case 'Response': {
-          this.makeNode({ id: element.id, label: (element as Response).status }, 'domain', element)
-          this.makeLink(parentId, element.id, 'returns');
-          ((element as Response).payloads || []).forEach(payload => {
-            this.processDomainElement(element.id, payload)
-          })
-          break
-        }
-        case 'Request': {
-          this.makeNode({ id: element.id, label: 'request' }, 'domain', element)
-          this.makeLink(parentId, element.id, 'expects');
-          ((element as Request).payloads || []).forEach(payload => {
-            this.processDomainElement(element.id, payload)
-          })
-          break
-        }
-        case 'Payload': {
-          this.makeNode({ id: element.id, label: (element as Payload).mediaType || '*/*' }, 'domain', element)
-          this.makeLink(parentId, element.id, 'payload')
-          this.processDomainElement(element.id, (element as Payload).schema)
-          break
-        }
-        case 'Shape': {
-          this.makeNode(element, 'domain', element)
-          this.makeLink(parentId, element.id, 'shape')
-          break
-        }
-        case 'Include': {
-          this.makeNode(element, 'relationship', element)
-          this.makeLink(parentId, element.id, 'include')
-          this.makeLink(element.id, (element as IncludeRelationship).target, 'includes')
-          break
-        }
-        default: {
-          this.makeNode(element, 'domain', element)
-          break
-        }
-      }
-    } else {
-      return undefined
-    }
-  }
-
   private makeNode (node: {id: string, label: string}, kind: string, unit: any) {
     const label = node.label != null ? node.label : utils.label(node.id)
     if (this.nodes[node.id] == null) {
@@ -293,7 +188,7 @@ export class PlaygroundGraph {
             fill: NODE_TEXT_COLOR
           }
         },
-        position: {x: 0, y: 0},
+        position: { x: 0, y: 0 },
         size: {
           width: label.length * CHAR_SIZE,
           height: 30
@@ -304,8 +199,7 @@ export class PlaygroundGraph {
     }
   }
 
-  private makeLink (sourceId: string, targetId: string, label: string) {
-    console.log(sourceId, targetId, label)
+  private makeLink (sourceId: string, targetId: string) {
     if (this.nodes[sourceId] && this.nodes[targetId]) {
       this.links.push(new Link({
         source: { id: this.nodes[sourceId].id },
@@ -313,21 +207,12 @@ export class PlaygroundGraph {
         attrs: {
           '.marker-target': {
             d: 'M 10 0 L 0 5 L 10 10 z',
-            fill: COLORS[label] || DEFAULT_LINK_COLOR,
-            stroke: COLORS[label] || DEFAULT_LINK_COLOR
+            fill: DEFAULT_LINK_COLOR,
+            stroke: DEFAULT_LINK_COLOR
           },
-          '.connection': { stroke: COLORS[label] || DEFAULT_LINK_COLOR }
+          '.connection': { stroke: DEFAULT_LINK_COLOR }
         },
-        arrowheadMarkup: '<g />',
-        labels: [{
-          position: 0.5,
-          attrs: {
-            text: {
-              text: label,
-              stroke: DEFAULT_LABEL_COLOR
-            }
-          }
-        }]
+        arrowheadMarkup: '<g />'
       }))
     }
   }
