@@ -934,14 +934,6 @@ $selected-line:#DBE8FD;
   max-width: 50%;
 }
 
-// Hide graph X buttons
-.tool-remove {
-  display: none;
-}
-.link-tools {
-  display: none;
-}
-
 .modal-card-body, #query {
   .select {
     select {
@@ -965,4 +957,11 @@ $selected-line:#DBE8FD;
 .aml-demo-select {
   border: none;
   background-color: transparent;
+}
+
+.link-tools {
+  display: none;
+}
+#graph-container {
+  overflow: auto;
 }

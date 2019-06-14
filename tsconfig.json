@@ -10,10 +10,8 @@
         ]
     },
     "files": [
-        "src/main/domain_model.ts",
         "src/main/graph.ts",
         "src/main/model_proxy.ts",
-        "src/main/units_model.ts",
         "src/validation/view_model.ts",
         "src/visualization/view_model.ts",
         "src/utils.ts"

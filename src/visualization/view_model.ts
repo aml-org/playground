@@ -1,4 +1,3 @@
-import { Document } from '../main/units_model'
 import { ModelProxy } from '../main/model_proxy'
 import { PlaygroundGraph } from '../main/graph'
 import * as ko from 'knockout'
@@ -8,7 +7,7 @@ export type EditorSection = 'document' | 'dialect';
 
 export class ViewModel {
   public editorSection: ko.KnockoutObservable<EditorSection> = ko.observable<EditorSection>('document');
-  public documentUnits: ko.KnockoutObservableArray<Document> = ko.observableArray<Document>([]);
+  public documentUnits: ko.KnockoutObservableArray<any> = ko.observableArray<any>([]);
 
   public documentModel?: ModelProxy = undefined;
   public dialectModel?: ModelProxy = undefined;
@@ -134,35 +133,62 @@ export class ViewModel {
       })
   }
 
+  // Recursively collects tree nodes from JSON-LD document into a flat array
+  public collectTreeNodes (data: object, parentId: string, defaultLabel?: string) {
+    let elements = []
+
+    // Data is not an object or array
+    if (typeof data !== 'object') {
+      return elements
+    }
+
+    // Data is an array
+    if (Array.isArray(data)) {
+      data.forEach(el => {
+        elements.push(...this.collectTreeNodes(el, parentId))
+      })
+      return elements
+    }
+
+    // Data is object and has `@id` property
+    if (data['@id']) {
+      let nameNode = data['http://schema.org/name'] ||
+                     data['http://www.w3.org/ns/shacl#name'] ||
+                     [{}]
+      let label = nameNode[0]['@value'] || defaultLabel
+      if (label) {
+        elements.push({
+          id: data['@id'],
+          parentId: parentId,
+          label: label
+        })
+        parentId = data['@id']
+      }
+    }
+
+    // Process nested properties
+    Object.entries(data).forEach(([key, val]) => {
+      elements.push(...this.collectTreeNodes(val, parentId))
+    })
+    return elements
+  }
+
   private resetUnits (cb: () => void = () => {}) {
+    this.documentUnits.removeAll()
     if (this.selectedModel === null) {
-      this.documentUnits.removeAll()
       return
     }
-    this.selectedModel.units('document', (err, units) => {
-      if (err === null) {
-        let unitsMap = {}
-        this.documentUnits().forEach(unit => {
-          unitsMap[unit.id] = unit
-        })
-        this.documentUnits.removeAll()
-        units.documents.forEach(doc => {
-          if (unitsMap[doc.id] != null) {
-            doc['expanded'] = unitsMap[doc.id]['expanded']
-          }
-          this.documentUnits.push(doc)
-        })
-      } else {
-        console.error(`Error loading units: ${err}`)
-      }
-      if (cb) { cb() }
-    })
+    return amf.AMF.amfGraphGenerator().generateString(this.selectedModel.model)
+      .then(gen => {
+        let data = JSON.parse(gen)[0]
+        this.documentUnits.push(...this.collectTreeNodes(data, undefined, 'Root'))
+        if (cb) { cb() }
+      })
   }
 
   public resetGraph () {
     try {
       document.getElementById('graph-container-inner').innerHTML = ''
-      let oldGraph = this.graph
       this.graph = new PlaygroundGraph(
         this.selectedModel.location(),
         'document',
@@ -171,13 +197,7 @@ export class ViewModel {
         }
       )
       this.graph.process(this.documentUnits())
-      this.graph.render('graph-container-inner', () => {
-        if (oldGraph != null) {
-          if (this.graph.paper) {
-            this.graph.paperScale(oldGraph.scaleX, oldGraph.scaleY)
-          }
-        }
-      })
+      this.graph.render('graph-container-inner')
     } catch (err) {
       console.error(`Failed to reset graph: ${err}`)
     }
@@ -191,9 +211,14 @@ export class ViewModel {
     }
 
     const lexicalInfo: amf.core.parser.Range = this.selectedModel.elementLexicalInfo(id)
+
+    let startLine = this.editorSection() === 'dialect'
+      ? lexicalInfo.start.line - 1
+      : lexicalInfo.start.line
+
     if (lexicalInfo != null) {
       this.editor.revealRangeInCenter({
-        startLineNumber: lexicalInfo.start.line - 1,
+        startLineNumber: startLine,
         startColumn: lexicalInfo.start.column,
         endLineNumber: lexicalInfo.end.line - 1,
         endColumn: lexicalInfo.end.column
@@ -201,7 +226,7 @@ export class ViewModel {
       this.decorations = this.editor.deltaDecorations(this.decorations, [
         {
           range: new monaco.Range(
-            lexicalInfo.start.line - 1,
+            startLine,
             lexicalInfo.start.column,
             lexicalInfo.end.line - 1,
             lexicalInfo.end.column),
