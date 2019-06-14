@@ -10,7 +10,6 @@
         ]
     },
     "files": [
-        "src/main/domain_model.ts",
         "src/main/graph.ts",
         "src/main/model_proxy.ts",
         "src/validation/view_model.ts",

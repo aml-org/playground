@@ -133,17 +133,24 @@ export class ViewModel {
       })
   }
 
+  // Recursively collects tree nodes from JSON-LD document into a flat array
   public collectTreeNodes (data: object, parentId: string, defaultLabel?: string) {
     let elements = []
+
+    // Data is not an object or array
     if (typeof data !== 'object') {
       return elements
     }
+
+    // Data is an array
     if (Array.isArray(data)) {
       data.forEach(el => {
         elements.push(...this.collectTreeNodes(el, parentId))
       })
       return elements
     }
+
+    // Data is object and has `@id` property
     if (data['@id']) {
       let nameNode = data['http://schema.org/name'] ||
                      data['http://www.w3.org/ns/shacl#name'] ||
@@ -158,6 +165,8 @@ export class ViewModel {
         parentId = data['@id']
       }
     }
+
+    // Process nested properties
     Object.entries(data).forEach(([key, val]) => {
       elements.push(...this.collectTreeNodes(val, parentId))
     })
