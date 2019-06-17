@@ -16,7 +16,7 @@ export class ViewModel {
   public graph: any;
   public amlParser?
 
-  public base = window.location.origin
+  public base = window.location.href.toString().replace('/visualization.html', '')
   public defaultDialect = `${this.base}/examples/pods/dialect.yaml`
   public defaultDocument = `${this.base}/examples/pods/document.yaml`
 
