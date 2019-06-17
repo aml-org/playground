@@ -1,12 +1,12 @@
 {
-  "name": "amf-playground",
+  "name": "aml-playground",
   "description": "",
   "main": "src/main.js",
   "authors": [
     "Mulesoft"
   ],
   "license": "ISC",
-  "homepage": "https://github.com/mulesoft-labs/amf-playground",
+  "homepage": "https://github.com/mulesoft-labs/aml-playground",
   "ignore": [
     "**/.*",
     "node_modules",
