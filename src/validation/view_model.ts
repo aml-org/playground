@@ -14,7 +14,7 @@ export class ViewModel {
   public amlParser?
   public profileName: amf.ProfileName;
 
-  public base = window.location.origin
+  public base = window.location.href.toString().replace('/validation.html', '')
   public defaultDocUrl = 'http://a.ml/amf/default_document'
 
   public constructor (public dialectEditor: any, public documentEditor: any) {
