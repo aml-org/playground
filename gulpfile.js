@@ -80,3 +80,11 @@ gulp.task('serveVisualization', gulp.series(
     })
   }
 ))
+
+// Bundle all the demos
+gulp.task('bundle', gulp.series(
+  'sass',
+  'bower',
+  'bundleValidation',
+  'bundleVisualization'
+))
