@@ -2,8 +2,8 @@
 ![AML Playground Logo](docs/images/AML_white.svg)
 
 ## Demos
-* [Validation](https://a.ml/amf-playground/validation.html)
-* [Visualization](https://a.ml/amf-playground/visualization.html)
+* [Validation](https://a.ml/playground/validation.html)
+* [Visualization](https://a.ml/playground/visualization.html)
 
 ## Running this project
 Validation demo:

@@ -1,4 +1,3 @@
-import { ModelProxy } from '../main/model_proxy'
 import { PlaygroundGraph } from '../main/graph'
 import * as ko from 'knockout'
 import * as amf from 'amf-client-js'
@@ -9,9 +8,9 @@ export class ViewModel {
   public editorSection: ko.KnockoutObservable<EditorSection> = ko.observable<EditorSection>('document');
   public documentUnits: ko.KnockoutObservableArray<any> = ko.observableArray<any>([]);
 
-  public documentModel?: ModelProxy = undefined;
-  public dialectModel?: ModelProxy = undefined;
-  public selectedModel?: ModelProxy = undefined;
+  public documentModel?: any = undefined;
+  public dialectModel?: any = undefined;
+  public selectedModel?: any = undefined;
 
   public graph: any;
   public amlParser?
@@ -47,7 +46,7 @@ export class ViewModel {
     } else {
       this.selectedModel = this.dialectModel
     }
-    this.editor.setModel(this.createModel(this.selectedModel!.raw, 'aml'))
+    this.editor.setModel(this.createModel(this.selectedModel.raw, 'aml'))
     this.resetUnits(() => { this.resetGraph() })
   }
 
@@ -100,14 +99,14 @@ export class ViewModel {
       return Promise.resolve()
     }
     const location = section === 'document'
-      ? this.documentModel.location()
-      : this.dialectModel.location()
+      ? this.documentModel.location
+      : this.dialectModel.location
     return this.amlParser.parseStringAsync(location, value)
       .then(model => {
         if (section === 'document') {
-          this.documentModel = new ModelProxy(model)
+          this.documentModel = model
         } else {
-          this.dialectModel = new ModelProxy(model)
+          this.dialectModel = model
         }
       })
       .catch(err => {
@@ -118,7 +117,7 @@ export class ViewModel {
   public loadInitialDocument () {
     return this.amlParser.parseFileAsync(this.defaultDocument)
       .then(model => {
-        this.documentModel = new ModelProxy(model)
+        this.documentModel = model
         this.selectedModel = this.documentModel
         this.editor.setModel(this.createModel(this.selectedModel.raw, 'aml'))
         this.someModelChanged = false
@@ -129,7 +128,7 @@ export class ViewModel {
   public loadInitialDialect () {
     return this.amlParser.parseFileAsync(this.defaultDialect)
       .then(model => {
-        this.dialectModel = new ModelProxy(model)
+        this.dialectModel = model
       })
   }
 
@@ -178,7 +177,7 @@ export class ViewModel {
     if (this.selectedModel === null) {
       return
     }
-    return amf.AMF.amfGraphGenerator().generateString(this.selectedModel.model)
+    return amf.AMF.amfGraphGenerator().generateString(this.selectedModel)
       .then(gen => {
         let data = JSON.parse(gen)[0]
         this.documentUnits.push(...this.collectTreeNodes(data, undefined, 'Root'))
@@ -190,7 +189,7 @@ export class ViewModel {
     try {
       document.getElementById('graph-container-inner').innerHTML = ''
       this.graph = new PlaygroundGraph(
-        this.selectedModel.location(),
+        this.selectedModel.location,
         'document',
         (id: string, unit: any) => {
           this.onSelectedGraphId(id, unit)
@@ -203,6 +202,13 @@ export class ViewModel {
     }
   }
 
+  public elementLexicalInfo (model: any, id: string): amf.core.parser.Range | undefined {
+    const element = model.findById(id)
+    if (element != null) {
+      return element.position
+    }
+  }
+
   private decorations: any = [];
 
   private onSelectedGraphId (id, unit) {
@@ -210,7 +216,7 @@ export class ViewModel {
       return
     }
 
-    const lexicalInfo: amf.core.parser.Range = this.selectedModel.elementLexicalInfo(id)
+    const lexicalInfo: amf.core.parser.Range = this.elementLexicalInfo(this.selectedModel, id)
 
     let startLine = this.editorSection() === 'dialect'
       ? lexicalInfo.start.line - 1
