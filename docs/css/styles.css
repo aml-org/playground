@@ -7295,17 +7295,17 @@ header {
     color: #000;
     font-size: 20px;
     top: 4px; }
-  .aml-editor .editor-block {
+  .aml-editor .editor-container {
     box-shadow: 1px 0px 3px #808080; }
-    .aml-editor .editor-block .monaco-editor .editor-scrollable .view-lines .mtk26, .aml-editor .editor-block .monaco-editor .editor-scrollable .view-lines .mtk23, .aml-editor .editor-block .monaco-editor .editor-scrollable .view-lines .mtk21 {
+    .aml-editor .editor-container .monaco-editor .editor-scrollable .view-lines .mtk26, .aml-editor .editor-container .monaco-editor .editor-scrollable .view-lines .mtk23, .aml-editor .editor-container .monaco-editor .editor-scrollable .view-lines .mtk21 {
       font-family: 'RobotoMono-Regular';
       font-weight: 500; }
-    .aml-editor .editor-block .monaco-editor .editor-scrollable .view-lines .mtk8 {
+    .aml-editor .editor-container .monaco-editor .editor-scrollable .view-lines .mtk8 {
       color: #9EAAB7;
       font-family: 'RobotoMono-Regular';
       letter-spacing: 1px;
       font-weight: 500; }
-    .aml-editor .editor-block .line-numbers {
+    .aml-editor .editor-container .line-numbers {
       color: #9EAAB7; }
 
 .features-sec {
