@@ -150,10 +150,12 @@
             window.appModel = new aml_playground_validation.ViewModel(dialectEditor, documentEditor);
             window.appModel.apply()
               .then(() => {
-                return window.appModel.loadInitialDialect();
+                return window.appModel.loadInitialDialect()
+                  .catch(err => { console.error(err) })
               })
               .then(() => {
-                return window.appModel.loadInitialDocument();
+                return window.appModel.loadInitialDocument()
+                  .catch(err => { console.error(err) })
               })
 
             setTimeout(function() {

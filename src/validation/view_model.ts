@@ -163,7 +163,8 @@ export class ViewModel {
     return this.amlParser.parseStringAsync(editorValue)
       .then(model => {
         if (this.documentModel === null) {
-          this.documentEditor.setModel(this.createModel(model.raw, 'aml'))
+          this.documentEditor.setModel(
+            this.createModel(model.raw || editorValue, 'aml'))
         }
         this.documentModel = model
         this.doValidate()
