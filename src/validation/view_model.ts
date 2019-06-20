@@ -204,9 +204,9 @@ export class ViewModel {
     return {
       severity: severity,
       startLineNumber: error.position.start.line,
-      startColumn: error.position.start.column,
+      startColumn: error.position.start.column + 1,
       endLineNumber: error.position.end.line,
-      endColumn: error.position.end.column,
+      endColumn: error.position.end.column + 1,
       message: error.message
     }
   }
