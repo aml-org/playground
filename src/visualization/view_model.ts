@@ -218,11 +218,11 @@ export class ViewModel {
 
     const lexicalInfo: amf.core.parser.Range = this.elementLexicalInfo(this.selectedModel, id)
 
-    let startLine = this.editorSection() === 'dialect'
-      ? lexicalInfo.start.line - 1
-      : lexicalInfo.start.line
-
     if (lexicalInfo != null) {
+      let startLine = this.editorSection() === 'dialect'
+        ? lexicalInfo.start.line - 1
+        : lexicalInfo.start.line
+
       this.editor.revealRangeInCenter({
         startLineNumber: startLine,
         startColumn: lexicalInfo.start.column,
