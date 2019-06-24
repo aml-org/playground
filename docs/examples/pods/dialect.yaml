@@ -63,7 +63,7 @@ nodeMappings:
         range: string
         mandatory: true
       emptyDir:
-        propertyTerm: schema-org.desctiption
+        propertyTerm: schema-org.description
         range: EmptydirNode
         mandatory: true
 
@@ -95,7 +95,7 @@ nodeMappings:
         range: string
         allowMultiple: true
       args:
-        propertyTerm: schema-org.text
+        propertyTerm: schema-org.action
         range: string
         allowMultiple: true
 
