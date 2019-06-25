@@ -1,10 +1,11 @@
-import { PlaygroundGraph } from '../main/graph'
 import * as ko from 'knockout'
 import * as amf from 'amf-client-js'
+import { PlaygroundGraph } from '../main/graph'
+import { CommonViewModel } from '../main/common_view_model'
 
 export type EditorSection = 'document' | 'dialect';
 
-export class ViewModel {
+export class ViewModel extends CommonViewModel {
   public editorSection: ko.KnockoutObservable<EditorSection> = ko.observable<EditorSection>('document');
   public documentUnits: ko.KnockoutObservableArray<any> = ko.observableArray<any>([]);
 
@@ -24,13 +25,17 @@ export class ViewModel {
   public RELOAD_PERIOD = 1000;
 
   constructor (public editor: any) {
+    super()
+
     this.amlParser = new amf.Aml10Parser()
 
     this.editor.onDidChangeModelContent(() => {
+      this.clearErrorsHighlight(this.editor)
       this.handleModelContentChange()
     })
 
     this.editorSection.subscribe((oldSection) => {
+      this.clearErrorsHighlight(this.editor)
       this.someModelChanged = true
       return this.updateModels(oldSection)
     }, null, 'beforeChange')
@@ -110,8 +115,9 @@ export class ViewModel {
         }
       })
       .catch(err => {
-        console.error(`Error parsing section "${section}": ${err}`)
-        alert(`Error parsing section "${section}": ${err}`)
+        this.highlightError(
+          `Error parsing section "${section}": ${err}`,
+          this.editor)
       })
   }
 
@@ -200,7 +206,6 @@ export class ViewModel {
       this.graph.render('graph-container-inner')
     } catch (err) {
       console.error(`Failed to reset graph: ${err}`)
-      alert(`Failed to reset graph: ${err}`)
     }
   }
 

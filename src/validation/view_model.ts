@@ -1,9 +1,10 @@
 import * as ko from 'knockout'
 import * as amf from 'amf-client-js'
+import { CommonViewModel } from '../main/common_view_model'
 
 const Vocabularies = amf.plugins.document.Vocabularies
 
-export class ViewModel {
+export class ViewModel extends CommonViewModel {
   public dialectModel: any | null = null;
   public documentModel: any | null = null;
 
@@ -18,13 +19,19 @@ export class ViewModel {
   public defaultDocUrl = 'http://a.ml/amf/default_document'
 
   public constructor (public dialectEditor: any, public documentEditor: any) {
+    super()
+
     this.amlParser = new amf.Aml10Parser()
 
     this.documentEditor.onDidChangeModelContent(() => {
-      this.handleModelContentChange(this.updateDocumentEditorContent)
+      this.handleModelContentChange(() => {
+        this.clearErrorsHighlight(this.documentEditor)
+        this.updateDocumentEditorContent()
+      })
     })
     this.dialectEditor.onDidChangeModelContent(() => {
       this.handleModelContentChange(() => {
+        this.clearErrorsHighlight(this.dialectEditor)
         return this.updateDialectEditorContent()
       })
     })
@@ -58,8 +65,9 @@ export class ViewModel {
       this.someModelChanged = false
       return this.updateDialectEditorContent()
         .catch(err => {
-          console.error(`Failed to load AML from query string: ${err}`)
-          alert(`Failed to load AML from query string: ${err}`)
+          this.highlightError(
+            `Failed to load AML from query string: ${err}`,
+            this.dialectEditor)
         })
     }
   }
@@ -82,8 +90,9 @@ export class ViewModel {
       this.someModelChanged = false
       return this.updateDocumentEditorContent()
         .catch(err => {
-          console.error(`Failed to load AML from query string: ${err}`)
-          alert(`Failed to load AML from query string: ${err}`)
+          this.highlightError(
+            `Failed to load AML from query string: ${err}`,
+            this.documentEditor)
         })
     }
   }
@@ -128,8 +137,9 @@ export class ViewModel {
         return this.registerDialectEditorContent()
       })
       .catch((err) => {
-        console.error(`Failed to parse dialect: ${err}`)
-        alert(`Failed to parse dialect: ${err}`)
+        this.highlightError(
+          `Failed to parse dialect: ${err}`,
+          this.dialectEditor)
       })
   }
 
@@ -173,8 +183,9 @@ export class ViewModel {
         this.doValidate()
       })
       .catch((err) => {
-        console.error(`Failed to parse document: ${err}`)
-        alert(`Failed to parse document: ${err}`)
+        this.highlightError(
+          `Failed to parse document: ${err}`,
+          this.documentEditor)
       })
   }
 
@@ -192,8 +203,9 @@ export class ViewModel {
         window['resizeFn']()
       })
       .catch(err => {
-        console.error(`Failed to validate document: ${err}`)
-        alert(`Failed to validate document: ${err}`)
+        this.highlightError(
+          `Failed to validate document: ${err}`,
+          this.documentEditor)
       })
   }
 
