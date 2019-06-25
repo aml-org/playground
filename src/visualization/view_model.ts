@@ -111,6 +111,7 @@ export class ViewModel {
       })
       .catch(err => {
         console.error(`Error parsing section "${section}": ${err}`)
+        alert(`Error parsing section "${section}": ${err}`)
       })
   }
 
@@ -199,6 +200,7 @@ export class ViewModel {
       this.graph.render('graph-container-inner')
     } catch (err) {
       console.error(`Failed to reset graph: ${err}`)
+      alert(`Failed to reset graph: ${err}`)
     }
   }
 

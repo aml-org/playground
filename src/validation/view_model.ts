@@ -59,6 +59,7 @@ export class ViewModel {
       return this.updateDialectEditorContent()
         .catch(err => {
           console.error(`Failed to load AML from query string: ${err}`)
+          alert(`Failed to load AML from query string: ${err}`)
         })
     }
   }
@@ -82,6 +83,7 @@ export class ViewModel {
       return this.updateDocumentEditorContent()
         .catch(err => {
           console.error(`Failed to load AML from query string: ${err}`)
+          alert(`Failed to load AML from query string: ${err}`)
         })
     }
   }
@@ -127,6 +129,7 @@ export class ViewModel {
       })
       .catch((err) => {
         console.error(`Failed to parse dialect: ${err}`)
+        alert(`Failed to parse dialect: ${err}`)
       })
   }
 
@@ -171,6 +174,7 @@ export class ViewModel {
       })
       .catch((err) => {
         console.error(`Failed to parse document: ${err}`)
+        alert(`Failed to parse document: ${err}`)
       })
   }
 
@@ -189,6 +193,7 @@ export class ViewModel {
       })
       .catch(err => {
         console.error(`Failed to validate document: ${err}`)
+        alert(`Failed to validate document: ${err}`)
       })
   }
 
