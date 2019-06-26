@@ -7797,3 +7797,6 @@ header {
 
 #graph-container {
   overflow: auto; }
+
+.monaco-editor-hover-content .status-bar {
+  display: none; }

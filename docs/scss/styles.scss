@@ -965,3 +965,8 @@ $selected-line:#DBE8FD;
 #graph-container {
   overflow: auto;
 }
+.monaco-editor-hover-content {
+  .status-bar {
+    display: none;
+  }
+}
