@@ -115,7 +115,7 @@ export class ViewModel extends CommonViewModel {
         }
       })
       .catch(err => {
-        this.highlightError(
+        this.highlightGlobalError(
           `Error parsing section "${section}": ${err}`,
           this.editor)
       })

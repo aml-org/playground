@@ -65,7 +65,7 @@ export class ViewModel extends CommonViewModel {
       this.someModelChanged = false
       return this.updateDialectEditorContent()
         .catch(err => {
-          this.highlightError(
+          this.highlightGlobalError(
             `Failed to load AML from query string: ${err}`,
             this.dialectEditor)
         })
@@ -90,7 +90,7 @@ export class ViewModel extends CommonViewModel {
       this.someModelChanged = false
       return this.updateDocumentEditorContent()
         .catch(err => {
-          this.highlightError(
+          this.highlightGlobalError(
             `Failed to load AML from query string: ${err}`,
             this.documentEditor)
         })
@@ -134,10 +134,15 @@ export class ViewModel extends CommonViewModel {
           this.dialectEditor.setModel(this.createModel(model.raw, 'aml'))
         }
         this.dialectModel = model
-        return this.registerDialectEditorContent()
+        return this.validateDialect()
+      })
+      .then((valid) => {
+        if (valid) {
+          return this.registerDialectEditorContent()
+        }
       })
       .catch((err) => {
-        this.highlightError(
+        this.highlightGlobalError(
           `Failed to parse dialect: ${err}`,
           this.dialectEditor)
       })
@@ -164,7 +169,7 @@ export class ViewModel extends CommonViewModel {
           this.documentEditor.setModel(this.createModel(model.raw, 'aml'))
         }
         this.documentModel = model
-        this.doValidate()
+        this.validateDocument()
       })
   }
 
@@ -180,16 +185,16 @@ export class ViewModel extends CommonViewModel {
             this.createModel(model.raw || editorValue, 'aml'))
         }
         this.documentModel = model
-        this.doValidate()
+        this.validateDocument()
       })
       .catch((err) => {
-        this.highlightError(
+        this.highlightGlobalError(
           `Failed to parse document: ${err}`,
           this.documentEditor)
       })
   }
 
-  public doValidate () {
+  public validateDocument () {
     if (this.dialectModel === null || this.documentModel === null) {
       return
     }
@@ -203,9 +208,27 @@ export class ViewModel extends CommonViewModel {
         window['resizeFn']()
       })
       .catch(err => {
-        this.highlightError(
+        this.highlightGlobalError(
           `Failed to validate document: ${err}`,
           this.documentEditor)
+      })
+  }
+
+  public validateDialect (): Promise<boolean> {
+    if (this.dialectModel === null) {
+      return
+    }
+
+    return amf.AMF.validate(this.dialectModel, amf.ProfileNames.AML, amf.MessageStyles.AMF)
+      .then(report => {
+        if (report.conforms) { return true }
+
+        const monacoErrors = report.results.map((result) => {
+          return this.buildMonacoError(result)
+        })
+        const editorModel = this.dialectEditor.getModel()
+        monaco.editor.setModelMarkers(editorModel, editorModel.id, monacoErrors)
+        return false
       })
   }
 
