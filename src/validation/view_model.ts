@@ -1,9 +1,10 @@
 import * as ko from 'knockout'
 import * as amf from 'amf-client-js'
+import { CommonViewModel } from '../main/common_view_model'
 
 const Vocabularies = amf.plugins.document.Vocabularies
 
-export class ViewModel {
+export class ViewModel extends CommonViewModel {
   public dialectModel: any | null = null;
   public documentModel: any | null = null;
 
@@ -18,13 +19,19 @@ export class ViewModel {
   public defaultDocUrl = 'http://a.ml/amf/default_document'
 
   public constructor (public dialectEditor: any, public documentEditor: any) {
+    super()
+
     this.amlParser = new amf.Aml10Parser()
 
     this.documentEditor.onDidChangeModelContent(() => {
-      this.handleModelContentChange(this.updateDocumentEditorContent)
+      this.handleModelContentChange(() => {
+        this.clearErrorsHighlight(this.documentEditor)
+        this.updateDocumentEditorContent()
+      })
     })
     this.dialectEditor.onDidChangeModelContent(() => {
       this.handleModelContentChange(() => {
+        this.clearErrorsHighlight(this.dialectEditor)
         return this.updateDialectEditorContent()
       })
     })
@@ -58,7 +65,9 @@ export class ViewModel {
       this.someModelChanged = false
       return this.updateDialectEditorContent()
         .catch(err => {
-          console.error(`Failed to load AML from query string: ${err}`)
+          this.highlightGlobalError(
+            `Failed to load AML from query string: ${err}`,
+            this.dialectEditor)
         })
     }
   }
@@ -81,7 +90,9 @@ export class ViewModel {
       this.someModelChanged = false
       return this.updateDocumentEditorContent()
         .catch(err => {
-          console.error(`Failed to load AML from query string: ${err}`)
+          this.highlightGlobalError(
+            `Failed to load AML from query string: ${err}`,
+            this.documentEditor)
         })
     }
   }
@@ -123,10 +134,17 @@ export class ViewModel {
           this.dialectEditor.setModel(this.createModel(model.raw, 'aml'))
         }
         this.dialectModel = model
-        return this.registerDialectEditorContent()
+        return this.validateDialect()
+      })
+      .then((valid) => {
+        if (valid) {
+          return this.registerDialectEditorContent()
+        }
       })
       .catch((err) => {
-        console.error(`Failed to parse dialect: ${err}`)
+        this.highlightGlobalError(
+          `Failed to parse dialect: ${err}`,
+          this.dialectEditor)
       })
   }
 
@@ -151,7 +169,7 @@ export class ViewModel {
           this.documentEditor.setModel(this.createModel(model.raw, 'aml'))
         }
         this.documentModel = model
-        this.doValidate()
+        this.validateDocument()
       })
   }
 
@@ -167,14 +185,16 @@ export class ViewModel {
             this.createModel(model.raw || editorValue, 'aml'))
         }
         this.documentModel = model
-        this.doValidate()
+        this.validateDocument()
       })
       .catch((err) => {
-        console.error(`Failed to parse document: ${err}`)
+        this.highlightGlobalError(
+          `Failed to parse document: ${err}`,
+          this.documentEditor)
       })
   }
 
-  public doValidate () {
+  public validateDocument () {
     if (this.dialectModel === null || this.documentModel === null) {
       return
     }
@@ -188,7 +208,27 @@ export class ViewModel {
         window['resizeFn']()
       })
       .catch(err => {
-        console.error(`Failed to validate document: ${err}`)
+        this.highlightGlobalError(
+          `Failed to validate document: ${err}`,
+          this.documentEditor)
+      })
+  }
+
+  public validateDialect (): Promise<boolean> {
+    if (this.dialectModel === null) {
+      return
+    }
+
+    return amf.AMF.validate(this.dialectModel, amf.ProfileNames.AML, amf.MessageStyles.AMF)
+      .then(report => {
+        if (report.conforms) { return true }
+
+        const monacoErrors = report.results.map((result) => {
+          return this.buildMonacoError(result)
+        })
+        const editorModel = this.dialectEditor.getModel()
+        monaco.editor.setModelMarkers(editorModel, editorModel.id, monacoErrors)
+        return false
       })
   }
 

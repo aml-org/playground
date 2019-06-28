@@ -11,6 +11,7 @@
     },
     "files": [
         "src/main/graph.ts",
+        "src/main/common_view_model.ts",
         "src/validation/view_model.ts",
         "src/visualization/view_model.ts",
         "src/utils.ts"

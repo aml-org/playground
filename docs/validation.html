@@ -151,11 +151,17 @@
             window.appModel.apply()
               .then(() => {
                 return window.appModel.loadInitialDialect()
-                  .catch(err => { console.error(err) })
+                  .catch(err => {
+                    console.error(`Failed to load initial dialect: ${err}`)
+                    alert(`Failed to load initial dialect: ${err}`)
+                  })
               })
               .then(() => {
                 return window.appModel.loadInitialDocument()
-                  .catch(err => { console.error(err) })
+                  .catch(err => {
+                    console.error(`Failed to load initial document: ${err}`)
+                    alert(`Failed to load initial document: ${err}`)
+                  })
               })
 
             setTimeout(function() {
