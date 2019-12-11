@@ -11,7 +11,7 @@
   <script src="bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 
   <script src="js/preload.js"></script>
-  <script src="js/monaco-editor/monaco-customize.js"></script>
+  <script src="js/monaco-customize.js"></script>
 
   <link rel="stylesheet" href="bower_components/bulma/css/bulma.css">
   <link rel="stylesheet" href="css/styles.css">
@@ -45,7 +45,7 @@
       // ************
       var loadApp = function(cb) {
         var assets = [
-          "js/aml_playground_visualization.js",
+          "js/visualization.js",
           "js/monaco-editor/min/vs/loader.js"
         ];
         var loaded = 0;
@@ -132,7 +132,7 @@
               }
             });
 
-            window.appModel = new aml_playground_visualization.ViewModel(editor);
+            window.appModel = new visualization.ViewModel(editor);
             window.appModel.apply();
             setTimeout(function() {
               document.getElementById("preloader").style.display = "none";
