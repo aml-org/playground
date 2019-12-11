@@ -1,4 +1,6 @@
 import * as joint from 'jointjs'
+import * as dagre from 'dagre'
+import * as graphlib from 'graphlib'
 import * as utils from '../utils'
 import Rect = joint.shapes.basic.Rect;
 import Link = joint.dia.Link;
@@ -69,7 +71,9 @@ export class PlaygroundGraph {
             nodeSep: 50,
             edgeSep: 50,
             rankSep: 100,
-            rankDir: 'TB'
+            rankDir: 'TB',
+            dagre: dagre,
+            graphlib: graphlib
           })
         }
         const maxX = Math.max(...finalCells.map(c => {

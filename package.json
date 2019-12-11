@@ -12,7 +12,9 @@
   "dependencies": {
     "@babel/core": "^7.7.5",
     "amf-client-js": "^3.2.2",
-    "jointjs": "^2.2.1",
+    "dagre": "^0.8.5",
+    "graphlib": "^2.1.8",
+    "jointjs": "^3.1.1",
     "jquery": "^3.4.1",
     "jsonld": "^1.6.2",
     "knockout": "^3.4.2",
