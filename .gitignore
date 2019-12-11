@@ -29,3 +29,5 @@ node_modules/
 typings.json
 output/
 .DS_Store
+
+/docs

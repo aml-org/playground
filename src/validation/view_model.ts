@@ -38,13 +38,12 @@ export class ViewModel extends CommonViewModel {
   }
 
   public apply () {
-    window['viewModel'] = this
     ko.applyBindings(this)
     return amf.AMF.init()
   }
 
   public createModel (text, mode) {
-    return window['monaco'].editor.createModel(text, mode)
+    return globalThis.monaco.editor.createModel(text, mode)
   }
 
   public loadInitialDialect () {
@@ -204,8 +203,8 @@ export class ViewModel extends CommonViewModel {
           return this.buildMonacoError(result)
         })
         const model = this.documentEditor.getModel()
-        monaco.editor.setModelMarkers(model, model.id, monacoErrors)
-        window['resizeFn']()
+        globalThis.monaco.editor.setModelMarkers(model, model.id, monacoErrors)
+        globalThis.resizeFn()
       })
       .catch(err => {
         this.highlightGlobalError(
@@ -227,19 +226,19 @@ export class ViewModel extends CommonViewModel {
           return this.buildMonacoError(result)
         })
         const editorModel = this.dialectEditor.getModel()
-        monaco.editor.setModelMarkers(editorModel, editorModel.id, monacoErrors)
+        globalThis.monaco.editor.setModelMarkers(editorModel, editorModel.id, monacoErrors)
         return false
       })
   }
 
-  protected buildMonacoError (error: amf.validate.ValidationResult): any {
+  protected buildMonacoError (error: amf.client.validate.ValidationResult): any {
     let severity
     if (error.level === 'Violation') {
-      severity = monaco.MarkerSeverity.Error
+      severity = globalThis.monaco.MarkerSeverity.Error
     } else if (error.level === 'Warning') {
-      severity = monaco.MarkerSeverity.Warning
+      severity = globalThis.monaco.MarkerSeverity.Warning
     } else {
-      severity = monaco.MarkerSeverity.Info
+      severity = globalThis.monaco.MarkerSeverity.Info
     }
     return {
       severity: severity,

@@ -1,90 +1,100 @@
 'use strict'
 
 const gulp = require('gulp')
+
 const browserify = require('browserify')
 const tsify = require('tsify')
+const babelify = require('babelify')
 const source = require('vinyl-source-stream')
 const buffer = require('vinyl-buffer')
-const gutil = require('gulp-util')
 const sourcemaps = require('gulp-sourcemaps')
 const browserSync = require('browser-sync').create()
-const bower = require('gulp-bower')
 const sass = require('gulp-sass')
+const cleanCSS = require('gulp-clean-css')
+const log = require('fancy-log')
 
-gulp.task('bower', function () {
-  return bower({cwd: 'docs'})
+function bundleHandler (name) {
+  return function bundle () {
+    return browserify({ standalone: name })
+      .add([
+        `./src/${name}/view_model.ts`
+      ])
+      .plugin(tsify)
+      .transform(babelify, { extensions: ['.tsx', '.ts'] })
+      .bundle().on('error', log)
+      .pipe(source(`${name}.js`))
+      .pipe(buffer())
+      .pipe(sourcemaps.init({ loadMaps: true }))
+      .pipe(sourcemaps.write('./'))
+      .pipe(gulp.dest('./docs/js'))
+      .pipe(browserSync.stream({ once: true }))
+  }
+}
+
+function serveHandler (name) {
+  return function serve () {
+    return browserSync.init({
+      server: 'docs',
+      startPath: `/${name}.html`
+    })
+  }
+}
+
+function watchHandler (name, bundlerName) {
+  return function watch () {
+    gulp.watch(
+      [
+        `./src/${name}/*.ts`,
+        './src/main/*.ts'
+      ],
+      gulp.series(bundlerName, 'browserSyncReload')
+    )
+    gulp.watch(
+      './docs/scss/**/*.scss',
+      gulp.series('css', 'browserSyncReload')
+    )
+  }
+}
+
+gulp.task('browserSyncReload', function (done) {
+  browserSync.reload()
+  done()
 })
 
-gulp.task('sass', function () {
-  return gulp.src('./docs/scss/**/*.scss')
+gulp.task('css', function () {
+  return gulp
+    .src('./docs/scss/**/*.scss')
     .pipe(sass().on('error', sass.logError))
+    .pipe(cleanCSS({ level: { 2: { all: true } } }))
     .pipe(gulp.dest('./docs/css'))
 })
 
-const optionsValidation = {'standalone': 'aml_playground_validation'}
-const bCustomValidation = browserify(optionsValidation)
-gulp.task('bundleValidation', function () {
-  return bCustomValidation
-    .add([
-      'src/validation/view_model.ts'
-    ])
-    .plugin(tsify, { target: 'es5' })
-    .bundle()
-    .on('error', gutil.log.bind(gutil, 'Browserify Error'))
-    .pipe(source('aml_playground_validation.js'))
-    .pipe(buffer())
-    .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
-    .pipe(sourcemaps.write('./')) // writes .map file
-    .pipe(gulp.dest('./docs/js'))
-    .pipe(browserSync.stream({once: true}))
-})
+/* Bundlers */
+gulp.task('bundleValidation', bundleHandler('validation'))
+gulp.task('bundleVisualization', bundleHandler('visualization'))
 
-const optionsVisualization = {'standalone': 'aml_playground_visualization'}
-const bCustomVisualization = browserify(optionsVisualization)
-gulp.task('bundleVisualization', function () {
-  return bCustomVisualization
-    .add([
-      'src/visualization/view_model.ts'
-    ])
-    .plugin(tsify, { target: 'es5' })
-    .bundle()
-    .on('error', gutil.log.bind(gutil, 'Browserify Error'))
-    .pipe(source('aml_playground_visualization.js'))
-    .pipe(buffer())
-    .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
-    .pipe(sourcemaps.write('./')) // writes .map file
-    .pipe(gulp.dest('./docs/js'))
-    .pipe(browserSync.stream({once: true}))
-})
-
+/* Servers  */
 gulp.task('serveValidation', gulp.series(
-  'sass',
-  'bower',
+  'css',
   'bundleValidation',
-  function () {
-    browserSync.init({
-      server: 'docs',
-      startPath: '/validation.html'
-    })
-  }
+  gulp.parallel(
+    serveHandler('validation'),
+    watchHandler('validation', 'bundleValidation')
+  )
 ))
 
 gulp.task('serveVisualization', gulp.series(
-  'sass',
-  'bower',
+  'css',
   'bundleVisualization',
-  function () {
-    browserSync.init({
-      server: 'docs',
-      startPath: '/visualization.html'
-    })
-  }
+  gulp.parallel(
+    serveHandler('visualization'),
+    watchHandler('visualization', 'bundleVisualization')
+  )
 ))
 
-// Bundle all the demos
-gulp.task('bundle', gulp.series(
-  'sass',
-  'bower',
+/* Bundle all the demos */
+gulp.task('bundleAll', gulp.series(
+  'css',
   'bundleValidation',
   'bundleVisualization'
 ))
