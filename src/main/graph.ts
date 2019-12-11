@@ -13,13 +13,13 @@ const SELECTED_STROKE_COLOR = '#748599'
 const NODE_TEXT_COLOR = '#fff'
 
 const COLORS = {
-  'encodes': '#748599',
-  'declares': '#748599',
-  'references': '#748599',
+  encodes: '#748599',
+  declares: '#748599',
+  references: '#748599',
 
-  'unit': '#115CD4',
-  'domain': '#115CD4',
-  'declaration': '#115CD4'
+  unit: '#115CD4',
+  domain: '#115CD4',
+  declaration: '#115CD4'
 }
 
 export class PlaygroundGraph {
@@ -48,13 +48,13 @@ export class PlaygroundGraph {
     setTimeout(() => {
       const graphContainer = document.getElementById(div)
       if (graphContainer != null) {
-        let classes: Cell[] = []
-        for (let p in this.nodes) {
+        const classes: Cell[] = []
+        for (const p in this.nodes) {
           classes.push(this.nodes[p])
         }
 
-        let cells: Cell[] = (classes).concat(this.links)
-        let acc = {}
+        const cells: Cell[] = (classes).concat(this.links)
+        const acc = {}
         cells.forEach(c => { acc[c.id] = true })
 
         const finalCells = cells.filter(c => {
@@ -72,35 +72,35 @@ export class PlaygroundGraph {
           })
         }
         const maxX = Math.max(...finalCells.map(c => {
-          return c['attributes'].position
-            ? (c['attributes'].position.x + c['attributes'].size.width)
+          return c.attributes.position
+            ? (c.attributes.position.x + c.attributes.size.width)
             : 0
         }))
         const maxY = Math.max(...finalCells.map(c => {
-          return c['attributes'].position
-            ? (c['attributes'].position.y + c['attributes'].size.height)
+          return c.attributes.position
+            ? (c.attributes.position.y + c.attributes.size.height)
             : 0
         }))
 
         const graph: any = new Graph()
-        let width = maxX + 100
-        let height = maxY + 100
+        const width = maxX + 100
+        const height = maxY + 100
 
         if (graphContainer != null) {
           graphContainer.innerHTML = ''
 
-          let minWidth = graphContainer.clientWidth
+          const minWidth = graphContainer.clientWidth
           // let minHeight = graphContainer.clientHeight;
-          let minHeight = window.innerHeight - 300
+          const minHeight = globalThis.window.innerHeight - 300
 
           const options = {
             el: graphContainer,
             width: (minWidth > width ? minWidth : width),
             height: (minHeight > height ? minHeight : height),
             gridSize: 1,
-            interactive: false
+            interactive: false,
+            model: graph
           }
-          options['model'] = graph
           this.paper = new Paper(options)
 
           this.paper.on('cell:pointerdown',
@@ -120,7 +120,7 @@ export class PlaygroundGraph {
           if (minHeight < height) {
             zoomy = minHeight / height
           }
-          let zoom = zoomy < zoomx ? zoomy : zoomx
+          const zoom = zoomy < zoomx ? zoomy : zoomx
           this.paperScale(zoom, zoom)
           this.paper.removeTools()
           if (cb) {
@@ -143,15 +143,15 @@ export class PlaygroundGraph {
   }
 
   centerGraphX () {
-    let container = document.getElementById('graph-container')
-    let containerWidth = container.clientWidth
-    let contentWidth = this.paper.getContentBBox().width
-    let offset = (containerWidth - contentWidth) / 2
+    const container = document.getElementById('graph-container')
+    const containerWidth = container.clientWidth
+    const contentWidth = this.paper.getContentBBox().width
+    const offset = (containerWidth - contentWidth) / 2
     if (contentWidth + offset > containerWidth) {
       container.scroll(Math.abs(offset), 0)
     } else {
       this.paper.translate(offset)
-      this.paper.setDimensions('100%')
+      this.paper.setDimensions('100%', undefined)
     }
   }
 
@@ -226,7 +226,7 @@ export class PlaygroundGraph {
     const graphWidth = graphContainer.style.width
     graphContainer.style.width = graphWidth === '50%' ? '100%' : '50%'
 
-    let scaleMulti = graphWidth === '50%' ? 2 : 0.5
+    const scaleMulti = graphWidth === '50%' ? 2 : 0.5
     this.paperScale(this.scaleX * scaleMulti, this.scaleY * scaleMulti)
   }
 }

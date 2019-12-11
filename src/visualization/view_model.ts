@@ -6,8 +6,8 @@ import { CommonViewModel } from '../main/common_view_model'
 export type EditorSection = 'document' | 'dialect';
 
 export class ViewModel extends CommonViewModel {
-  public editorSection: ko.KnockoutObservable<EditorSection> = ko.observable<EditorSection>('document');
-  public documentUnits: ko.KnockoutObservableArray<any> = ko.observableArray<any>([]);
+  public editorSection: ko.Observable<EditorSection> = ko.observable<EditorSection>('document');
+  public documentUnits: ko.ObservableArray<any> = ko.observableArray<any>([]);
 
   public documentModel?: any = undefined;
   public dialectModel?: any = undefined;
@@ -56,7 +56,6 @@ export class ViewModel extends CommonViewModel {
   }
 
   public apply () {
-    window['viewModel'] = this
     amf.AMF.init()
       .then(() => {
         ko.applyBindings(this)
@@ -71,7 +70,7 @@ export class ViewModel extends CommonViewModel {
   }
 
   public createModel (text, mode) {
-    return window['monaco'].editor.createModel(text, mode)
+    return globalThis.monaco.editor.createModel(text, mode)
   }
 
   public handleModelContentChange () {
@@ -141,7 +140,7 @@ export class ViewModel extends CommonViewModel {
 
   // Recursively collects tree nodes from JSON-LD document into a flat array
   public collectTreeNodes (data: object, parentId: string, defaultLabel?: string) {
-    let elements = []
+    const elements = []
 
     // Data is not an object or array
     if (typeof data !== 'object') {
@@ -158,10 +157,10 @@ export class ViewModel extends CommonViewModel {
 
     // Data is object and has `@id` property
     if (data['@id']) {
-      let nameNode = data['http://schema.org/name'] ||
+      const nameNode = data['http://schema.org/name'] ||
                      data['http://www.w3.org/ns/shacl#name'] ||
                      [{}]
-      let label = nameNode[0]['@value'] || defaultLabel
+      const label = nameNode[0]['@value'] || defaultLabel
       if (label) {
         elements.push({
           id: data['@id'],
@@ -186,7 +185,7 @@ export class ViewModel extends CommonViewModel {
     }
     return amf.AMF.amfGraphGenerator().generateString(this.selectedModel)
       .then(gen => {
-        let data = JSON.parse(gen)[0]
+        const data = JSON.parse(gen)[0]
         this.documentUnits.push(...this.collectTreeNodes(data, undefined, 'Root'))
         if (cb) { cb() }
       })
@@ -226,7 +225,7 @@ export class ViewModel extends CommonViewModel {
     const lexicalInfo: amf.core.parser.Range = this.elementLexicalInfo(this.selectedModel, id)
 
     if (lexicalInfo != null) {
-      let startLine = this.editorSection() === 'dialect'
+      const startLine = this.editorSection() === 'dialect'
         ? lexicalInfo.start.line - 1
         : lexicalInfo.start.line
 
@@ -238,7 +237,7 @@ export class ViewModel extends CommonViewModel {
       })
       this.decorations = this.editor.deltaDecorations(this.decorations, [
         {
-          range: new monaco.Range(
+          range: new globalThis.monaco.Range(
             startLine,
             lexicalInfo.start.column,
             lexicalInfo.end.line - 1,
