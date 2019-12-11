@@ -2,20 +2,20 @@
 <div id="graph-container-outer" class="imported" style="width:50%;float:left;">
     <div class="tabs">
         <ul>
-            <li><a>Graph</a></li>
+            <li class="is-active"><a>Graph</a></li>
         </ul>
         <p class="control">
-            <a class="button" data-bind="click: function() { viewModel.graph.zoomOut() }" style="float: left; height: 100%" title="Zoom Out">
+            <a class="button" data-bind="click: function() { appModel.graph.zoomOut() }" style="float: left; height: 100%" title="Zoom Out">
                 <span class="icon">
                     <i class="fa fa-search-minus"></i>
                 </span>
             </a>
-            <a class="button" data-bind="click: function() { viewModel.graph.zoomIn() }" style="float: left; height: 100%" title="Zoom In">
+            <a class="button" data-bind="click: function() { appModel.graph.zoomIn() }" style="float: left; height: 100%" title="Zoom In">
                 <span class="icon">
                     <i class="fa fa-search-plus"></i>
                 </span>
             </a>
-            <a class="button" data-bind="click: function() { viewModel.graph.toggleFullscreen('graph-container-outer', 'editor-container-outer') }" style="float: left; height: 100%" title="Fullscreen Graph">
+            <a class="button" data-bind="click: function() { appModel.graph.toggleFullscreen('graph-container-outer', 'editor-container-outer') }" style="float: left; height: 100%" title="Fullscreen Graph">
                 <span class="icon">
                     <i class="fa fa-expand"></i>
                 </span>

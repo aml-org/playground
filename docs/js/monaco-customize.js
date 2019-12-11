@@ -17,30 +17,33 @@ function customizeMonaco () {
 
     tokenizer: {
       root: [
-        [/\/.*(?=:)/, 'special'],
-        {include: '@comment'},
-        {include: '@whitespace'},
-        [/%[^ ]+.*$/, 'meta.directive'],
-        [/---/, 'operators.directivesEnd'],
-        [/\.{3}/, 'operators.documentEnd'],
-        [/[-?:](?= )/, 'operators'],
-        {include: '@anchor'},
-        {include: '@tagHandle'},
-        {include: '@flowCollections'},
-        {include: '@blockStyle'},
-        [/@numberInteger(?![ \t]*\S+)/, 'number'],
-        [/@numberFloat(?![ \t]*\S+)/, 'number.float'],
-        [/@numberOctal(?![ \t]*\S+)/, 'number.octal'],
-        [/@numberHex(?![ \t]*\S+)/, 'number.hex'],
-        [/@numberInfinity(?![ \t]*\S+)/, 'number.infinity'],
-        [/@numberNaN(?![ \t]*\S+)/, 'number.nan'],
-        [/@numberDate(?![ \t]*\S+)/, 'number.date'],
+        [/\/.*(?=:)/,"special"],
+        [/#%.*/,"syntaxTag"],
+        [/\![^ ]*/,"tag"],
+        [/#.*/,"rootComment"],
+        {include:"@comment"},
+        {include:"@whitespace"},
+        [/%[^ ]+.*$/,"meta.directive"],
+        [/---/,"operators.directivesEnd"],
+        [/\.{3}/,"operators.documentEnd"],
+        [/[-?:](?= )/,"operators"],
+        {include:"@anchor"},
+        {include:"@tagHandle"},
+        {include:"@flowCollections"},
+        {include:"@blockStyle"},
+        [/@numberInteger(?![ \t]*\S+)/,"number"],
+        [/@numberFloat(?![ \t]*\S+)/,"number.float"],
+        [/@numberOctal(?![ \t]*\S+)/,"number.octal"],
+        [/@numberHex(?![ \t]*\S+)/,"number.hex"],
+        [/@numberInfinity(?![ \t]*\S+)/,"number.infinity"],
+        [/@numberNaN(?![ \t]*\S+)/,"number.nan"],
+        [/@numberDate(?![ \t]*\S+)/,"number.date"],
         [/(".*?"|'.*?'|.*?)([ \t]*)(:)( |$)/,
-          ['type', 'white', 'operators', 'white']
+          ["type","white","operators","white"]
         ],
-        {include: '@flowScalars'},
-        [/.+(?=#)/, {cases: {'@keywords': 'keyword', '@default': 'string'}}],
-        [/.+$/, {cases: {'@keywords': 'keyword', '@default': 'string'}}]
+        {include:"@flowScalars"},
+        [/.+(?=#)/,{cases:{"@keywords":"keyword","@default":"string"}}],
+        [/.+$/,{cases:{"@keywords":"keyword","@default":"string"}}],
       ],
 
       object: [{include: '@whitespace'}, {include: '@comment'}, [/\}/, '@brackets', '@pop'], [/,/, 'delimiter.comma'], [/:(?= )/, 'operators'], [/(?:".*?"|'.*?'|[^,\{\[]+?)(?=: )/, 'type'], {include: '@flowCollections'}, {include: '@flowScalars'}, {include: '@tagHandle'}, {include: '@anchor'}, {include: '@flowNumber'}, [/[^\},]+/, {cases: {'@keywords': 'keyword', '@default': 'string'}}]],
@@ -71,22 +74,37 @@ function customizeMonaco () {
     }
   })
   monaco.editor.defineTheme('amlTheme', {
-    base: 'vs',
+    base: 'vs-dark', // vs, hc-black, vs-dark
     inherit: true,
     rules: [{ background: 'EDF9FA' },
-      {token: 'type', foreground: '#3273dc'},
-      {token: 'special', foreground: '#BDB7F4'},
-      {token: 'string', foreground: '#995C00'},
-      {token: 'keyword', foreground: '#cccccc'}
-    ],
+        {token : 'type', foreground: "#26d3ff"},
+        {token : 'special', foreground:'#BDB7F4'},
+        {token : 'string', foreground: '#00b3de'},
+        {token : 'keyword', foreground: '#cccccc'},
+        {token : 'number', foreground: '#bdf1a3'},
+        {token : 'syntaxTag', foreground: '#9dd288'},
+        {token : 'tag', foreground: '#9dd288'},
+        {token : 'rootComment', foreground: '#9dd288'},
+        {token : 'httpMethod', foreground: '#ffb647'}
+      ],
     colors: {
       'editor.foreground': '#000000',
-      'editor.background': '#f7faff',
+      'editor.background': '#526881',
+      'editor.lineHighlightBackground': '#4e4e4e',
+      'editor.lineHighlightForeground': '#4e4e4e',
+      'editor.selectionBackground': '#4e4e4e',
+      'editor.selectionForeground': '#4e4e4e',
+      'editor.selectionHighlightBackground': '#4e4e4e',
+      'editor.selectionHighlightForeground': '#4e4e4e',
+      'editor.inactiveSelectionBackground': '#4e4e4e',
+      'editor.hoverHighlightBackground': '#4e4e4e',
+      'editor.hoverHighlightForeground': '#4e4e4e',
       'editorCursor.foreground': '#8B0000',
-      'editor.lineHighlightBackground': '#0000FF20',
       'editorLineNumber.foreground': '#008800',
-      'editor.selectionBackground': '#DBE8FD',
-      'input.background': '#FFFFFF'
+      'input.background': '#FFFFFF',
+      'editorHoverWidget.background': '#F7FAFF',
+      'editorHoverWidget.border': '#4e4e4e',
+      'editorIndentGuide.background': '#9EAAB7'
     }
   })
   monaco.editor.setTheme('amlTheme')

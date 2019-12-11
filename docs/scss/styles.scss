@@ -35,6 +35,7 @@ $font-face-bold:'Roboto-Bold';
 $font-face-light:'Roboto-Light';
 $font-face-medium:'Roboto-Medium';
 
+$editor-bg:#526881;
 $royal-blue:#3273DC;
 $royal-blue-hover:#115CD4;
 $light-slate-gray:#748599;
@@ -82,6 +83,7 @@ body{
   padding: 0;
   font-family: $font-face-regular;
   position: relative;
+  background-color: $editor-bg;
 }
 ul{
   text-decoration: none;
@@ -253,4 +255,49 @@ $selected-line:#DBE8FD;
   .status-bar {
     display: none;
   }
+}
+.joint-paper.joint-theme-default {
+  background-color: $editor-bg!important;
+}
+.tabs {
+  color: #afadad;
+  margin-bottom: 0px!important;
+  .button {
+
+  }
+  a {
+    border-bottom-color: #afadad;
+    color: #afadad;
+  }
+  li {
+    padding: 5px;
+  }
+  li:hover {
+    color: #fff;
+    a {
+      border-bottom-color: #ffffff;
+      color: #ffffff;
+    }
+  }
+  li.is-active {
+    a {
+      border-bottom-color: #ffffff;
+      color: #ffffff;
+    }
+  }
+}
+.is-marginless {
+  margin: 0;
+}
+
+/* Visualizataion demo */
+#editor-container-outer {
+  padding-left: 1rem;
+}
+
+.vs-dark .monaco-scrollable-element>.scrollbar>.slider {
+  background: #9eaab7!important;
+}
+.monaco-scrollable-element>.scrollbar>.slider:hover {
+  background: #9eaab7!important;
 }
