@@ -2,61 +2,25 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 import { localize } from '../../../nls.js';
 import { Emitter } from '../../../base/common/event.js';
-import { basename, dirname } from '../../../base/common/paths.js';
-import { dispose } from '../../../base/common/lifecycle.js';
+import { basename } from '../../../base/common/resources.js';
+import { dispose, DisposableStore } from '../../../base/common/lifecycle.js';
 import * as strings from '../../../base/common/strings.js';
 import { defaultGenerator } from '../../../base/common/idGenerator.js';
-import { TPromise } from '../../../base/common/winjs.base.js';
 import { Range } from '../../common/core/range.js';
 var OneReference = /** @class */ (function () {
-    function OneReference(_parent, _range) {
-        this._parent = _parent;
+    function OneReference(parent, _range, isProviderFirst) {
+        this.parent = parent;
         this._range = _range;
+        this.isProviderFirst = isProviderFirst;
         this._onRefChanged = new Emitter();
         this.onRefChanged = this._onRefChanged.event;
-        this._id = defaultGenerator.nextId();
+        this.id = defaultGenerator.nextId();
     }
-    Object.defineProperty(OneReference.prototype, "id", {
-        get: function () {
-            return this._id;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(OneReference.prototype, "model", {
-        get: function () {
-            return this._parent;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(OneReference.prototype, "parent", {
-        get: function () {
-            return this._parent;
-        },
-        enumerable: true,
-        configurable: true
-    });
     Object.defineProperty(OneReference.prototype, "uri", {
         get: function () {
-            return this._parent.uri;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(OneReference.prototype, "name", {
-        get: function () {
-            return this._parent.name;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(OneReference.prototype, "directory", {
-        get: function () {
-            return this._parent.directory;
+            return this.parent.uri;
         },
         enumerable: true,
         configurable: true
@@ -73,7 +37,7 @@ var OneReference = /** @class */ (function () {
         configurable: true
     });
     OneReference.prototype.getAriaMessage = function () {
-        return localize('aria.oneReference', "symbol in {0} on line {1} at column {2}", basename(this.uri.fsPath), this.range.startLineNumber, this.range.startColumn);
+        return localize('aria.oneReference', "symbol in {0} on line {1} at column {2}", basename(this.uri), this.range.startLineNumber, this.range.startColumn);
     };
     return OneReference;
 }());
@@ -82,14 +46,12 @@ var FilePreview = /** @class */ (function () {
     function FilePreview(_modelReference) {
         this._modelReference = _modelReference;
     }
-    Object.defineProperty(FilePreview.prototype, "_model", {
-        get: function () { return this._modelReference.object.textEditorModel; },
-        enumerable: true,
-        configurable: true
-    });
+    FilePreview.prototype.dispose = function () {
+        dispose(this._modelReference);
+    };
     FilePreview.prototype.preview = function (range, n) {
         if (n === void 0) { n = 8; }
-        var model = this._model;
+        var model = this._modelReference.object.textEditorModel;
         if (!model) {
             return undefined;
         }
@@ -97,18 +59,13 @@ var FilePreview = /** @class */ (function () {
         var word = model.getWordUntilPosition({ lineNumber: startLineNumber, column: startColumn - n });
         var beforeRange = new Range(startLineNumber, word.startColumn, startLineNumber, startColumn);
         var afterRange = new Range(endLineNumber, endColumn, endLineNumber, Number.MAX_VALUE);
-        var ret = {
-            before: model.getValueInRange(beforeRange).replace(/^\s+/, strings.empty),
-            inside: model.getValueInRange(range),
-            after: model.getValueInRange(afterRange).replace(/\s+$/, strings.empty)
+        var before = model.getValueInRange(beforeRange).replace(/^\s+/, strings.empty);
+        var inside = model.getValueInRange(range);
+        var after = model.getValueInRange(afterRange).replace(/\s+$/, strings.empty);
+        return {
+            value: before + inside + after,
+            highlight: { start: before.length, end: before.length + inside.length }
         };
-        return ret;
-    };
-    FilePreview.prototype.dispose = function () {
-        if (this._modelReference) {
-            this._modelReference.dispose();
-            this._modelReference = null;
-        }
     };
     return FilePreview;
 }());
@@ -147,20 +104,6 @@ var FileReferences = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(FileReferences.prototype, "name", {
-        get: function () {
-            return basename(this.uri.fsPath);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(FileReferences.prototype, "directory", {
-        get: function () {
-            return dirname(this.uri.fsPath);
-        },
-        enumerable: true,
-        configurable: true
-    });
     Object.defineProperty(FileReferences.prototype, "preview", {
         get: function () {
             return this._preview;
@@ -178,18 +121,18 @@ var FileReferences = /** @class */ (function () {
     FileReferences.prototype.getAriaMessage = function () {
         var len = this.children.length;
         if (len === 1) {
-            return localize('aria.fileReferences.1', "1 symbol in {0}, full path {1}", basename(this.uri.fsPath), this.uri.fsPath);
+            return localize('aria.fileReferences.1', "1 symbol in {0}, full path {1}", basename(this.uri), this.uri.fsPath);
         }
         else {
-            return localize('aria.fileReferences.N', "{0} symbols in {1}, full path {2}", len, basename(this.uri.fsPath), this.uri.fsPath);
+            return localize('aria.fileReferences.N', "{0} symbols in {1}, full path {2}", len, basename(this.uri), this.uri.fsPath);
         }
     };
     FileReferences.prototype.resolve = function (textModelResolverService) {
         var _this = this;
         if (this._resolved) {
-            return TPromise.as(this);
+            return Promise.resolve(this);
         }
-        return textModelResolverService.createModelReference(this._uri).then(function (modelReference) {
+        return Promise.resolve(textModelResolverService.createModelReference(this._uri).then(function (modelReference) {
             var model = modelReference.object;
             if (!model) {
                 modelReference.dispose();
@@ -204,12 +147,12 @@ var FileReferences = /** @class */ (function () {
             _this._resolved = true;
             _this._loadFailure = err;
             return _this;
-        });
+        }));
     };
     FileReferences.prototype.dispose = function () {
         if (this._preview) {
             this._preview.dispose();
-            this._preview = null;
+            this._preview = undefined;
         }
     };
     return FileReferences;
@@ -218,12 +161,13 @@ export { FileReferences };
 var ReferencesModel = /** @class */ (function () {
     function ReferencesModel(references) {
         var _this = this;
-        this._groups = [];
-        this._references = [];
+        this._disposables = new DisposableStore();
+        this.groups = [];
+        this.references = [];
         this._onDidChangeReferenceRange = new Emitter();
         this.onDidChangeReferenceRange = this._onDidChangeReferenceRange.event;
-        this._disposables = [];
         // grouping and sorting
+        var providersFirst = references[0];
         references.sort(ReferencesModel._compareReferences);
         var current;
         for (var _i = 0, references_1 = references; _i < references_1.length; _i++) {
@@ -236,30 +180,16 @@ var ReferencesModel = /** @class */ (function () {
             // append, check for equality first!
             if (current.children.length === 0
                 || !Range.equalsRange(ref.range, current.children[current.children.length - 1].range)) {
-                var oneRef = new OneReference(current, ref.range);
-                this._disposables.push(oneRef.onRefChanged(function (e) { return _this._onDidChangeReferenceRange.fire(e); }));
-                this._references.push(oneRef);
+                var oneRef = new OneReference(current, ref.targetSelectionRange || ref.range, providersFirst === ref);
+                this._disposables.add(oneRef.onRefChanged(function (e) { return _this._onDidChangeReferenceRange.fire(e); }));
+                this.references.push(oneRef);
                 current.children.push(oneRef);
             }
         }
     }
     Object.defineProperty(ReferencesModel.prototype, "empty", {
         get: function () {
-            return this._groups.length === 0;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ReferencesModel.prototype, "references", {
-        get: function () {
-            return this._references;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ReferencesModel.prototype, "groups", {
-        get: function () {
-            return this._groups;
+            return this.groups.length === 0;
         },
         enumerable: true,
         configurable: true
@@ -304,7 +234,7 @@ var ReferencesModel = /** @class */ (function () {
         }
     };
     ReferencesModel.prototype.nearestReference = function (resource, position) {
-        var nearest = this._references.map(function (ref, idx) {
+        var nearest = this.references.map(function (ref, idx) {
             return {
                 idx: idx,
                 prefixLen: strings.commonPrefixLength(ref.uri.toString(), resource.toString()),
@@ -328,14 +258,23 @@ var ReferencesModel = /** @class */ (function () {
             }
         })[0];
         if (nearest) {
-            return this._references[nearest.idx];
+            return this.references[nearest.idx];
         }
         return undefined;
     };
+    ReferencesModel.prototype.firstReference = function () {
+        for (var _i = 0, _a = this.references; _i < _a.length; _i++) {
+            var ref = _a[_i];
+            if (ref.isProviderFirst) {
+                return ref;
+            }
+        }
+        return this.references[0];
+    };
     ReferencesModel.prototype.dispose = function () {
-        this._groups = dispose(this._groups);
-        dispose(this._disposables);
-        this._disposables.length = 0;
+        dispose(this.groups);
+        this._disposables.dispose();
+        this.groups.length = 0;
     };
     ReferencesModel._compareReferences = function (a, b) {
         var auri = a.uri.toString();

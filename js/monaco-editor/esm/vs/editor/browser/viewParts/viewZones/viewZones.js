@@ -2,19 +2,21 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { createFastDomNode } from '../../../../base/browser/fastDomNode.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { ViewPart } from '../../view/viewPart.js';
 import { Position } from '../../../common/core/position.js';
 var ViewZones = /** @class */ (function (_super) {
@@ -49,7 +51,7 @@ var ViewZones = /** @class */ (function (_super) {
             var id = keys[i];
             var zone = this._zones[id];
             var props = this._computeWhitespaceProps(zone.delegate);
-            if (this._context.viewLayout.changeWhitespace(parseInt(id, 10), props.afterViewLineNumber, props.heightInPx)) {
+            if (this._context.viewLayout.changeWhitespace(id, props.afterViewLineNumber, props.heightInPx)) {
                 this._safeCallOnComputedHeight(zone.delegate, props.heightInPx);
                 hadAChange = true;
             }
@@ -68,7 +70,11 @@ var ViewZones = /** @class */ (function (_super) {
         return true;
     };
     ViewZones.prototype.onLineMappingChanged = function (e) {
-        return this._recomputeWhitespacesProps();
+        var hadAChange = this._recomputeWhitespacesProps();
+        if (hadAChange) {
+            this._context.viewLayout.onHeightMaybeChanged();
+        }
+        return hadAChange;
     };
     ViewZones.prototype.onLinesDeleted = function (e) {
         return true;
@@ -93,7 +99,8 @@ var ViewZones = /** @class */ (function (_super) {
         if (zone.afterLineNumber === 0) {
             return {
                 afterViewLineNumber: 0,
-                heightInPx: this._heightInPixels(zone)
+                heightInPx: this._heightInPixels(zone),
+                minWidthInPx: this._minWidthInPixels(zone)
             };
         }
         var zoneAfterModelPosition;
@@ -127,12 +134,13 @@ var ViewZones = /** @class */ (function (_super) {
         var isVisible = this._context.model.coordinatesConverter.modelPositionIsVisible(zoneBeforeModelPosition);
         return {
             afterViewLineNumber: viewPosition.lineNumber,
-            heightInPx: (isVisible ? this._heightInPixels(zone) : 0)
+            heightInPx: (isVisible ? this._heightInPixels(zone) : 0),
+            minWidthInPx: this._minWidthInPixels(zone)
         };
     };
     ViewZones.prototype.addZone = function (zone) {
         var props = this._computeWhitespaceProps(zone);
-        var whitespaceId = this._context.viewLayout.addWhitespace(props.afterViewLineNumber, this._getZoneOrdinal(zone), props.heightInPx);
+        var whitespaceId = this._context.viewLayout.addWhitespace(props.afterViewLineNumber, this._getZoneOrdinal(zone), props.heightInPx, props.minWidthInPx);
         var myZone = {
             whitespaceId: whitespaceId,
             delegate: zone,
@@ -144,23 +152,23 @@ var ViewZones = /** @class */ (function (_super) {
         myZone.domNode.setPosition('absolute');
         myZone.domNode.domNode.style.width = '100%';
         myZone.domNode.setDisplay('none');
-        myZone.domNode.setAttribute('monaco-view-zone', myZone.whitespaceId.toString());
+        myZone.domNode.setAttribute('monaco-view-zone', myZone.whitespaceId);
         this.domNode.appendChild(myZone.domNode);
         if (myZone.marginDomNode) {
             myZone.marginDomNode.setPosition('absolute');
             myZone.marginDomNode.domNode.style.width = '100%';
             myZone.marginDomNode.setDisplay('none');
-            myZone.marginDomNode.setAttribute('monaco-view-zone', myZone.whitespaceId.toString());
+            myZone.marginDomNode.setAttribute('monaco-view-zone', myZone.whitespaceId);
             this.marginDomNode.appendChild(myZone.marginDomNode);
         }
-        this._zones[myZone.whitespaceId.toString()] = myZone;
+        this._zones[myZone.whitespaceId] = myZone;
         this.setShouldRender();
         return myZone.whitespaceId;
     };
     ViewZones.prototype.removeZone = function (id) {
-        if (this._zones.hasOwnProperty(id.toString())) {
-            var zone = this._zones[id.toString()];
-            delete this._zones[id.toString()];
+        if (this._zones.hasOwnProperty(id)) {
+            var zone = this._zones[id];
+            delete this._zones[id];
             this._context.viewLayout.removeWhitespace(zone.whitespaceId);
             zone.domNode.removeAttribute('monaco-visible-view-zone');
             zone.domNode.removeAttribute('monaco-view-zone');
@@ -177,10 +185,10 @@ var ViewZones = /** @class */ (function (_super) {
     };
     ViewZones.prototype.layoutZone = function (id) {
         var changed = false;
-        if (this._zones.hasOwnProperty(id.toString())) {
-            var zone = this._zones[id.toString()];
+        if (this._zones.hasOwnProperty(id)) {
+            var zone = this._zones[id];
             var props = this._computeWhitespaceProps(zone.delegate);
-            // let newOrdinal = this._getZoneOrdinal(zone.delegate);
+            // const newOrdinal = this._getZoneOrdinal(zone.delegate);
             changed = this._context.viewLayout.changeWhitespace(zone.whitespaceId, props.afterViewLineNumber, props.heightInPx) || changed;
             // TODO@Alex: change `newOrdinal` too
             if (changed) {
@@ -191,9 +199,9 @@ var ViewZones = /** @class */ (function (_super) {
         return changed;
     };
     ViewZones.prototype.shouldSuppressMouseDownOnViewZone = function (id) {
-        if (this._zones.hasOwnProperty(id.toString())) {
-            var zone = this._zones[id.toString()];
-            return zone.delegate.suppressMouseDown;
+        if (this._zones.hasOwnProperty(id)) {
+            var zone = this._zones[id];
+            return Boolean(zone.delegate.suppressMouseDown);
         }
         return false;
     };
@@ -205,6 +213,12 @@ var ViewZones = /** @class */ (function (_super) {
             return this._lineHeight * zone.heightInLines;
         }
         return this._lineHeight;
+    };
+    ViewZones.prototype._minWidthInPixels = function (zone) {
+        if (typeof zone.minWidthInPx === 'number') {
+            return zone.minWidthInPx;
+        }
+        return 0;
     };
     ViewZones.prototype._safeCallOnComputedHeight = function (zone, height) {
         if (typeof zone.onComputedHeight === 'function') {
@@ -234,7 +248,7 @@ var ViewZones = /** @class */ (function (_super) {
         var visibleZones = {};
         var hasVisibleZone = false;
         for (var i = 0, len = visibleWhitespaces.length; i < len; i++) {
-            visibleZones[visibleWhitespaces[i].id.toString()] = visibleWhitespaces[i];
+            visibleZones[visibleWhitespaces[i].id] = visibleWhitespaces[i];
             hasVisibleZone = true;
         }
         var keys = Object.keys(this._zones);

@@ -2,7 +2,6 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 import { Selection } from '../core/selection.js';
 var ReplaceCommand = /** @class */ (function () {
     function ReplaceCommand(range, text, insertsAutoWhitespace) {
@@ -65,6 +64,7 @@ var ReplaceCommandThatPreservesSelection = /** @class */ (function () {
         this._range = editRange;
         this._text = text;
         this._initialSelection = initialSelection;
+        this._selectionId = null;
     }
     ReplaceCommandThatPreservesSelection.prototype.getEditOperations = function (model, builder) {
         builder.addEditOperation(this._range, this._text);

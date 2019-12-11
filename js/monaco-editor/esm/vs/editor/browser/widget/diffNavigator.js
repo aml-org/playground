@@ -2,12 +2,24 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 import * as assert from '../../../base/common/assert.js';
+import { Emitter } from '../../../base/common/event.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
 import * as objects from '../../../base/common/objects.js';
 import { Range } from '../../common/core/range.js';
-import { dispose } from '../../../base/common/lifecycle.js';
-import { Emitter } from '../../../base/common/event.js';
 var defaultOptions = {
     followsCaret: true,
     ignoreCharChanges: true,
@@ -16,38 +28,38 @@ var defaultOptions = {
 /**
  * Create a new diff navigator for the provided diff editor.
  */
-var DiffNavigator = /** @class */ (function () {
+var DiffNavigator = /** @class */ (function (_super) {
+    __extends(DiffNavigator, _super);
     function DiffNavigator(editor, options) {
         if (options === void 0) { options = {}; }
-        var _this = this;
-        this._onDidUpdate = new Emitter();
-        this.onDidUpdate = this._onDidUpdate.event;
-        this._editor = editor;
-        this._options = objects.mixin(options, defaultOptions, false);
-        this.disposed = false;
-        this._disposables = [];
-        this.nextIdx = -1;
-        this.ranges = [];
-        this.ignoreSelectionChange = false;
-        this.revealFirst = this._options.alwaysRevealFirst;
+        var _this = _super.call(this) || this;
+        _this._onDidUpdate = _this._register(new Emitter());
+        _this._editor = editor;
+        _this._options = objects.mixin(options, defaultOptions, false);
+        _this.disposed = false;
+        _this.nextIdx = -1;
+        _this.ranges = [];
+        _this.ignoreSelectionChange = false;
+        _this.revealFirst = Boolean(_this._options.alwaysRevealFirst);
         // hook up to diff editor for diff, disposal, and caret move
-        this._disposables.push(this._editor.onDidDispose(function () { return _this.dispose(); }));
-        this._disposables.push(this._editor.onDidUpdateDiff(function () { return _this._onDiffUpdated(); }));
-        if (this._options.followsCaret) {
-            this._disposables.push(this._editor.getModifiedEditor().onDidChangeCursorPosition(function (e) {
+        _this._register(_this._editor.onDidDispose(function () { return _this.dispose(); }));
+        _this._register(_this._editor.onDidUpdateDiff(function () { return _this._onDiffUpdated(); }));
+        if (_this._options.followsCaret) {
+            _this._register(_this._editor.getModifiedEditor().onDidChangeCursorPosition(function (e) {
                 if (_this.ignoreSelectionChange) {
                     return;
                 }
                 _this.nextIdx = -1;
             }));
         }
-        if (this._options.alwaysRevealFirst) {
-            this._disposables.push(this._editor.getModifiedEditor().onDidChangeModel(function (e) {
+        if (_this._options.alwaysRevealFirst) {
+            _this._register(_this._editor.getModifiedEditor().onDidChangeModel(function (e) {
                 _this.revealFirst = true;
             }));
         }
         // init things
-        this._init();
+        _this._init();
+        return _this;
     }
     DiffNavigator.prototype._init = function () {
         var changes = this._editor.getLineChanges();
@@ -63,7 +75,7 @@ var DiffNavigator = /** @class */ (function () {
             if (this._editor.getLineChanges() !== null) {
                 this.revealFirst = false;
                 this.nextIdx = -1;
-                this.next();
+                this.next(1 /* Immediate */);
             }
         }
     };
@@ -107,6 +119,10 @@ var DiffNavigator = /** @class */ (function () {
     DiffNavigator.prototype._initIdx = function (fwd) {
         var found = false;
         var position = this._editor.getPosition();
+        if (!position) {
+            this.nextIdx = 0;
+            return;
+        }
         for (var i = 0, len = this.ranges.length; i < len && !found; i++) {
             var range = this.ranges[i].range;
             if (position.isBeforeOrEqual(range.getStartPosition())) {
@@ -122,7 +138,7 @@ var DiffNavigator = /** @class */ (function () {
             this.nextIdx = this.ranges.length - 1;
         }
     };
-    DiffNavigator.prototype._move = function (fwd) {
+    DiffNavigator.prototype._move = function (fwd, scrollType) {
         assert.ok(!this.disposed, 'Illegal State - diff navigator has been disposed');
         if (!this.canNavigate()) {
             return;
@@ -147,7 +163,7 @@ var DiffNavigator = /** @class */ (function () {
         try {
             var pos = info.range.getStartPosition();
             this._editor.setPosition(pos);
-            this._editor.revealPositionInCenter(pos, 0 /* Smooth */);
+            this._editor.revealPositionInCenter(pos, scrollType);
         }
         finally {
             this.ignoreSelectionChange = false;
@@ -156,19 +172,19 @@ var DiffNavigator = /** @class */ (function () {
     DiffNavigator.prototype.canNavigate = function () {
         return this.ranges && this.ranges.length > 0;
     };
-    DiffNavigator.prototype.next = function () {
-        this._move(true);
+    DiffNavigator.prototype.next = function (scrollType) {
+        if (scrollType === void 0) { scrollType = 0 /* Smooth */; }
+        this._move(true, scrollType);
     };
-    DiffNavigator.prototype.previous = function () {
-        this._move(false);
+    DiffNavigator.prototype.previous = function (scrollType) {
+        if (scrollType === void 0) { scrollType = 0 /* Smooth */; }
+        this._move(false, scrollType);
     };
     DiffNavigator.prototype.dispose = function () {
-        dispose(this._disposables);
-        this._disposables.length = 0;
-        this._onDidUpdate.dispose();
-        this.ranges = null;
+        _super.prototype.dispose.call(this);
+        this.ranges = [];
         this.disposed = true;
     };
     return DiffNavigator;
-}());
+}(Disposable));
 export { DiffNavigator };

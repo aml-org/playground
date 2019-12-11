@@ -2,11 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -15,22 +17,28 @@ var __extends = (this && this.__extends) || (function () {
 })();
 import './checkbox.css';
 import * as DOM from '../../dom.js';
-import * as objects from '../../../common/objects.js';
 import { Widget } from '../widget.js';
 import { Color } from '../../../common/color.js';
+import { Emitter } from '../../../common/event.js';
+import * as objects from '../../../common/objects.js';
 var defaultOpts = {
-    inputActiveOptionBorder: Color.fromHex('#007ACC')
+    inputActiveOptionBorder: Color.fromHex('#007ACC00'),
+    inputActiveOptionBackground: Color.fromHex('#0E639C50')
 };
 var Checkbox = /** @class */ (function (_super) {
     __extends(Checkbox, _super);
     function Checkbox(opts) {
         var _this = _super.call(this) || this;
+        _this._onChange = _this._register(new Emitter());
+        _this.onChange = _this._onChange.event;
+        _this._onKeyDown = _this._register(new Emitter());
+        _this.onKeyDown = _this._onKeyDown.event;
         _this._opts = objects.deepClone(opts);
         objects.mixin(_this._opts, defaultOpts, false);
         _this._checked = _this._opts.isChecked;
         _this.domNode = document.createElement('div');
         _this.domNode.title = _this._opts.title;
-        _this.domNode.className = 'monaco-custom-checkbox ' + _this._opts.actionClassName + ' ' + (_this._checked ? 'checked' : 'unchecked');
+        _this.domNode.className = 'monaco-custom-checkbox ' + (_this._opts.actionClassName || '') + ' ' + (_this._checked ? 'checked' : 'unchecked');
         _this.domNode.tabIndex = 0;
         _this.domNode.setAttribute('role', 'checkbox');
         _this.domNode.setAttribute('aria-checked', String(_this._checked));
@@ -38,29 +46,20 @@ var Checkbox = /** @class */ (function (_super) {
         _this.applyStyles();
         _this.onclick(_this.domNode, function (ev) {
             _this.checked = !_this._checked;
-            _this._opts.onChange(false);
+            _this._onChange.fire(false);
             ev.preventDefault();
         });
         _this.onkeydown(_this.domNode, function (keyboardEvent) {
             if (keyboardEvent.keyCode === 10 /* Space */ || keyboardEvent.keyCode === 3 /* Enter */) {
                 _this.checked = !_this._checked;
-                _this._opts.onChange(true);
+                _this._onChange.fire(true);
                 keyboardEvent.preventDefault();
                 return;
             }
-            if (_this._opts.onKeyDown) {
-                _this._opts.onKeyDown(keyboardEvent);
-            }
+            _this._onKeyDown.fire(keyboardEvent);
         });
         return _this;
     }
-    Object.defineProperty(Checkbox.prototype, "enabled", {
-        get: function () {
-            return this.domNode.getAttribute('aria-disabled') !== 'true';
-        },
-        enumerable: true,
-        configurable: true
-    });
     Checkbox.prototype.focus = function () {
         this.domNode.focus();
     };
@@ -89,11 +88,15 @@ var Checkbox = /** @class */ (function (_super) {
         if (styles.inputActiveOptionBorder) {
             this._opts.inputActiveOptionBorder = styles.inputActiveOptionBorder;
         }
+        if (styles.inputActiveOptionBackground) {
+            this._opts.inputActiveOptionBackground = styles.inputActiveOptionBackground;
+        }
         this.applyStyles();
     };
     Checkbox.prototype.applyStyles = function () {
         if (this.domNode) {
             this.domNode.style.borderColor = this._checked && this._opts.inputActiveOptionBorder ? this._opts.inputActiveOptionBorder.toString() : 'transparent';
+            this.domNode.style.backgroundColor = this._checked && this._opts.inputActiveOptionBackground ? this._opts.inputActiveOptionBackground.toString() : 'transparent';
         }
     };
     Checkbox.prototype.enable = function () {

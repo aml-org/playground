@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<div id="graph-container-outer" class="imported" style="width:50%;float:left;">
+    <div class="tabs">
+        <ul>
+            <li class="is-active"><a>Graph</a></li>
+        </ul>
+        <p class="control">
+            <a class="button" data-bind="click: function() { appModel.graph.zoomOut() }" style="float: left; height: 100%" title="Zoom Out">
+                <span class="icon">
+                    <i class="fa fa-search-minus"></i>
+                </span>
+            </a>
+            <a class="button" data-bind="click: function() { appModel.graph.zoomIn() }" style="float: left; height: 100%" title="Zoom In">
+                <span class="icon">
+                    <i class="fa fa-search-plus"></i>
+                </span>
+            </a>
+            <a class="button" data-bind="click: function() { appModel.graph.toggleFullscreen('graph-container-outer', 'editor-container-outer') }" style="float: left; height: 100%" title="Fullscreen Graph">
+                <span class="icon">
+                    <i class="fa fa-expand"></i>
+                </span>
+            </a>
+        </p>
+    </div>
+    <div id="graph-container"
+         style="overflow: auto"
+         class="imported">
+        <div id="graph-container-inner">
+
+        </div>
+    </div>
+</div>

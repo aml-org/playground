@@ -2,27 +2,43 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 import { onUnexpectedError } from '../../../base/common/errors.js';
-import { ReplaceCommand, ReplaceCommandWithoutChangingPosition, ReplaceCommandWithOffsetCursorState } from '../commands/replaceCommand.js';
-import { CursorColumns, EditOperationResult } from './cursorCommon.js';
-import { Range } from '../core/range.js';
 import * as strings from '../../../base/common/strings.js';
+import { ReplaceCommand, ReplaceCommandWithOffsetCursorState, ReplaceCommandWithoutChangingPosition } from '../commands/replaceCommand.js';
 import { ShiftCommand } from '../commands/shiftCommand.js';
-import { LanguageConfigurationRegistry } from '../modes/languageConfigurationRegistry.js';
-import { IndentAction } from '../modes/languageConfiguration.js';
 import { SurroundSelectionCommand } from '../commands/surroundSelectionCommand.js';
+import { CursorColumns, EditOperationResult, isQuote } from './cursorCommon.js';
 import { getMapForWordSeparators } from './wordCharacterClassifier.js';
+import { Range } from '../core/range.js';
+import { IndentAction } from '../modes/languageConfiguration.js';
+import { LanguageConfigurationRegistry } from '../modes/languageConfigurationRegistry.js';
 var TypeOperations = /** @class */ (function () {
     function TypeOperations() {
     }
     TypeOperations.indent = function (config, model, selections) {
+        if (model === null || selections === null) {
+            return [];
+        }
         var commands = [];
         for (var i = 0, len = selections.length; i < len; i++) {
             commands[i] = new ShiftCommand(selections[i], {
                 isUnshift: false,
                 tabSize: config.tabSize,
-                oneIndent: config.oneIndent,
+                indentSize: config.indentSize,
+                insertSpaces: config.insertSpaces,
                 useTabStops: config.useTabStops
             });
         }
@@ -34,7 +50,8 @@ var TypeOperations = /** @class */ (function () {
             commands[i] = new ShiftCommand(selections[i], {
                 isUnshift: true,
                 tabSize: config.tabSize,
-                oneIndent: config.oneIndent,
+                indentSize: config.indentSize,
+                insertSpaces: config.insertSpaces,
                 useTabStops: config.useTabStops
             });
         }
@@ -42,21 +59,11 @@ var TypeOperations = /** @class */ (function () {
     };
     TypeOperations.shiftIndent = function (config, indentation, count) {
         count = count || 1;
-        var desiredIndentCount = ShiftCommand.shiftIndentCount(indentation, indentation.length + count, config.tabSize);
-        var newIndentation = '';
-        for (var i = 0; i < desiredIndentCount; i++) {
-            newIndentation += '\t';
-        }
-        return newIndentation;
+        return ShiftCommand.shiftIndent(indentation, indentation.length + count, config.tabSize, config.indentSize, config.insertSpaces);
     };
     TypeOperations.unshiftIndent = function (config, indentation, count) {
         count = count || 1;
-        var desiredIndentCount = ShiftCommand.unshiftIndentCount(indentation, indentation.length + count, config.tabSize);
-        var newIndentation = '';
-        for (var i = 0; i < desiredIndentCount; i++) {
-            newIndentation += '\t';
-        }
-        return newIndentation;
+        return ShiftCommand.unshiftIndent(indentation, indentation.length + count, config.tabSize, config.indentSize, config.insertSpaces);
     };
     TypeOperations._distributedPaste = function (config, model, selections, text) {
         var commands = [];
@@ -127,15 +134,15 @@ var TypeOperations = /** @class */ (function () {
         }
     };
     TypeOperations._goodIndentForLine = function (config, model, lineNumber) {
-        var action;
-        var indentation;
+        var action = null;
+        var indentation = '';
         var expectedIndentAction = config.autoIndent ? LanguageConfigurationRegistry.getInheritIndentForLine(model, lineNumber, false) : null;
         if (expectedIndentAction) {
             action = expectedIndentAction.action;
             indentation = expectedIndentAction.indentation;
         }
         else if (lineNumber > 1) {
-            var lastLineNumber = lineNumber - 1;
+            var lastLineNumber = void 0;
             for (lastLineNumber = lineNumber - 1; lastLineNumber >= 1; lastLineNumber--) {
                 var lineText = model.getLineContent(lastLineNumber);
                 var nonWhitespaceIdx = strings.lastNonWhitespaceIndex(lineText);
@@ -176,8 +183,8 @@ var TypeOperations = /** @class */ (function () {
         var position = selection.getStartPosition();
         if (config.insertSpaces) {
             var visibleColumnFromColumn = CursorColumns.visibleColumnFromColumn2(config, model, position);
-            var tabSize = config.tabSize;
-            var spacesCnt = tabSize - (visibleColumnFromColumn % tabSize);
+            var indentSize = config.indentSize;
+            var spacesCnt = indentSize - (visibleColumnFromColumn % indentSize);
             for (var i = 0; i < spacesCnt; i++) {
                 typeText += ' ';
             }
@@ -216,7 +223,8 @@ var TypeOperations = /** @class */ (function () {
                 commands[i] = new ShiftCommand(selection, {
                     isUnshift: false,
                     tabSize: config.tabSize,
-                    oneIndent: config.oneIndent,
+                    indentSize: config.indentSize,
+                    insertSpaces: config.insertSpaces,
                     useTabStops: config.useTabStops
                 });
             }
@@ -330,7 +338,7 @@ var TypeOperations = /** @class */ (function () {
                 var offset = 0;
                 if (oldEndColumn <= firstNonWhitespace + 1) {
                     if (!config.insertSpaces) {
-                        oldEndViewColumn = Math.ceil(oldEndViewColumn / config.tabSize);
+                        oldEndViewColumn = Math.ceil(oldEndViewColumn / config.indentSize);
                     }
                     offset = Math.min(oldEndViewColumn + 1 - config.normalizeIndentation(ir.afterEnter).length - 1, 0);
                 }
@@ -377,11 +385,13 @@ var TypeOperations = /** @class */ (function () {
         }
         return null;
     };
-    TypeOperations._isAutoClosingCloseCharType = function (config, model, selections, ch) {
-        if (!config.autoClosingBrackets || !config.autoClosingPairsClose.hasOwnProperty(ch)) {
+    TypeOperations._isAutoClosingOvertype = function (config, model, selections, autoClosedCharacters, ch) {
+        if (config.autoClosingOvertype === 'never') {
             return false;
         }
-        var isEqualPair = (ch === config.autoClosingPairsClose[ch]);
+        if (!config.autoClosingPairsClose2.has(ch)) {
+            return false;
+        }
         for (var i = 0, len = selections.length; i < len; i++) {
             var selection = selections[i];
             if (!selection.isEmpty()) {
@@ -393,25 +403,24 @@ var TypeOperations = /** @class */ (function () {
             if (afterCharacter !== ch) {
                 return false;
             }
-            if (isEqualPair) {
-                var lineTextBeforeCursor = lineText.substr(0, position.column - 1);
-                var chCntBefore = this._countNeedlesInHaystack(lineTextBeforeCursor, ch);
-                if (chCntBefore % 2 === 0) {
+            // Must over-type a closing character typed by the editor
+            if (config.autoClosingOvertype === 'auto') {
+                var found = false;
+                for (var j = 0, lenJ = autoClosedCharacters.length; j < lenJ; j++) {
+                    var autoClosedCharacter = autoClosedCharacters[j];
+                    if (position.lineNumber === autoClosedCharacter.startLineNumber && position.column === autoClosedCharacter.startColumn) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
                     return false;
                 }
             }
         }
         return true;
     };
-    TypeOperations._countNeedlesInHaystack = function (haystack, needle) {
-        var cnt = 0;
-        var lastIndex = -1;
-        while ((lastIndex = haystack.indexOf(needle, lastIndex + 1)) !== -1) {
-            cnt++;
-        }
-        return cnt;
-    };
-    TypeOperations._runAutoClosingCloseCharType = function (prevEditOperationType, config, model, selections, ch) {
+    TypeOperations._runAutoClosingOvertype = function (prevEditOperationType, config, model, selections, ch) {
         var commands = [];
         for (var i = 0, len = selections.length; i < len; i++) {
             var selection = selections[i];
@@ -424,80 +433,128 @@ var TypeOperations = /** @class */ (function () {
             shouldPushStackElementAfter: false
         });
     };
-    TypeOperations._isAutoClosingOpenCharType = function (config, model, selections, ch) {
-        if (!config.autoClosingBrackets || !config.autoClosingPairsOpen.hasOwnProperty(ch)) {
+    TypeOperations._isBeforeClosingBrace = function (config, autoClosingPair, characterAfter) {
+        var otherAutoClosingPairs = config.autoClosingPairsClose2.get(characterAfter);
+        if (!otherAutoClosingPairs) {
             return false;
         }
-        for (var i = 0, len = selections.length; i < len; i++) {
-            var selection = selections[i];
-            if (!selection.isEmpty()) {
-                return false;
+        var thisBraceIsSymmetric = (autoClosingPair.open === autoClosingPair.close);
+        for (var _i = 0, otherAutoClosingPairs_1 = otherAutoClosingPairs; _i < otherAutoClosingPairs_1.length; _i++) {
+            var otherAutoClosingPair = otherAutoClosingPairs_1[_i];
+            var otherBraceIsSymmetric = (otherAutoClosingPair.open === otherAutoClosingPair.close);
+            if (!thisBraceIsSymmetric && otherBraceIsSymmetric) {
+                continue;
             }
-            var position = selection.getPosition();
-            var lineText = model.getLineContent(position.lineNumber);
-            // Do not auto-close ' or " after a word character
-            if ((ch === '\'' || ch === '"') && position.column > 1) {
-                var wordSeparators = getMapForWordSeparators(config.wordSeparators);
-                var characterBeforeCode = lineText.charCodeAt(position.column - 2);
-                var characterBeforeType = wordSeparators.get(characterBeforeCode);
-                if (characterBeforeType === 0 /* Regular */) {
-                    return false;
-                }
-            }
-            // Only consider auto closing the pair if a space follows or if another autoclosed pair follows
-            var characterAfter = lineText.charAt(position.column - 1);
-            if (characterAfter) {
-                var thisBraceIsSymmetric = (config.autoClosingPairsOpen[ch] === ch);
-                var isBeforeCloseBrace = false;
-                for (var otherCloseBrace in config.autoClosingPairsClose) {
-                    var otherBraceIsSymmetric = (config.autoClosingPairsOpen[otherCloseBrace] === otherCloseBrace);
-                    if (!thisBraceIsSymmetric && otherBraceIsSymmetric) {
-                        continue;
-                    }
-                    if (characterAfter === otherCloseBrace) {
-                        isBeforeCloseBrace = true;
+            return true;
+        }
+        return false;
+    };
+    TypeOperations._findAutoClosingPairOpen = function (config, model, positions, ch) {
+        var autoClosingPairCandidates = config.autoClosingPairsOpen2.get(ch);
+        if (!autoClosingPairCandidates) {
+            return null;
+        }
+        // Determine which auto-closing pair it is
+        var autoClosingPair = null;
+        for (var _i = 0, autoClosingPairCandidates_1 = autoClosingPairCandidates; _i < autoClosingPairCandidates_1.length; _i++) {
+            var autoClosingPairCandidate = autoClosingPairCandidates_1[_i];
+            if (autoClosingPair === null || autoClosingPairCandidate.open.length > autoClosingPair.open.length) {
+                var candidateIsMatch = true;
+                for (var _a = 0, positions_1 = positions; _a < positions_1.length; _a++) {
+                    var position = positions_1[_a];
+                    var relevantText = model.getValueInRange(new Range(position.lineNumber, position.column - autoClosingPairCandidate.open.length + 1, position.lineNumber, position.column));
+                    if (relevantText + ch !== autoClosingPairCandidate.open) {
+                        candidateIsMatch = false;
                         break;
                     }
                 }
-                if (!isBeforeCloseBrace && !/\s/.test(characterAfter)) {
-                    return false;
+                if (candidateIsMatch) {
+                    autoClosingPair = autoClosingPairCandidate;
+                }
+            }
+        }
+        return autoClosingPair;
+    };
+    TypeOperations._isAutoClosingOpenCharType = function (config, model, selections, ch, insertOpenCharacter) {
+        var chIsQuote = isQuote(ch);
+        var autoCloseConfig = chIsQuote ? config.autoClosingQuotes : config.autoClosingBrackets;
+        if (autoCloseConfig === 'never') {
+            return null;
+        }
+        var autoClosingPair = this._findAutoClosingPairOpen(config, model, selections.map(function (s) { return s.getPosition(); }), ch);
+        if (!autoClosingPair) {
+            return null;
+        }
+        var shouldAutoCloseBefore = chIsQuote ? config.shouldAutoCloseBefore.quote : config.shouldAutoCloseBefore.bracket;
+        for (var i = 0, len = selections.length; i < len; i++) {
+            var selection = selections[i];
+            if (!selection.isEmpty()) {
+                return null;
+            }
+            var position = selection.getPosition();
+            var lineText = model.getLineContent(position.lineNumber);
+            // Only consider auto closing the pair if a space follows or if another autoclosed pair follows
+            if (lineText.length > position.column - 1) {
+                var characterAfter = lineText.charAt(position.column - 1);
+                var isBeforeCloseBrace = TypeOperations._isBeforeClosingBrace(config, autoClosingPair, characterAfter);
+                if (!isBeforeCloseBrace && !shouldAutoCloseBefore(characterAfter)) {
+                    return null;
                 }
             }
             if (!model.isCheapToTokenize(position.lineNumber)) {
                 // Do not force tokenization
-                return false;
+                return null;
+            }
+            // Do not auto-close ' or " after a word character
+            if (autoClosingPair.open.length === 1 && chIsQuote && autoCloseConfig !== 'always') {
+                var wordSeparators = getMapForWordSeparators(config.wordSeparators);
+                if (insertOpenCharacter && position.column > 1 && wordSeparators.get(lineText.charCodeAt(position.column - 2)) === 0 /* Regular */) {
+                    return null;
+                }
+                if (!insertOpenCharacter && position.column > 2 && wordSeparators.get(lineText.charCodeAt(position.column - 3)) === 0 /* Regular */) {
+                    return null;
+                }
             }
             model.forceTokenization(position.lineNumber);
             var lineTokens = model.getLineTokens(position.lineNumber);
             var shouldAutoClosePair = false;
             try {
-                shouldAutoClosePair = LanguageConfigurationRegistry.shouldAutoClosePair(ch, lineTokens, position.column);
+                shouldAutoClosePair = LanguageConfigurationRegistry.shouldAutoClosePair(autoClosingPair, lineTokens, insertOpenCharacter ? position.column : position.column - 1);
             }
             catch (e) {
                 onUnexpectedError(e);
             }
             if (!shouldAutoClosePair) {
-                return false;
+                return null;
             }
         }
-        return true;
+        return autoClosingPair;
     };
-    TypeOperations._runAutoClosingOpenCharType = function (prevEditOperationType, config, model, selections, ch) {
+    TypeOperations._runAutoClosingOpenCharType = function (prevEditOperationType, config, model, selections, ch, insertOpenCharacter, autoClosingPair) {
         var commands = [];
         for (var i = 0, len = selections.length; i < len; i++) {
             var selection = selections[i];
-            var closeCharacter = config.autoClosingPairsOpen[ch];
-            commands[i] = new ReplaceCommandWithOffsetCursorState(selection, ch + closeCharacter, 0, -closeCharacter.length);
+            commands[i] = new TypeWithAutoClosingCommand(selection, ch, insertOpenCharacter, autoClosingPair.close);
         }
         return new EditOperationResult(1 /* Typing */, commands, {
             shouldPushStackElementBefore: true,
             shouldPushStackElementAfter: false
         });
     };
+    TypeOperations._shouldSurroundChar = function (config, ch) {
+        if (isQuote(ch)) {
+            return (config.autoSurround === 'quotes' || config.autoSurround === 'languageDefined');
+        }
+        else {
+            // Character is a bracket
+            return (config.autoSurround === 'brackets' || config.autoSurround === 'languageDefined');
+        }
+    };
     TypeOperations._isSurroundSelectionType = function (config, model, selections, ch) {
-        if (!config.autoClosingBrackets || !config.surroundingPairs.hasOwnProperty(ch)) {
+        if (!TypeOperations._shouldSurroundChar(config, ch) || !config.surroundingPairs.hasOwnProperty(ch)) {
             return false;
         }
+        var isTypingAQuoteCharacter = isQuote(ch);
         for (var i = 0, len = selections.length; i < len; i++) {
             var selection = selections[i];
             if (selection.isEmpty()) {
@@ -517,6 +574,14 @@ var TypeOperations = /** @class */ (function () {
             }
             if (selectionContainsOnlyWhitespace) {
                 return false;
+            }
+            if (isTypingAQuoteCharacter && selection.startLineNumber === selection.endLineNumber && selection.startColumn + 1 === selection.endColumn) {
+                var selectionText = model.getValueInRange(selection);
+                if (isQuote(selectionText)) {
+                    // Typing a quote character on top of another quote character
+                    // => disable surround selection type
+                    return false;
+                }
             }
         }
         return true;
@@ -552,16 +617,10 @@ var TypeOperations = /** @class */ (function () {
         }
         catch (e) {
             onUnexpectedError(e);
+            return null;
         }
         if (!electricAction) {
             return null;
-        }
-        if (electricAction.appendText) {
-            var command = new ReplaceCommandWithOffsetCursorState(selection, ch + electricAction.appendText, 0, -electricAction.appendText.length);
-            return new EditOperationResult(1 /* Typing */, [command], {
-                shouldPushStackElementBefore: false,
-                shouldPushStackElementAfter: true
-            });
         }
         if (electricAction.matchOpenBracket) {
             var endColumn = (lineTokens.getLineContent() + ch).lastIndexOf(electricAction.matchOpenBracket) + 1;
@@ -591,7 +650,44 @@ var TypeOperations = /** @class */ (function () {
         }
         return null;
     };
-    TypeOperations.typeWithInterceptors = function (prevEditOperationType, config, model, selections, ch) {
+    /**
+     * This is very similar with typing, but the character is already in the text buffer!
+     */
+    TypeOperations.compositionEndWithInterceptors = function (prevEditOperationType, config, model, selections, autoClosedCharacters) {
+        var ch = null;
+        // extract last typed character
+        for (var _i = 0, selections_1 = selections; _i < selections_1.length; _i++) {
+            var selection = selections_1[_i];
+            if (!selection.isEmpty()) {
+                return null;
+            }
+            var position = selection.getPosition();
+            var currentChar = model.getValueInRange(new Range(position.lineNumber, position.column - 1, position.lineNumber, position.column));
+            if (ch === null) {
+                ch = currentChar;
+            }
+            else if (ch !== currentChar) {
+                return null;
+            }
+        }
+        if (!ch) {
+            return null;
+        }
+        if (this._isAutoClosingOvertype(config, model, selections, autoClosedCharacters, ch)) {
+            // Unfortunately, the close character is at this point "doubled", so we need to delete it...
+            var commands = selections.map(function (s) { return new ReplaceCommand(new Range(s.positionLineNumber, s.positionColumn, s.positionLineNumber, s.positionColumn + 1), '', false); });
+            return new EditOperationResult(1 /* Typing */, commands, {
+                shouldPushStackElementBefore: true,
+                shouldPushStackElementAfter: false
+            });
+        }
+        var autoClosingPairOpenCharType = this._isAutoClosingOpenCharType(config, model, selections, ch, false);
+        if (autoClosingPairOpenCharType) {
+            return this._runAutoClosingOpenCharType(prevEditOperationType, config, model, selections, ch, false, autoClosingPairOpenCharType);
+        }
+        return null;
+    };
+    TypeOperations.typeWithInterceptors = function (prevEditOperationType, config, model, selections, autoClosedCharacters, ch) {
         if (ch === '\n') {
             var commands_1 = [];
             for (var i = 0, len = selections.length; i < len; i++) {
@@ -619,11 +715,12 @@ var TypeOperations = /** @class */ (function () {
                 });
             }
         }
-        if (this._isAutoClosingCloseCharType(config, model, selections, ch)) {
-            return this._runAutoClosingCloseCharType(prevEditOperationType, config, model, selections, ch);
+        if (this._isAutoClosingOvertype(config, model, selections, autoClosedCharacters, ch)) {
+            return this._runAutoClosingOvertype(prevEditOperationType, config, model, selections, ch);
         }
-        if (this._isAutoClosingOpenCharType(config, model, selections, ch)) {
-            return this._runAutoClosingOpenCharType(prevEditOperationType, config, model, selections, ch);
+        var autoClosingPairOpenCharType = this._isAutoClosingOpenCharType(config, model, selections, ch, true);
+        if (autoClosingPairOpenCharType) {
+            return this._runAutoClosingOpenCharType(prevEditOperationType, config, model, selections, ch, true, autoClosingPairOpenCharType);
         }
         if (this._isSurroundSelectionType(config, model, selections, ch)) {
             return this._runSurroundSelectionType(prevEditOperationType, config, model, selections, ch);
@@ -661,6 +758,9 @@ var TypeOperations = /** @class */ (function () {
         });
     };
     TypeOperations.lineInsertBefore = function (config, model, selections) {
+        if (model === null || selections === null) {
+            return [];
+        }
         var commands = [];
         for (var i = 0, len = selections.length; i < len; i++) {
             var lineNumber = selections[i].positionLineNumber;
@@ -676,6 +776,9 @@ var TypeOperations = /** @class */ (function () {
         return commands;
     };
     TypeOperations.lineInsertAfter = function (config, model, selections) {
+        if (model === null || selections === null) {
+            return [];
+        }
         var commands = [];
         for (var i = 0, len = selections.length; i < len; i++) {
             var lineNumber = selections[i].positionLineNumber;
@@ -694,3 +797,23 @@ var TypeOperations = /** @class */ (function () {
     return TypeOperations;
 }());
 export { TypeOperations };
+var TypeWithAutoClosingCommand = /** @class */ (function (_super) {
+    __extends(TypeWithAutoClosingCommand, _super);
+    function TypeWithAutoClosingCommand(selection, openCharacter, insertOpenCharacter, closeCharacter) {
+        var _this = _super.call(this, selection, (insertOpenCharacter ? openCharacter : '') + closeCharacter, 0, -closeCharacter.length) || this;
+        _this._openCharacter = openCharacter;
+        _this._closeCharacter = closeCharacter;
+        _this.closeCharacterRange = null;
+        _this.enclosingRange = null;
+        return _this;
+    }
+    TypeWithAutoClosingCommand.prototype.computeCursorState = function (model, helper) {
+        var inverseEditOperations = helper.getInverseEditOperations();
+        var range = inverseEditOperations[0].range;
+        this.closeCharacterRange = new Range(range.startLineNumber, range.endColumn - this._closeCharacter.length, range.endLineNumber, range.endColumn);
+        this.enclosingRange = new Range(range.startLineNumber, range.endColumn - this._openCharacter.length - this._closeCharacter.length, range.endLineNumber, range.endColumn);
+        return _super.prototype.computeCursorState.call(this, model, helper);
+    };
+    return TypeWithAutoClosingCommand;
+}(ReplaceCommandWithOffsetCursorState));
+export { TypeWithAutoClosingCommand };

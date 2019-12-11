@@ -2,11 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -17,21 +19,17 @@ import './inputBox.css';
 import * as nls from '../../../../nls.js';
 import * as Bal from '../../browser.js';
 import * as dom from '../../dom.js';
-import { renderFormattedText, renderText } from '../../htmlContentRenderer.js';
+import { renderFormattedText, renderText } from '../../formattedTextRenderer.js';
 import * as aria from '../aria/aria.js';
 import { ActionBar } from '../actionbar/actionbar.js';
-import { AnchorAlignment } from '../contextview/contextview.js';
-import { Emitter } from '../../../common/event.js';
+import { Event, Emitter } from '../../../common/event.js';
 import { Widget } from '../widget.js';
 import { Color } from '../../../common/color.js';
 import { mixin } from '../../../common/objects.js';
+import { HistoryNavigator } from '../../../common/history.js';
+import { ScrollableElement } from '../scrollbar/scrollableElement.js';
+import { domEvent } from '../../event.js';
 var $ = dom.$;
-export var MessageType;
-(function (MessageType) {
-    MessageType[MessageType["INFO"] = 1] = "INFO";
-    MessageType[MessageType["WARNING"] = 2] = "WARNING";
-    MessageType[MessageType["ERROR"] = 3] = "ERROR";
-})(MessageType || (MessageType = {}));
 var defaultOpts = {
     inputBackground: Color.fromHex('#3C3C3C'),
     inputForeground: Color.fromHex('#CCCCCC'),
@@ -47,6 +45,7 @@ var InputBox = /** @class */ (function (_super) {
     function InputBox(container, contextViewProvider, options) {
         var _this = _super.call(this) || this;
         _this.state = 'idle';
+        _this.maxHeight = Number.POSITIVE_INFINITY;
         _this._onDidChange = _this._register(new Emitter());
         _this.onDidChange = _this._onDidChange.event;
         _this._onDidHeightChange = _this._register(new Emitter());
@@ -55,7 +54,6 @@ var InputBox = /** @class */ (function (_super) {
         _this.options = options || Object.create(null);
         mixin(_this.options, defaultOpts, false);
         _this.message = null;
-        _this.cachedHeight = null;
         _this.placeholder = _this.options.placeholder || '';
         _this.ariaLabel = _this.options.ariaLabel || '';
         _this.inputBackground = _this.options.inputBackground;
@@ -63,10 +61,13 @@ var InputBox = /** @class */ (function (_super) {
         _this.inputBorder = _this.options.inputBorder;
         _this.inputValidationInfoBorder = _this.options.inputValidationInfoBorder;
         _this.inputValidationInfoBackground = _this.options.inputValidationInfoBackground;
+        _this.inputValidationInfoForeground = _this.options.inputValidationInfoForeground;
         _this.inputValidationWarningBorder = _this.options.inputValidationWarningBorder;
         _this.inputValidationWarningBackground = _this.options.inputValidationWarningBackground;
+        _this.inputValidationWarningForeground = _this.options.inputValidationWarningForeground;
         _this.inputValidationErrorBorder = _this.options.inputValidationErrorBorder;
         _this.inputValidationErrorBackground = _this.options.inputValidationErrorBackground;
+        _this.inputValidationErrorForeground = _this.options.inputValidationErrorForeground;
         if (_this.options.validationOptions) {
             _this.validation = _this.options.validationOptions.validation;
         }
@@ -80,7 +81,26 @@ var InputBox = /** @class */ (function (_super) {
         _this.onfocus(_this.input, function () { return dom.addClass(_this.element, 'synthetic-focus'); });
         _this.onblur(_this.input, function () { return dom.removeClass(_this.element, 'synthetic-focus'); });
         if (_this.options.flexibleHeight) {
+            _this.maxHeight = typeof _this.options.flexibleMaxHeight === 'number' ? _this.options.flexibleMaxHeight : Number.POSITIVE_INFINITY;
             _this.mirror = dom.append(wrapper, $('div.mirror'));
+            _this.mirror.innerHTML = '&nbsp;';
+            _this.scrollableElement = new ScrollableElement(_this.element, { vertical: 1 /* Auto */ });
+            if (_this.options.flexibleWidth) {
+                _this.input.setAttribute('wrap', 'off');
+                _this.mirror.style.whiteSpace = 'pre';
+                _this.mirror.style.wordWrap = 'initial';
+            }
+            dom.append(container, _this.scrollableElement.getDomNode());
+            _this._register(_this.scrollableElement);
+            // from ScrollableElement to DOM
+            _this._register(_this.scrollableElement.onScroll(function (e) { return _this.input.scrollTop = e.scrollTop; }));
+            var onSelectionChange = Event.filter(domEvent(document, 'selectionchange'), function () {
+                var selection = document.getSelection();
+                return !!selection && selection.anchorNode === wrapper;
+            });
+            // from DOM to ScrollableElement
+            _this._register(onSelectionChange(_this.updateScrollDimensions, _this));
+            _this._register(_this.onDidHeightChange(_this.updateScrollDimensions, _this));
         }
         else {
             _this.input.type = _this.options.type || 'text';
@@ -161,7 +181,7 @@ var InputBox = /** @class */ (function (_super) {
     });
     Object.defineProperty(InputBox.prototype, "height", {
         get: function () {
-            return this.cachedHeight === null ? dom.getTotalHeight(this.element) : this.cachedHeight;
+            return typeof this.cachedHeight === 'number' ? this.cachedHeight : dom.getTotalHeight(this.element);
         },
         enumerable: true,
         configurable: true
@@ -189,24 +209,56 @@ var InputBox = /** @class */ (function (_super) {
         this.input.disabled = true;
         this._hideMessage();
     };
-    InputBox.prototype.setEnabled = function (enabled) {
-        if (enabled) {
-            this.enable();
-        }
-        else {
-            this.disable();
-        }
-    };
     Object.defineProperty(InputBox.prototype, "width", {
         get: function () {
             return dom.getTotalWidth(this.input);
         },
         set: function (width) {
-            this.input.style.width = width + 'px';
+            if (this.options.flexibleHeight && this.options.flexibleWidth) {
+                // textarea with horizontal scrolling
+                var horizontalPadding = 0;
+                if (this.mirror) {
+                    var paddingLeft = parseFloat(this.mirror.style.paddingLeft || '') || 0;
+                    var paddingRight = parseFloat(this.mirror.style.paddingRight || '') || 0;
+                    horizontalPadding = paddingLeft + paddingRight;
+                }
+                this.input.style.width = (width - horizontalPadding) + 'px';
+            }
+            else {
+                this.input.style.width = width + 'px';
+            }
+            if (this.mirror) {
+                this.mirror.style.width = width + 'px';
+            }
         },
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(InputBox.prototype, "paddingRight", {
+        set: function (paddingRight) {
+            if (this.options.flexibleHeight && this.options.flexibleWidth) {
+                this.input.style.width = "calc(100% - " + paddingRight + "px)";
+            }
+            else {
+                this.input.style.paddingRight = paddingRight + 'px';
+            }
+            if (this.mirror) {
+                this.mirror.style.paddingRight = paddingRight + 'px';
+            }
+        },
+        enumerable: true,
+        configurable: true
+    });
+    InputBox.prototype.updateScrollDimensions = function () {
+        if (typeof this.cachedContentHeight !== 'number' || typeof this.cachedHeight !== 'number') {
+            return;
+        }
+        var scrollHeight = this.cachedContentHeight;
+        var height = this.cachedHeight;
+        var scrollTop = this.input.scrollTop;
+        this.scrollableElement.setScrollDimensions({ scrollHeight: scrollHeight, height: height });
+        this.scrollableElement.setScrollPosition({ scrollTop: scrollTop });
+    };
     InputBox.prototype.showMessage = function (message, force) {
         this.message = message;
         dom.removeClass(this.element, 'idle');
@@ -218,10 +270,10 @@ var InputBox = /** @class */ (function (_super) {
         this.element.style.border = styles.border ? "1px solid " + styles.border : null;
         // ARIA Support
         var alertText;
-        if (message.type === MessageType.ERROR) {
+        if (message.type === 3 /* ERROR */) {
             alertText = nls.localize('alertErrorMessage', "Error: {0}", message.content);
         }
-        else if (message.type === MessageType.WARNING) {
+        else if (message.type === 2 /* WARNING */) {
             alertText = nls.localize('alertWarningMessage', "Warning: {0}", message.content);
         }
         else {
@@ -241,9 +293,6 @@ var InputBox = /** @class */ (function (_super) {
         this._hideMessage();
         this.applyStyles();
     };
-    InputBox.prototype.isInputValid = function () {
-        return !!this.validation && !this.validation(this.value);
-    };
     InputBox.prototype.validate = function () {
         var errorMsg = null;
         if (this.validation) {
@@ -261,15 +310,15 @@ var InputBox = /** @class */ (function (_super) {
     };
     InputBox.prototype.stylesForType = function (type) {
         switch (type) {
-            case MessageType.INFO: return { border: this.inputValidationInfoBorder, background: this.inputValidationInfoBackground };
-            case MessageType.WARNING: return { border: this.inputValidationWarningBorder, background: this.inputValidationWarningBackground };
-            default: return { border: this.inputValidationErrorBorder, background: this.inputValidationErrorBackground };
+            case 1 /* INFO */: return { border: this.inputValidationInfoBorder, background: this.inputValidationInfoBackground, foreground: this.inputValidationInfoForeground };
+            case 2 /* WARNING */: return { border: this.inputValidationWarningBorder, background: this.inputValidationWarningBackground, foreground: this.inputValidationWarningForeground };
+            default: return { border: this.inputValidationErrorBorder, background: this.inputValidationErrorBackground, foreground: this.inputValidationErrorForeground };
         }
     };
     InputBox.prototype.classForType = function (type) {
         switch (type) {
-            case MessageType.INFO: return 'info';
-            case MessageType.WARNING: return 'warning';
+            case 1 /* INFO */: return 'info';
+            case 2 /* WARNING */: return 'warning';
             default: return 'error';
         }
     };
@@ -280,11 +329,13 @@ var InputBox = /** @class */ (function (_super) {
         }
         var div;
         var layout = function () { return div.style.width = dom.getTotalWidth(_this.element) + 'px'; };
-        this.state = 'open';
         this.contextViewProvider.showContextView({
             getAnchor: function () { return _this.element; },
-            anchorAlignment: AnchorAlignment.RIGHT,
+            anchorAlignment: 1 /* RIGHT */,
             render: function (container) {
+                if (!_this.message) {
+                    return null;
+                }
                 div = dom.append(container, $('.monaco-inputbox-container'));
                 layout();
                 var renderOptions = {
@@ -297,25 +348,32 @@ var InputBox = /** @class */ (function (_super) {
                 dom.addClass(spanElement, _this.classForType(_this.message.type));
                 var styles = _this.stylesForType(_this.message.type);
                 spanElement.style.backgroundColor = styles.background ? styles.background.toString() : null;
+                spanElement.style.color = styles.foreground ? styles.foreground.toString() : null;
                 spanElement.style.border = styles.border ? "1px solid " + styles.border : null;
                 dom.append(div, spanElement);
                 return null;
             },
+            onHide: function () {
+                _this.state = 'closed';
+            },
             layout: layout
         });
+        this.state = 'open';
     };
     InputBox.prototype._hideMessage = function () {
-        if (!this.contextViewProvider || this.state !== 'open') {
+        if (!this.contextViewProvider) {
             return;
         }
+        if (this.state === 'open') {
+            this.contextViewProvider.hideContextView();
+        }
         this.state = 'idle';
-        this.contextViewProvider.hideContextView();
     };
     InputBox.prototype.onValueChange = function () {
         this._onDidChange.fire(this.value);
         this.validate();
         this.updateMirror();
-        if (this.state === 'open') {
+        if (this.state === 'open' && this.contextViewProvider) {
             this.contextViewProvider.layout();
         }
     };
@@ -326,7 +384,13 @@ var InputBox = /** @class */ (function (_super) {
         var value = this.value || this.placeholder;
         var lastCharCode = value.charCodeAt(value.length - 1);
         var suffix = lastCharCode === 10 ? ' ' : '';
-        this.mirror.textContent = value + suffix;
+        var mirrorTextContent = value + suffix;
+        if (mirrorTextContent) {
+            this.mirror.textContent = value + suffix;
+        }
+        else {
+            this.mirror.innerHTML = '&nbsp;';
+        }
         this.layout();
     };
     InputBox.prototype.style = function (styles) {
@@ -334,10 +398,13 @@ var InputBox = /** @class */ (function (_super) {
         this.inputForeground = styles.inputForeground;
         this.inputBorder = styles.inputBorder;
         this.inputValidationInfoBackground = styles.inputValidationInfoBackground;
+        this.inputValidationInfoForeground = styles.inputValidationInfoForeground;
         this.inputValidationInfoBorder = styles.inputValidationInfoBorder;
         this.inputValidationWarningBackground = styles.inputValidationWarningBackground;
+        this.inputValidationWarningForeground = styles.inputValidationWarningForeground;
         this.inputValidationWarningBorder = styles.inputValidationWarningBorder;
         this.inputValidationErrorBackground = styles.inputValidationErrorBackground;
+        this.inputValidationErrorForeground = styles.inputValidationErrorForeground;
         this.inputValidationErrorBorder = styles.inputValidationErrorBorder;
         this.applyStyles();
     };
@@ -359,26 +426,80 @@ var InputBox = /** @class */ (function (_super) {
         if (!this.mirror) {
             return;
         }
-        var previousHeight = this.cachedHeight;
-        this.cachedHeight = dom.getTotalHeight(this.mirror);
-        if (previousHeight !== this.cachedHeight) {
+        var previousHeight = this.cachedContentHeight;
+        this.cachedContentHeight = dom.getTotalHeight(this.mirror);
+        if (previousHeight !== this.cachedContentHeight) {
+            this.cachedHeight = Math.min(this.cachedContentHeight, this.maxHeight);
             this.input.style.height = this.cachedHeight + 'px';
-            this._onDidHeightChange.fire(this.cachedHeight);
+            this._onDidHeightChange.fire(this.cachedContentHeight);
         }
     };
     InputBox.prototype.dispose = function () {
         this._hideMessage();
-        this.element = null;
-        this.input = null;
-        this.contextViewProvider = null;
+        this.element = null; // StrictNullOverride: nulling out ok in dispose
+        this.input = null; // StrictNullOverride: nulling out ok in dispose
+        this.contextViewProvider = undefined;
         this.message = null;
-        this.placeholder = null;
-        this.ariaLabel = null;
-        this.validation = null;
-        this.state = null;
-        this.actionbar = null;
+        this.validation = undefined;
+        this.state = null; // StrictNullOverride: nulling out ok in dispose
+        this.actionbar = undefined;
         _super.prototype.dispose.call(this);
     };
     return InputBox;
 }(Widget));
 export { InputBox };
+var HistoryInputBox = /** @class */ (function (_super) {
+    __extends(HistoryInputBox, _super);
+    function HistoryInputBox(container, contextViewProvider, options) {
+        var _this = _super.call(this, container, contextViewProvider, options) || this;
+        _this.history = new HistoryNavigator(options.history, 100);
+        return _this;
+    }
+    HistoryInputBox.prototype.addToHistory = function () {
+        if (this.value && this.value !== this.getCurrentValue()) {
+            this.history.add(this.value);
+        }
+    };
+    HistoryInputBox.prototype.showNextValue = function () {
+        if (!this.history.has(this.value)) {
+            this.addToHistory();
+        }
+        var next = this.getNextValue();
+        if (next) {
+            next = next === this.value ? this.getNextValue() : next;
+        }
+        if (next) {
+            this.value = next;
+            aria.status(this.value);
+        }
+    };
+    HistoryInputBox.prototype.showPreviousValue = function () {
+        if (!this.history.has(this.value)) {
+            this.addToHistory();
+        }
+        var previous = this.getPreviousValue();
+        if (previous) {
+            previous = previous === this.value ? this.getPreviousValue() : previous;
+        }
+        if (previous) {
+            this.value = previous;
+            aria.status(this.value);
+        }
+    };
+    HistoryInputBox.prototype.getCurrentValue = function () {
+        var currentValue = this.history.current();
+        if (!currentValue) {
+            currentValue = this.history.last();
+            this.history.next();
+        }
+        return currentValue;
+    };
+    HistoryInputBox.prototype.getPreviousValue = function () {
+        return this.history.previous() || this.history.first();
+    };
+    HistoryInputBox.prototype.getNextValue = function () {
+        return this.history.next() || this.history.last();
+    };
+    return HistoryInputBox;
+}(InputBox));
+export { HistoryInputBox };

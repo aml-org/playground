@@ -1,0 +1,30 @@
+#%Kubernetes Pod 1.0
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: two-containers # Try making this an integer
+
+spec:
+  restartPolicy: never # Try deleting this line
+  volumes:
+    - name: shared-data
+      emptyDir: {}
+    - name: private-data
+      emptyDir:
+        medium: first-container
+  containers:
+    - name: nginx-container
+      image: nginx
+      volumeMounts:
+        - name: shared-data
+          mountPath: /usr/share/nginx/html
+    - name: debian-container
+      image: debian
+      volumeMounts:
+        - name: shared-data
+          mountPath: /pod-data
+        - name: private-data
+          mountPath: /pod-private-data
+      command: ["/bin/sh"]
+      args: ["-c", "echo Hello > /pod-data/index.html"]

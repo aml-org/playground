@@ -2,11 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -23,7 +25,14 @@ var Margin = /** @class */ (function (_super) {
         _this._contentLeft = _this._context.configuration.editor.layoutInfo.contentLeft;
         _this._glyphMarginLeft = _this._context.configuration.editor.layoutInfo.glyphMarginLeft;
         _this._glyphMarginWidth = _this._context.configuration.editor.layoutInfo.glyphMarginWidth;
-        _this._domNode = _this._createDomNode();
+        _this._domNode = createFastDomNode(document.createElement('div'));
+        _this._domNode.setClassName(Margin.OUTER_CLASS_NAME);
+        _this._domNode.setPosition('absolute');
+        _this._domNode.setAttribute('role', 'presentation');
+        _this._domNode.setAttribute('aria-hidden', 'true');
+        _this._glyphMarginBackgroundDomNode = createFastDomNode(document.createElement('div'));
+        _this._glyphMarginBackgroundDomNode.setClassName(Margin.CLASS_NAME);
+        _this._domNode.appendChild(_this._glyphMarginBackgroundDomNode);
         return _this;
     }
     Margin.prototype.dispose = function () {
@@ -31,17 +40,6 @@ var Margin = /** @class */ (function (_super) {
     };
     Margin.prototype.getDomNode = function () {
         return this._domNode;
-    };
-    Margin.prototype._createDomNode = function () {
-        var domNode = createFastDomNode(document.createElement('div'));
-        domNode.setClassName('margin');
-        domNode.setPosition('absolute');
-        domNode.setAttribute('role', 'presentation');
-        domNode.setAttribute('aria-hidden', 'true');
-        this._glyphMarginBackgroundDomNode = createFastDomNode(document.createElement('div'));
-        this._glyphMarginBackgroundDomNode.setClassName(Margin.CLASS_NAME);
-        domNode.appendChild(this._glyphMarginBackgroundDomNode);
-        return domNode;
     };
     // --- begin event handlers
     Margin.prototype.onConfigurationChanged = function (e) {
@@ -74,6 +72,7 @@ var Margin = /** @class */ (function (_super) {
         this._glyphMarginBackgroundDomNode.setHeight(height);
     };
     Margin.CLASS_NAME = 'glyph-margin';
+    Margin.OUTER_CLASS_NAME = 'margin';
     return Margin;
 }(ViewPart));
 export { Margin };

@@ -2,19 +2,19 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
+import { onUnexpectedError } from '../../../base/common/errors.js';
+import { Emitter } from '../../../base/common/event.js';
+import { toDisposable } from '../../../base/common/lifecycle.js';
+import * as strings from '../../../base/common/strings.js';
+import { Range } from '../core/range.js';
+import { DEFAULT_WORD_REGEXP, ensureValidWordDefinition } from '../model/wordHelper.js';
+import { IndentAction } from './languageConfiguration.js';
+import { createScopedLineTokens } from './supports.js';
 import { CharacterPairSupport } from './supports/characterPair.js';
 import { BracketElectricCharacterSupport } from './supports/electricCharacter.js';
-import { OnEnterSupport } from './supports/onEnter.js';
 import { IndentRulesSupport } from './supports/indentRules.js';
+import { OnEnterSupport } from './supports/onEnter.js';
 import { RichEditBrackets } from './supports/richEditBrackets.js';
-import { Emitter } from '../../../base/common/event.js';
-import { onUnexpectedError } from '../../../base/common/errors.js';
-import * as strings from '../../../base/common/strings.js';
-import { DEFAULT_WORD_REGEXP, ensureValidWordDefinition } from '../model/wordHelper.js';
-import { createScopedLineTokens } from './supports.js';
-import { Range } from '../core/range.js';
-import { IndentAction } from './languageConfiguration.js';
 var RichEditSupport = /** @class */ (function () {
     function RichEditSupport(languageIdentifier, previous, rawConf) {
         this._languageIdentifier = languageIdentifier;
@@ -33,6 +33,9 @@ var RichEditSupport = /** @class */ (function () {
         if (this._conf.indentationRules) {
             this.indentRulesSupport = new IndentRulesSupport(this._conf.indentationRules);
         }
+        else {
+            this.indentRulesSupport = null;
+        }
         this.foldingRules = this._conf.folding || {};
     }
     Object.defineProperty(RichEditSupport.prototype, "brackets", {
@@ -48,16 +51,7 @@ var RichEditSupport = /** @class */ (function () {
     Object.defineProperty(RichEditSupport.prototype, "electricCharacter", {
         get: function () {
             if (!this._electricCharacter) {
-                var autoClosingPairs = [];
-                if (this._conf.autoClosingPairs) {
-                    autoClosingPairs = this._conf.autoClosingPairs;
-                }
-                else if (this._conf.brackets) {
-                    autoClosingPairs = this._conf.brackets.map(function (b) {
-                        return { open: b[0], close: b[1] };
-                    });
-                }
-                this._electricCharacter = new BracketElectricCharacterSupport(this.brackets, autoClosingPairs, this._conf.__electricCharacterSupport);
+                this._electricCharacter = new BracketElectricCharacterSupport(this.brackets);
             }
             return this._electricCharacter;
         },
@@ -73,6 +67,7 @@ var RichEditSupport = /** @class */ (function () {
             onEnterRules: (prev ? current.onEnterRules || prev.onEnterRules : current.onEnterRules),
             autoClosingPairs: (prev ? current.autoClosingPairs || prev.autoClosingPairs : current.autoClosingPairs),
             surroundingPairs: (prev ? current.surroundingPairs || prev.surroundingPairs : current.surroundingPairs),
+            autoCloseBefore: (prev ? current.autoCloseBefore || prev.autoCloseBefore : current.autoCloseBefore),
             folding: (prev ? current.folding || prev.folding : current.folding),
             __electricCharacterSupport: (prev ? current.__electricCharacterSupport || prev.__electricCharacterSupport : current.__electricCharacterSupport),
         };
@@ -118,41 +113,33 @@ var RichEditSupport = /** @class */ (function () {
 }());
 export { RichEditSupport };
 var LanguageConfigurationChangeEvent = /** @class */ (function () {
-    function LanguageConfigurationChangeEvent() {
+    function LanguageConfigurationChangeEvent(languageIdentifier) {
+        this.languageIdentifier = languageIdentifier;
     }
     return LanguageConfigurationChangeEvent;
 }());
 export { LanguageConfigurationChangeEvent };
 var LanguageConfigurationRegistryImpl = /** @class */ (function () {
     function LanguageConfigurationRegistryImpl() {
+        this._entries = new Map();
         this._onDidChange = new Emitter();
         this.onDidChange = this._onDidChange.event;
-        this._entries = [];
     }
     LanguageConfigurationRegistryImpl.prototype.register = function (languageIdentifier, configuration) {
         var _this = this;
         var previous = this._getRichEditSupport(languageIdentifier.id);
         var current = new RichEditSupport(languageIdentifier, previous, configuration);
-        this._entries[languageIdentifier.id] = current;
-        this._onDidChange.fire({ languageIdentifier: languageIdentifier });
-        return {
-            dispose: function () {
-                if (_this._entries[languageIdentifier.id] === current) {
-                    _this._entries[languageIdentifier.id] = previous;
-                    _this._onDidChange.fire({ languageIdentifier: languageIdentifier });
-                }
+        this._entries.set(languageIdentifier.id, current);
+        this._onDidChange.fire(new LanguageConfigurationChangeEvent(languageIdentifier));
+        return toDisposable(function () {
+            if (_this._entries.get(languageIdentifier.id) === current) {
+                _this._entries.set(languageIdentifier.id, previous);
+                _this._onDidChange.fire(new LanguageConfigurationChangeEvent(languageIdentifier));
             }
-        };
+        });
     };
     LanguageConfigurationRegistryImpl.prototype._getRichEditSupport = function (languageId) {
-        return this._entries[languageId] || null;
-    };
-    LanguageConfigurationRegistryImpl.prototype.getIndentationRules = function (languageId) {
-        var value = this._entries[languageId];
-        if (!value) {
-            return null;
-        }
-        return value.indentationRules || null;
+        return this._entries.get(languageId);
     };
     // begin electricCharacter
     LanguageConfigurationRegistryImpl.prototype._getElectricCharacterSupport = function (languageId) {
@@ -203,6 +190,13 @@ var LanguageConfigurationRegistryImpl = /** @class */ (function () {
         }
         return characterPairSupport.getAutoClosingPairs();
     };
+    LanguageConfigurationRegistryImpl.prototype.getAutoCloseBeforeSet = function (languageId) {
+        var characterPairSupport = this._getCharacterPairSupport(languageId);
+        if (!characterPairSupport) {
+            return CharacterPairSupport.DEFAULT_AUTOCLOSE_BEFORE_LANGUAGE_DEFINED;
+        }
+        return characterPairSupport.getAutoCloseBeforeSet();
+    };
     LanguageConfigurationRegistryImpl.prototype.getSurroundingPairs = function (languageId) {
         var characterPairSupport = this._getCharacterPairSupport(languageId);
         if (!characterPairSupport) {
@@ -210,13 +204,9 @@ var LanguageConfigurationRegistryImpl = /** @class */ (function () {
         }
         return characterPairSupport.getSurroundingPairs();
     };
-    LanguageConfigurationRegistryImpl.prototype.shouldAutoClosePair = function (character, context, column) {
+    LanguageConfigurationRegistryImpl.prototype.shouldAutoClosePair = function (autoClosingPair, context, column) {
         var scopedLineTokens = createScopedLineTokens(context, column - 1);
-        var characterPairSupport = this._getCharacterPairSupport(scopedLineTokens.languageId);
-        if (!characterPairSupport) {
-            return false;
-        }
-        return characterPairSupport.shouldAutoClosePair(character, scopedLineTokens, column - scopedLineTokens.firstCharOffset);
+        return CharacterPairSupport.shouldAutoClosePair(autoClosingPair, scopedLineTokens, column - scopedLineTokens.firstCharOffset);
     };
     // end characterPair
     LanguageConfigurationRegistryImpl.prototype.getWordDefinition = function (languageId) {
@@ -251,7 +241,7 @@ var LanguageConfigurationRegistryImpl = /** @class */ (function () {
     LanguageConfigurationRegistryImpl.prototype.getPrecedingValidLine = function (model, lineNumber, indentRulesSupport) {
         var languageID = model.getLanguageIdAtPosition(lineNumber, 0);
         if (lineNumber > 1) {
-            var lastLineNumber = lineNumber - 1;
+            var lastLineNumber = void 0;
             var resultLineNumber = -1;
             for (lastLineNumber = lineNumber - 1; lastLineNumber >= 1; lastLineNumber--) {
                 if (model.getLanguageIdAtPosition(lastLineNumber, 0) !== languageID) {
@@ -409,7 +399,9 @@ var LanguageConfigurationRegistryImpl = /** @class */ (function () {
                 var onEnterSupport = this._getOnEnterSupport(languageId);
                 var enterResult = null;
                 try {
-                    enterResult = onEnterSupport.onEnter('', virtualModel.getLineContent(inheritLine), '');
+                    if (onEnterSupport) {
+                        enterResult = onEnterSupport.onEnter('', virtualModel.getLineContent(inheritLine), '');
+                    }
                 }
                 catch (e) {
                     onUnexpectedError(e);
@@ -665,7 +657,7 @@ var LanguageConfigurationRegistryImpl = /** @class */ (function () {
     LanguageConfigurationRegistryImpl.prototype.getScopedLineTokens = function (model, lineNumber, columnNumber) {
         model.forceTokenization(lineNumber);
         var lineTokens = model.getLineTokens(lineNumber);
-        var column = isNaN(columnNumber) ? model.getLineMaxColumn(lineNumber) - 1 : columnNumber - 1;
+        var column = (typeof columnNumber === 'undefined' ? model.getLineMaxColumn(lineNumber) - 1 : columnNumber - 1);
         var scopedLineTokens = createScopedLineTokens(lineTokens, column);
         return scopedLineTokens;
     };

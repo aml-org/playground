@@ -18,7 +18,7 @@ export var createScanner = scanner.createScanner;
 export var getLocation = parser.getLocation;
 /**
  * Parses the given text and returns the object the JSON content represents. On invalid input, the parser tries to be as fault tolerant as possible, but still return a result.
- * Therefore always check the errors list to find out if the input was valid.
+ * Therefore, always check the errors list to find out if the input was valid.
  */
 export var parse = parser.parse;
 /**
@@ -29,6 +29,14 @@ export var parseTree = parser.parseTree;
  * Finds the node at the given path in a JSON DOM.
  */
 export var findNodeAtLocation = parser.findNodeAtLocation;
+/**
+ * Finds the innermost node at the given offset. If includeRightBound is set, also finds nodes that end at the given offset.
+ */
+export var findNodeAtOffset = parser.findNodeAtOffset;
+/**
+ * Gets the JSON path of the given JSON DOM node
+ */
+export var getNodePath = parser.getNodePath;
 /**
  * Evaluates the JavaScript object of the given JSON DOM node
  */
@@ -43,6 +51,27 @@ export var visit = parser.visit;
  * of comments with a replaceCharacter
  */
 export var stripComments = parser.stripComments;
+export function printParseErrorCode(code) {
+    switch (code) {
+        case 1 /* InvalidSymbol */: return 'InvalidSymbol';
+        case 2 /* InvalidNumberFormat */: return 'InvalidNumberFormat';
+        case 3 /* PropertyNameExpected */: return 'PropertyNameExpected';
+        case 4 /* ValueExpected */: return 'ValueExpected';
+        case 5 /* ColonExpected */: return 'ColonExpected';
+        case 6 /* CommaExpected */: return 'CommaExpected';
+        case 7 /* CloseBraceExpected */: return 'CloseBraceExpected';
+        case 8 /* CloseBracketExpected */: return 'CloseBracketExpected';
+        case 9 /* EndOfFileExpected */: return 'EndOfFileExpected';
+        case 10 /* InvalidCommentToken */: return 'InvalidCommentToken';
+        case 11 /* UnexpectedEndOfComment */: return 'UnexpectedEndOfComment';
+        case 12 /* UnexpectedEndOfString */: return 'UnexpectedEndOfString';
+        case 13 /* UnexpectedEndOfNumber */: return 'UnexpectedEndOfNumber';
+        case 14 /* InvalidUnicode */: return 'InvalidUnicode';
+        case 15 /* InvalidEscapeCharacter */: return 'InvalidEscapeCharacter';
+        case 16 /* InvalidCharacter */: return 'InvalidCharacter';
+    }
+    return '<unknown ParseErrorCode>';
+}
 /**
  * Computes the edits needed to format a JSON document.
  *
@@ -53,7 +82,7 @@ export var stripComments = parser.stripComments;
  * removals of text segments. All offsets refer to the original state of the document. No two edits must change or remove the same range of
  * text in the original document. However, multiple edits can have
  * the same offset, for example multiple inserts, or an insert followed by a remove or replace. The order in the array defines which edit is applied first.
- * To apply edits to an input, you can use `applyEdits`
+ * To apply edits to an input, you can use `applyEdits`.
  */
 export function format(documentText, range, options) {
     return formatter.format(documentText, range, options);
@@ -71,7 +100,7 @@ export function format(documentText, range, options) {
  * removals of text segments. All offsets refer to the original state of the document. No two edits must change or remove the same range of
  * text in the original document. However, multiple edits can have
  * the same offset, for example multiple inserts, or an insert followed by a remove or replace. The order in the array defines which edit is applied first.
- * To apply edits to an input, you can use `applyEdits`
+ * To apply edits to an input, you can use `applyEdits`.
  */
 export function modify(text, path, value, options) {
     return edit.setProperty(text, path, value, options.formattingOptions, options.getInsertionIndex);
@@ -85,4 +114,3 @@ export function applyEdits(text, edits) {
     }
     return text;
 }
-//# sourceMappingURL=main.js.map

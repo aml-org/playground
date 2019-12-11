@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 import { EditOperation } from '../../common/core/editOperation.js';
 import { Range } from '../../common/core/range.js';
 var SortLinesCommand = /** @class */ (function () {
     function SortLinesCommand(selection, descending) {
         this.selection = selection;
         this.descending = descending;
+        this.selectionId = null;
     }
     SortLinesCommand.prototype.getEditOperations = function (model, builder) {
         var op = sortLines(model, this.selection, this.descending);
@@ -21,6 +21,9 @@ var SortLinesCommand = /** @class */ (function () {
         return helper.getTrackedSelection(this.selectionId);
     };
     SortLinesCommand.canRun = function (model, selection, descending) {
+        if (model === null) {
+            return false;
+        }
         var data = getSortData(model, selection, descending);
         if (!data) {
             return false;

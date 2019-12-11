@@ -2,15 +2,18 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
-import { TPromise } from '../../../base/common/winjs.base.js';
+import { toDisposable } from '../../../base/common/lifecycle.js';
 import { validateConstraints } from '../../../base/common/types.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { Emitter } from '../../../base/common/event.js';
 import { LinkedList } from '../../../base/common/linkedList.js';
+import { keys } from '../../../base/common/map.js';
 export var ICommandService = createDecorator('commandService');
 export var CommandsRegistry = new /** @class */ (function () {
     function class_1() {
         this._commands = new Map();
+        this._onDidRegisterCommand = new Emitter();
+        this.onDidRegisterCommand = this._onDidRegisterCommand.event;
     }
     class_1.prototype.registerCommand = function (idOrCommand, handler) {
         var _this = this;
@@ -48,14 +51,26 @@ export var CommandsRegistry = new /** @class */ (function () {
             this._commands.set(id, commands);
         }
         var removeFn = commands.unshift(idOrCommand);
-        return {
-            dispose: function () {
-                removeFn();
-                if (_this._commands.get(id).isEmpty()) {
-                    _this._commands.delete(id);
-                }
+        var ret = toDisposable(function () {
+            removeFn();
+            var command = _this._commands.get(id);
+            if (command && command.isEmpty()) {
+                _this._commands.delete(id);
             }
-        };
+        });
+        // tell the world about this command
+        this._onDidRegisterCommand.fire(id);
+        return ret;
+    };
+    class_1.prototype.registerCommandAlias = function (oldId, newId) {
+        return CommandsRegistry.registerCommand(oldId, function (accessor) {
+            var _a;
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
+            }
+            return (_a = accessor.get(ICommandService)).executeCommand.apply(_a, [newId].concat(args));
+        });
     };
     class_1.prototype.getCommand = function (id) {
         var list = this._commands.get(id);
@@ -65,19 +80,15 @@ export var CommandsRegistry = new /** @class */ (function () {
         return list.iterator().next().value;
     };
     class_1.prototype.getCommands = function () {
-        var _this = this;
-        var result = Object.create(null);
-        this._commands.forEach(function (value, key) {
-            result[key] = _this.getCommand(key);
-        });
+        var result = new Map();
+        for (var _i = 0, _a = keys(this._commands); _i < _a.length; _i++) {
+            var key = _a[_i];
+            var command = this.getCommand(key);
+            if (command) {
+                result.set(key, command);
+            }
+        }
         return result;
     };
     return class_1;
 }());
-export var NullCommandService = {
-    _serviceBrand: undefined,
-    onWillExecuteCommand: function () { return ({ dispose: function () { } }); },
-    executeCommand: function () {
-        return TPromise.as(undefined);
-    }
-};

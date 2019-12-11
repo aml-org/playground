@@ -2,7 +2,6 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 /**
  * Returns an array which contains all values that reside
@@ -17,14 +16,13 @@ export function values(from) {
     }
     return result;
 }
-export function size(from) {
-    var count = 0;
+export function first(from) {
     for (var key in from) {
         if (hasOwnProperty.call(from, key)) {
-            count += 1;
+            return from[key];
         }
     }
-    return count;
+    return undefined;
 }
 /**
  * Iterates over each entry in the provided set. The iterator allows
@@ -47,31 +45,35 @@ export function forEach(from, callback) {
             return state_1.value;
     }
 }
-/**
- * Removes an element from the dictionary. Returns {{false}} if the property
- * does not exists.
- */
-export function remove(from, key) {
-    if (!hasOwnProperty.call(from, key)) {
-        return false;
+var SetMap = /** @class */ (function () {
+    function SetMap() {
+        this.map = new Map();
     }
-    delete from[key];
-    return true;
-}
-/**
- * Groups the collection into a dictionary based on the provided
- * group function.
- */
-export function groupBy(data, groupFn) {
-    var result = Object.create(null);
-    for (var _i = 0, data_1 = data; _i < data_1.length; _i++) {
-        var element = data_1[_i];
-        var key = groupFn(element);
-        var target = result[key];
-        if (!target) {
-            target = result[key] = [];
+    SetMap.prototype.add = function (key, value) {
+        var values = this.map.get(key);
+        if (!values) {
+            values = new Set();
+            this.map.set(key, values);
         }
-        target.push(element);
-    }
-    return result;
-}
+        values.add(value);
+    };
+    SetMap.prototype.delete = function (key, value) {
+        var values = this.map.get(key);
+        if (!values) {
+            return;
+        }
+        values.delete(value);
+        if (values.size === 0) {
+            this.map.delete(key);
+        }
+    };
+    SetMap.prototype.forEach = function (key, fn) {
+        var values = this.map.get(key);
+        if (!values) {
+            return;
+        }
+        values.forEach(fn);
+    };
+    return SetMap;
+}());
+export { SetMap };

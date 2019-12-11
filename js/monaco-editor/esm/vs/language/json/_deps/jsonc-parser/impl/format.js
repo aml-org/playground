@@ -22,7 +22,7 @@ export function format(documentText, range, options) {
             endOffset++;
         }
         formatText = documentText.substring(formatTextStart, endOffset);
-        initialIndentLevel = computeIndentLevel(formatText, 0, options);
+        initialIndentLevel = computeIndentLevel(formatText, options);
     }
     else {
         formatText = documentText;
@@ -155,7 +155,7 @@ function repeat(s, count) {
     }
     return result;
 }
-function computeIndentLevel(content, offset, options) {
+function computeIndentLevel(content, options) {
     var i = 0;
     var nChars = 0;
     var tabSize = options.tabSize || 4;
@@ -192,4 +192,3 @@ function getEOL(options, text) {
 export function isEOL(text, offset) {
     return '\r\n'.indexOf(text.charAt(offset)) !== -1;
 }
-//# sourceMappingURL=format.js.map

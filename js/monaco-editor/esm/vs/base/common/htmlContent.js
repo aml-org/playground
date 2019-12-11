@@ -2,7 +2,6 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 import { equals } from './arrays.js';
 var MarkdownString = /** @class */ (function () {
     function MarkdownString(value) {
@@ -46,7 +45,7 @@ export function isMarkdownString(thing) {
     }
     else if (thing && typeof thing === 'object') {
         return typeof thing.value === 'string'
-            && (typeof thing.isTrusted === 'boolean' || thing.isTrusted === void 0);
+            && (typeof thing.isTrusted === 'boolean' || thing.isTrusted === undefined);
     }
     return false;
 }
@@ -83,4 +82,25 @@ export function removeMarkdownEscapes(text) {
         return text;
     }
     return text.replace(/\\([\\`*_{}[\]()#+\-.!])/g, '$1');
+}
+export function parseHrefAndDimensions(href) {
+    var dimensions = [];
+    var splitted = href.split('|').map(function (s) { return s.trim(); });
+    href = splitted[0];
+    var parameters = splitted[1];
+    if (parameters) {
+        var heightFromParams = /height=(\d+)/.exec(parameters);
+        var widthFromParams = /width=(\d+)/.exec(parameters);
+        var height = heightFromParams ? heightFromParams[1] : '';
+        var width = widthFromParams ? widthFromParams[1] : '';
+        var widthIsFinite = isFinite(parseInt(width));
+        var heightIsFinite = isFinite(parseInt(height));
+        if (widthIsFinite) {
+            dimensions.push("width=\"" + width + "\"");
+        }
+        if (heightIsFinite) {
+            dimensions.push("height=\"" + height + "\"");
+        }
+    }
+    return { href: href, dimensions: dimensions };
 }
