@@ -1,9 +1,5 @@
 ## Contribution Guidelines
 
-### Contributor Agreement
-
-To contribute source code to this repository, please read our [Contributor Agreement](http://www.mulesoft.org/legal/contributor-agreement.html), and then execute it by running [this notebook](https://api-notebook.anypoint.mulesoft.com/notebooks/#380297ed0e474010ff43) and following the instructions.
-
 ## Setting-up this project locally
 
 ### Installation
