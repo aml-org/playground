@@ -98,3 +98,5 @@ gulp.task('bundleAll', gulp.series(
   'bundleValidation',
   'bundleVisualization'
 ))
+
+gulp.task('serve', gulp.series('serveValidation'))

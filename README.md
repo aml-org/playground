@@ -2,16 +2,13 @@
 ![AML Playground Logo](docs/images/AML_white.svg)
 
 ## Demos
-* [Validation](https://a.ml/playground/validation.html)
-* [Visualization](https://a.ml/playground/visualization.html)
+* [Validation](https://github.com/aml-org/playground/tree/master/src/validation) ([Live Demo](https://a.ml/playground/validation.html))
+* [Visualization](https://github.com/aml-org/playground/tree/master/src/visualization) ([Live Demo](https://a.ml/playground/visualization.html))
 
 ## Running this project
-Validation demo:
 ```bash
-$ gulp serveValidation
+$ gulp serve
 ```
 
-Visualization demo:
-```bash
-$ gulp serveVisualization
-```
+## Contributing
+If you wish to contribute to this project, please review our [Contribution Guidelines](https://github.com/aml-org/playground/tree/master/CONTRIBUTING.md).
