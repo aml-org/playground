@@ -1,7 +1,6 @@
 # AML Playground
-![AML Playground Logo](docs/images/AML_white.svg)
 
-## Demos
+## Examples
 * [Validation](https://github.com/aml-org/playground/tree/master/src/validation) ([Live Demo](https://a.ml/playground/validation.html))
 * [Visualization](https://github.com/aml-org/playground/tree/master/src/visualization) ([Live Demo](https://a.ml/playground/visualization.html))
 
