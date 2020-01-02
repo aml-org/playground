@@ -50,6 +50,7 @@ var TypeScriptWorker = /** @class */ (function () {
         else if (fileName in this._extraLibs) {
             return String(this._extraLibs[fileName].version);
         }
+        return '';
     };
     TypeScriptWorker.prototype.getScriptSnapshot = function (fileName) {
         var text;
@@ -94,7 +95,7 @@ var TypeScriptWorker = /** @class */ (function () {
     };
     TypeScriptWorker.prototype.getDefaultLibFileName = function (options) {
         // TODO@joh support lib.es7.d.ts
-        return options.target <= ts.ScriptTarget.ES5 ? DEFAULT_LIB.NAME : ES6_LIB.NAME;
+        return (options.target || ts.ScriptTarget.ES5) <= ts.ScriptTarget.ES5 ? DEFAULT_LIB.NAME : ES6_LIB.NAME;
     };
     TypeScriptWorker.prototype.isDefaultLibFileName = function (fileName) {
         return fileName === this.getDefaultLibFileName(this._compilerOptions);
@@ -118,6 +119,11 @@ var TypeScriptWorker = /** @class */ (function () {
     };
     TypeScriptWorker.prototype.getSemanticDiagnostics = function (fileName) {
         var diagnostics = this._languageService.getSemanticDiagnostics(fileName);
+        TypeScriptWorker.clearFiles(diagnostics);
+        return Promise.resolve(diagnostics);
+    };
+    TypeScriptWorker.prototype.getSuggestionDiagnostics = function (fileName) {
+        var diagnostics = this._languageService.getSuggestionDiagnostics(fileName);
         TypeScriptWorker.clearFiles(diagnostics);
         return Promise.resolve(diagnostics);
     };
@@ -167,6 +173,10 @@ var TypeScriptWorker = /** @class */ (function () {
     };
     TypeScriptWorker.prototype.getEmitOutput = function (fileName) {
         return Promise.resolve(this._languageService.getEmitOutput(fileName));
+    };
+    TypeScriptWorker.prototype.getCodeFixesAtPosition = function (fileName, start, end, errorCodes, formatOptions) {
+        var preferences = {};
+        return Promise.resolve(this._languageService.getCodeFixesAtPosition(fileName, start, end, errorCodes, formatOptions, preferences));
     };
     TypeScriptWorker.prototype.updateExtraLibs = function (extraLibs) {
         this._extraLibs = extraLibs;
