@@ -10,22 +10,21 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@babel/core": "^7.7.5",
+    "@babel/core": "^7.7.7",
     "amf-client-js": "^3.2.2",
     "dagre": "^0.8.5",
     "graphlib": "^2.1.8",
     "jointjs": "^3.1.1",
     "jquery": "^3.4.1",
-    "jsonld": "^1.6.2",
-    "knockout": "^3.4.2",
-    "monaco-editor": "^0.18.1",
-    "node-gyp": "^5.0.1"
+    "knockout": "^3.5.1",
+    "monaco-editor": "^0.19.0",
+    "node-gyp": "^5.0.7"
   },
   "devDependencies": {
     "@types/backbone": "^1.4.1",
     "@types/es6-promise": "^3.3.0",
     "@types/jquery": "^3.3.31",
-    "@typescript-eslint/parser": "^2.11.0",
+    "@typescript-eslint/parser": "^2.14.0",
     "babelify": "^10.0.0",
     "browser-sync": "^2.26.7",
     "browserify": "^16.5.0",
@@ -36,7 +35,7 @@
     "gulp-sourcemaps": "^2.6.5",
     "standard": "^14.3.1",
     "tsify": "^4.0.1",
-    "typescript": "^3.7.3",
+    "typescript": "^3.7.4",
     "typescript-eslint-parser": "^22.0.0",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^2.0.0"
