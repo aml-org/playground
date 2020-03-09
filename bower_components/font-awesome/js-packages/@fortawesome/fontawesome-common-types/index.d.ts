@@ -1,4 +1,5 @@
-export type IconPrefix = "fas" | "fab" | "far" | "fal";
+export type IconPrefix = "fas" | "fab" | "far" | "fal" | "fad";
+export type IconPathData = string | string[]
 
 export interface IconLookup {
   prefix: IconPrefix;
@@ -12,7 +13,7 @@ export interface IconDefinition extends IconLookup {
     number, // height
     string[], // ligatures
     string, // unicode
-    string // svgPathData
+    IconPathData // svgPathData
   ];
 }
 
@@ -69,6 +70,7 @@ export type IconName = '500px' |
   'btc' | 
   'buffer' | 
   'buromobelexperte' | 
+  'buy-n-large' | 
   'buysellads' | 
   'canadian-maple-leaf' | 
   'cc-amazon-pay' | 
@@ -93,6 +95,7 @@ export type IconName = '500px' |
   'confluence' | 
   'connectdevelop' | 
   'contao' | 
+  'cotton-bureau' | 
   'cpanel' | 
   'creative-commons' | 
   'creative-commons-by' | 
@@ -114,6 +117,7 @@ export type IconName = '500px' |
   'cuttlefish' | 
   'd-and-d' | 
   'd-and-d-beyond' | 
+  'dailymotion' | 
   'dashcube' | 
   'delicious' | 
   'deploydog' | 
@@ -156,6 +160,7 @@ export type IconName = '500px' |
   'fedora' | 
   'figma' | 
   'firefox' | 
+  'firefox-browser' | 
   'first-order' | 
   'first-order-alt' | 
   'firstdraft' | 
@@ -217,8 +222,10 @@ export type IconName = '500px' |
   'houzz' | 
   'html5' | 
   'hubspot' | 
+  'ideal' | 
   'imdb' | 
   'instagram' | 
+  'instagram-square' | 
   'intercom' | 
   'internet-explorer' | 
   'invision' | 
@@ -258,6 +265,7 @@ export type IconName = '500px' |
   'markdown' | 
   'mastodon' | 
   'maxcdn' | 
+  'mdb' | 
   'medapps' | 
   'medium' | 
   'medium-m' | 
@@ -265,9 +273,11 @@ export type IconName = '500px' |
   'meetup' | 
   'megaport' | 
   'mendeley' | 
+  'microblog' | 
   'microsoft' | 
   'mix' | 
   'mixcloud' | 
+  'mixer' | 
   'mizuni' | 
   'modx' | 
   'monero' | 
@@ -286,6 +296,7 @@ export type IconName = '500px' |
   'openid' | 
   'opera' | 
   'optin-monster' | 
+  'orcid' | 
   'osi' | 
   'page4' | 
   'pagelines' | 
@@ -302,6 +313,7 @@ export type IconName = '500px' |
   'pied-piper-alt' | 
   'pied-piper-hat' | 
   'pied-piper-pp' | 
+  'pied-piper-square' | 
   'pinterest' | 
   'pinterest-p' | 
   'pinterest-square' | 
@@ -341,6 +353,7 @@ export type IconName = '500px' |
   'sellsy' | 
   'servicestack' | 
   'shirtsinbulk' | 
+  'shopify' | 
   'shopware' | 
   'simplybuilt' | 
   'sistrix' | 
@@ -377,6 +390,7 @@ export type IconName = '500px' |
   'superpowers' | 
   'supple' | 
   'suse' | 
+  'swift' | 
   'symfony' | 
   'teamspeak' | 
   'telegram' | 
@@ -398,7 +412,9 @@ export type IconName = '500px' |
   'uber' | 
   'ubuntu' | 
   'uikit' | 
+  'umbraco' | 
   'uniregistry' | 
+  'unity' | 
   'untappd' | 
   'ups' | 
   'usb' | 
@@ -653,6 +669,7 @@ export type IconName = '500px' |
   'backspace' | 
   'backward' | 
   'bacon' | 
+  'bahai' | 
   'balance-scale' | 
   'balance-scale-left' | 
   'balance-scale-right' | 
@@ -737,6 +754,7 @@ export type IconName = '500px' |
   'car-battery' | 
   'car-crash' | 
   'car-side' | 
+  'caravan' | 
   'caret-down' | 
   'caret-left' | 
   'caret-right' | 
@@ -821,6 +839,7 @@ export type IconName = '500px' |
   'compact-disc' | 
   'compass' | 
   'compress' | 
+  'compress-alt' | 
   'compress-arrows-alt' | 
   'concierge-bell' | 
   'cookie' | 
@@ -897,6 +916,7 @@ export type IconName = '500px' |
   'exclamation-circle' | 
   'exclamation-triangle' | 
   'expand' | 
+  'expand-alt' | 
   'expand-arrows-alt' | 
   'external-link-alt' | 
   'external-link-square-alt' | 
@@ -1030,8 +1050,9 @@ export type IconName = '500px' |
   'hanukiah' | 
   'hard-hat' | 
   'hashtag' | 
+  'hat-cowboy' | 
+  'hat-cowboy-side' | 
   'hat-wizard' | 
-  'haykal' | 
   'hdd' | 
   'heading' | 
   'headphones' | 
@@ -1174,6 +1195,7 @@ export type IconName = '500px' |
   'mosque' | 
   'motorcycle' | 
   'mountain' | 
+  'mouse' | 
   'mouse-pointer' | 
   'mug-hot' | 
   'music' | 
@@ -1267,6 +1289,7 @@ export type IconName = '500px' |
   'rainbow' | 
   'random' | 
   'receipt' | 
+  'record-vinyl' | 
   'recycle' | 
   'redo' | 
   'redo-alt' | 
@@ -1461,6 +1484,7 @@ export type IconName = '500px' |
   'tractor' | 
   'trademark' | 
   'traffic-light' | 
+  'trailer' | 
   'train' | 
   'tram' | 
   'transgender' | 

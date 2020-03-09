@@ -25,7 +25,7 @@
     "backbone": "^1.4.0",
     "graphlib": "^2.1.7",
     "dagre": "^0.8.4",
-    "webcomponentsjs": "^2.2.10",
+    "webcomponentsjs": "^0.7.24",
     "rest": "^2.0.0"
   }
 }
