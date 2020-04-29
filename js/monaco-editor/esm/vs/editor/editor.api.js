@@ -10,7 +10,7 @@ var global = self;
 // Set defaults for standalone editor
 EditorOptions.wrappingIndent.defaultValue = 0 /* None */;
 EditorOptions.glyphMargin.defaultValue = false;
-EditorOptions.autoIndent.defaultValue = 'advanced';
+EditorOptions.autoIndent.defaultValue = 3 /* Advanced */;
 EditorOptions.overviewRulerLanes.defaultValue = 2;
 var api = createMonacoBaseAPI();
 api.editor = createMonacoEditorAPI();

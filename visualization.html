@@ -102,8 +102,8 @@
                 var style = window.getComputedStyle(containerDiv);
                 var hidden = style.display == "none";
                 if (!hidden) {
-                  containerDiv.style.maxHeight = (height - 200) + "px";
-                  containerDiv.style.height = (height - 200) + "px";
+                  containerDiv.style.maxHeight = (height - 150) + "px";
+                  containerDiv.style.height = (height - 150) + "px";
                 }
               });
             };
@@ -129,6 +129,7 @@
               scrollBeyondLastLine: false,
               renderLineHighlight: "none",
               occurrencesHighlight: false,
+              renderValidationDecorations: 'on',
               minimap: {
                 enabled: false
               }

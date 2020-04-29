@@ -6,9 +6,9 @@ import './standalone-tokens.css';
 import { ICodeEditorService } from '../../browser/services/codeEditorService.js';
 import { OpenerService } from '../../browser/services/openerService.js';
 import { DiffNavigator } from '../../browser/widget/diffNavigator.js';
-import { ConfigurationChangedEvent } from '../../common/config/editorOptions.js';
+import { EditorOptions, ConfigurationChangedEvent } from '../../common/config/editorOptions.js';
 import { BareFontInfo, FontInfo } from '../../common/config/fontInfo.js';
-import * as editorCommon from '../../common/editorCommon.js';
+import { EditorType } from '../../common/editorCommon.js';
 import { FindMatch, TextModelResolvedOptions } from '../../common/model.js';
 import * as modes from '../../common/modes.js';
 import { NULL_STATE, nullTokenize } from '../../common/modes/nullMode.js';
@@ -264,19 +264,26 @@ export function createMonacoEditorAPI() {
         setTheme: setTheme,
         remeasureFonts: remeasureFonts,
         // enums
-        ScrollbarVisibility: standaloneEnums.ScrollbarVisibility,
-        OverviewRulerLane: standaloneEnums.OverviewRulerLane,
-        MinimapPosition: standaloneEnums.MinimapPosition,
-        EndOfLinePreference: standaloneEnums.EndOfLinePreference,
-        DefaultEndOfLine: standaloneEnums.DefaultEndOfLine,
-        EndOfLineSequence: standaloneEnums.EndOfLineSequence,
-        TrackedRangeStickiness: standaloneEnums.TrackedRangeStickiness,
-        CursorChangeReason: standaloneEnums.CursorChangeReason,
-        MouseTargetType: standaloneEnums.MouseTargetType,
+        AccessibilitySupport: standaloneEnums.AccessibilitySupport,
         ContentWidgetPositionPreference: standaloneEnums.ContentWidgetPositionPreference,
+        CursorChangeReason: standaloneEnums.CursorChangeReason,
+        DefaultEndOfLine: standaloneEnums.DefaultEndOfLine,
+        EditorAutoIndentStrategy: standaloneEnums.EditorAutoIndentStrategy,
+        EditorOption: standaloneEnums.EditorOption,
+        EndOfLinePreference: standaloneEnums.EndOfLinePreference,
+        EndOfLineSequence: standaloneEnums.EndOfLineSequence,
+        MinimapPosition: standaloneEnums.MinimapPosition,
+        MouseTargetType: standaloneEnums.MouseTargetType,
         OverlayWidgetPositionPreference: standaloneEnums.OverlayWidgetPositionPreference,
+        OverviewRulerLane: standaloneEnums.OverviewRulerLane,
+        RenderLineNumbersType: standaloneEnums.RenderLineNumbersType,
         RenderMinimap: standaloneEnums.RenderMinimap,
+        ScrollbarVisibility: standaloneEnums.ScrollbarVisibility,
         ScrollType: standaloneEnums.ScrollType,
+        TextEditorCursorBlinkingStyle: standaloneEnums.TextEditorCursorBlinkingStyle,
+        TextEditorCursorStyle: standaloneEnums.TextEditorCursorStyle,
+        TrackedRangeStickiness: standaloneEnums.TrackedRangeStickiness,
+        WrappingIndent: standaloneEnums.WrappingIndent,
         // classes
         ConfigurationChangedEvent: ConfigurationChangedEvent,
         BareFontInfo: BareFontInfo,
@@ -284,6 +291,7 @@ export function createMonacoEditorAPI() {
         TextModelResolvedOptions: TextModelResolvedOptions,
         FindMatch: FindMatch,
         // vars
-        EditorType: editorCommon.EditorType,
+        EditorType: EditorType,
+        EditorOptions: EditorOptions
     };
 }
