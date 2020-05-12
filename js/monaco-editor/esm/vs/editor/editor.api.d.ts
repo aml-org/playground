@@ -8,11 +8,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-
-
-// THIS IS A GENERATED FILE. DO NOT EDIT DIRECTLY.
+declare global {
+    let MonacoEnvironment: Environment | undefined;
+}
 
 export type Thenable<T> = PromiseLike<T>;
+
+export interface Environment {
+    baseUrl?: string;
+    getWorker?(workerId: string, label: string): Worker;
+    getWorkerUrl?(workerId: string, label: string): string;
+}
 
 export interface IDisposable {
     dispose(): void;
@@ -31,7 +37,6 @@ export class Emitter<T> {
     fire(event: T): void;
     dispose(): void;
 }
-
 
 export enum MarkerTag {
     Unnecessary = 1,
@@ -385,6 +390,7 @@ export class KeyMod {
 export interface IMarkdownString {
     readonly value: string;
     readonly isTrusted?: boolean;
+    readonly supportThemeIcons?: boolean;
     uris?: {
         [href: string]: UriComponents;
     };
@@ -409,6 +415,7 @@ export interface IMouseEvent {
     readonly leftButton: boolean;
     readonly middleButton: boolean;
     readonly rightButton: boolean;
+    readonly buttons: number;
     readonly target: HTMLElement;
     readonly detail: number;
     readonly posx: number;
@@ -804,7 +811,6 @@ export class Token {
     toString(): string;
 }
 
-
 export namespace editor {
 
     export interface IDiffNavigator {
@@ -1049,13 +1055,61 @@ export namespace editor {
          * Method that will be executed when the action is triggered.
          * @param editor The editor instance is passed in as a convenience
          */
-        run(editor: ICodeEditor): void | Promise<void>;
+        run(editor: ICodeEditor, ...args: any[]): void | Promise<void>;
+    }
+
+    /**
+     * Options which apply for all editors.
+     */
+    export interface IGlobalEditorOptions {
+        /**
+         * The number of spaces a tab is equal to.
+         * This setting is overridden based on the file contents when `detectIndentation` is on.
+         * Defaults to 4.
+         */
+        tabSize?: number;
+        /**
+         * Insert spaces when pressing `Tab`.
+         * This setting is overridden based on the file contents when `detectIndentation` is on.
+         * Defaults to true.
+         */
+        insertSpaces?: boolean;
+        /**
+         * Controls whether `tabSize` and `insertSpaces` will be automatically detected when a file is opened based on the file contents.
+         * Defaults to true.
+         */
+        detectIndentation?: boolean;
+        /**
+         * Remove trailing auto inserted whitespace.
+         * Defaults to true.
+         */
+        trimAutoWhitespace?: boolean;
+        /**
+         * Special handling for large files to disable certain memory intensive features.
+         * Defaults to true.
+         */
+        largeFileOptimizations?: boolean;
+        /**
+         * Controls whether completions should be computed based on words in the document.
+         * Defaults to true.
+         */
+        wordBasedSuggestions?: boolean;
+        /**
+         * Keep peek editors open even when double clicking their content or when hitting `Escape`.
+         * Defaults to false.
+         */
+        stablePeek?: boolean;
+        /**
+         * Lines above this length will not be tokenized for performance reasons.
+         * Defaults to 20000.
+         */
+        maxTokenizationLineLength?: number;
     }
 
     /**
      * The options to create an editor.
      */
-    export interface IStandaloneEditorConstructionOptions extends IEditorConstructionOptions {
+    export interface IStandaloneEditorConstructionOptions extends IEditorConstructionOptions, IGlobalEditorOptions {
         /**
          * The initial model associated with this code editor.
          */
@@ -1100,6 +1154,7 @@ export namespace editor {
     }
 
     export interface IStandaloneCodeEditor extends ICodeEditor {
+        updateOptions(newOptions: IEditorOptions & IGlobalEditorOptions): void;
         addCommand(keybinding: number, handler: ICommandHandler, context?: string): string | null;
         createContextKey<T>(key: string, defaultValue: T): IContextKey<T>;
         addAction(descriptor: IActionDescriptor): IDisposable;
@@ -1130,7 +1185,10 @@ export namespace editor {
         owner: string;
         resource: Uri;
         severity: MarkerSeverity;
-        code?: string;
+        code?: string | {
+            value: string;
+            link: Uri;
+        };
         message: string;
         source?: string;
         startLineNumber: number;
@@ -1145,7 +1203,10 @@ export namespace editor {
      * A structure defining a problem/warning/etc.
      */
     export interface IMarkerData {
-        code?: string;
+        code?: string | {
+            value: string;
+            link: Uri;
+        };
         severity: MarkerSeverity;
         message: string;
         source?: string;
@@ -1407,20 +1468,6 @@ export namespace editor {
          * Use carriage return and line feed (\r\n) as the end of line character.
          */
         CRLF = 1
-    }
-
-    /**
-     * An identifier for a single edit operation.
-     */
-    export interface ISingleEditOperationIdentifier {
-        /**
-         * Identifier major
-         */
-        major: number;
-        /**
-         * Identifier minor
-         */
-        minor: number;
     }
 
     /**
@@ -1861,14 +1908,14 @@ export namespace editor {
          * @param range The range to replace (delete). May be empty to represent a simple insert.
          * @param text The text to replace with. May be null to represent a simple delete.
          */
-        addEditOperation(range: Range, text: string | null): void;
+        addEditOperation(range: Range, text: string | null, forceMoveMarkers?: boolean): void;
         /**
          * Add a new edit operation (a replace operation).
          * The inverse edits will be accessible in `ICursorStateComputerData.getInverseEditOperations()`
          * @param range The range to replace (delete). May be empty to represent a simple insert.
          * @param text The text to replace with. May be null to represent a simple delete.
          */
-        addTrackedEditOperation(range: Range, text: string | null): void;
+        addTrackedEditOperation(range: Range, text: string | null, forceMoveMarkers?: boolean): void;
         /**
          * Track `selection` when applying edit operations.
          * A best effort will be made to not grow/expand the selection.
@@ -1974,6 +2021,13 @@ export namespace editor {
      */
     export interface ILineChange extends IChange {
         readonly charChanges: ICharChange[] | undefined;
+    }
+
+    export interface IContentSizeChangedEvent {
+        readonly contentWidth: number;
+        readonly contentHeight: number;
+        readonly contentWidthChanged: boolean;
+        readonly contentHeightChanged: boolean;
     }
 
     export interface INewScrollPosition {
@@ -2314,23 +2368,6 @@ export namespace editor {
     export interface IModelDecorationsChangedEvent {
     }
 
-    /**
-     * An event describing that some ranges of lines have been tokenized (their tokens have changed).
-     */
-    export interface IModelTokensChangedEvent {
-        readonly tokenizationSupportChanged: boolean;
-        readonly ranges: {
-            /**
-             * The start of the range (inclusive)
-             */
-            readonly fromLineNumber: number;
-            /**
-             * The end of the range (inclusive)
-             */
-            readonly toLineNumber: number;
-        }[];
-    }
-
     export interface IModelOptionsChangedEvent {
         readonly tabSize: boolean;
         readonly indentSize: boolean;
@@ -2428,6 +2465,15 @@ export namespace editor {
         readonly reason: CursorChangeReason;
     }
 
+    export enum AccessibilitySupport {
+        /**
+         * This should be the browser case where it is not known if a screen reader is attached or no.
+         */
+        Unknown = 0,
+        Disabled = 1,
+        Enabled = 2
+    }
+
     /**
      * Configuration options for auto closing quotes and brackets
      */
@@ -2442,6 +2488,17 @@ export namespace editor {
      * Configuration options for typing over closing quotes or brackets
      */
     export type EditorAutoClosingOvertypeStrategy = 'always' | 'auto' | 'never';
+
+    /**
+     * Configuration options for auto indentation in the editor
+     */
+    export enum EditorAutoIndentStrategy {
+        None = 0,
+        Keep = 1,
+        Brackets = 2,
+        Advanced = 3,
+        Full = 4
+    }
 
     /**
      * Configuration options for the editor.
@@ -2475,7 +2532,7 @@ export namespace editor {
          * If it is a function, it will be invoked when rendering a line number and the return value will be rendered.
          * Otherwise, if it is a truey, line numbers will be rendered normally (equivalent of using an identity function).
          * Otherwise, line numbers will not be rendered.
-         * Defaults to true.
+         * Defaults to `on`.
          */
         lineNumbers?: LineNumbersType;
         /**
@@ -2536,6 +2593,11 @@ export namespace editor {
          * Defaults to false.
          */
         readOnly?: boolean;
+        /**
+         * Should the editor render validation decorations.
+         * Defaults to editable.
+         */
+        renderValidationDecorations?: 'editable' | 'on' | 'off';
         /**
          * Control the behavior and rendering of the scrollbars.
          */
@@ -2663,20 +2725,20 @@ export namespace editor {
          */
         wrappingIndent?: 'none' | 'same' | 'indent' | 'deepIndent';
         /**
+         * Controls the wrapping strategy to use.
+         * Defaults to 'simple'.
+         */
+        wrappingStrategy?: 'simple' | 'advanced';
+        /**
          * Configure word wrapping characters. A break will be introduced before these characters.
-         * Defaults to '{([+'.
+         * Defaults to '([{‘“〈《「『【〔（［｛｢£¥＄￡￥+＋'.
          */
         wordWrapBreakBeforeCharacters?: string;
         /**
          * Configure word wrapping characters. A break will be introduced after these characters.
-         * Defaults to ' \t})]?|&,;'.
+         * Defaults to ' \t})]?|/&.,;¢°′″‰℃、。｡､￠，．：；？！％・･ゝゞヽヾーァィゥェォッャュョヮヵヶぁぃぅぇぉっゃゅょゎゕゖㇰㇱㇲㇳㇴㇵㇶㇷㇸㇹㇺㇻㇼㇽㇾㇿ々〻ｧｨｩｪｫｬｭｮｯｰ”〉》」』】〕）］｝｣'.
          */
         wordWrapBreakAfterCharacters?: string;
-        /**
-         * Configure word wrapping characters. A break will be introduced after these characters only if no `wordWrapBreakBeforeCharacters` or `wordWrapBreakAfterCharacters` were found.
-         * Defaults to '.'.
-         */
-        wordWrapBreakObtrusiveCharacters?: string;
         /**
          * Performance guard: Stop rendering a line after x characters.
          * Defaults to 10000.
@@ -2696,6 +2758,10 @@ export namespace editor {
          * Enable inline color decorators and color picker rendering.
          */
         colorDecorators?: boolean;
+        /**
+         * Control the behaviour of comments in the editor.
+         */
+        comments?: IEditorCommentsOptions;
         /**
          * Enable custom contextmenu.
          * Defaults to true.
@@ -2777,8 +2843,8 @@ export namespace editor {
          */
         autoSurround?: EditorAutoSurroundStrategy;
         /**
-         * Enable auto indentation adjustment.
-         * Defaults to false.
+         * Controls whether the editor should automatically adjust the indentation when users type, paste, move or indent lines.
+         * Defaults to advanced.
          */
         autoIndent?: 'none' | 'keep' | 'brackets' | 'advanced' | 'full';
         /**
@@ -2865,7 +2931,7 @@ export namespace editor {
          */
         codeActionsOnSaveTimeout?: number;
         /**
-         * Enable code folding
+         * Enable code folding.
          * Defaults to true.
          */
         folding?: boolean;
@@ -2874,6 +2940,11 @@ export namespace editor {
          * Defaults to 'auto'.
          */
         foldingStrategy?: 'auto' | 'indentation';
+        /**
+         * Enable highlight for folded regions.
+         * Defaults to true.
+         */
+        foldingHighlight?: boolean;
         /**
          * Controls whether the fold actions in the gutter stay always visible or hide unless the mouse is over the gutter.
          * Defaults to 'mouseover'.
@@ -2937,6 +3008,11 @@ export namespace editor {
          * Controls fading out of unused variables.
          */
         showUnused?: boolean;
+        /**
+         * Controls whether to focus the inline editor in the peek widget by default.
+         * Defaults to false.
+         */
+        peekWidgetDefaultFocus?: 'tree' | 'editor';
     }
 
     export interface IEditorConstructionOptions extends IEditorOptions {
@@ -2986,6 +3062,93 @@ export namespace editor {
      * An event describing that the configuration of the editor has changed.
      */
     export class ConfigurationChangedEvent {
+        hasChanged(id: EditorOption): boolean;
+    }
+
+    /**
+     * All computed editor options.
+     */
+    export interface IComputedEditorOptions {
+        get<T extends EditorOption>(id: T): FindComputedEditorOptionValueById<T>;
+    }
+
+    export interface IEditorOption<K1 extends EditorOption, V> {
+        readonly id: K1;
+        readonly name: string;
+        defaultValue: V;
+    }
+
+    /**
+     * Configuration options for editor comments
+     */
+    export interface IEditorCommentsOptions {
+        /**
+         * Insert a space after the line comment token and inside the block comments tokens.
+         * Defaults to true.
+         */
+        insertSpace?: boolean;
+    }
+
+    export type EditorCommentsOptions = Readonly<Required<IEditorCommentsOptions>>;
+
+    /**
+     * The kind of animation in which the editor's cursor should be rendered.
+     */
+    export enum TextEditorCursorBlinkingStyle {
+        /**
+         * Hidden
+         */
+        Hidden = 0,
+        /**
+         * Blinking
+         */
+        Blink = 1,
+        /**
+         * Blinking with smooth fading
+         */
+        Smooth = 2,
+        /**
+         * Blinking with prolonged filled state and smooth fading
+         */
+        Phase = 3,
+        /**
+         * Expand collapse animation on the y axis
+         */
+        Expand = 4,
+        /**
+         * No-Blinking
+         */
+        Solid = 5
+    }
+
+    /**
+     * The style in which the editor's cursor should be rendered.
+     */
+    export enum TextEditorCursorStyle {
+        /**
+         * As a vertical line (sitting between two characters).
+         */
+        Line = 1,
+        /**
+         * As a block (sitting on top of a character).
+         */
+        Block = 2,
+        /**
+         * As a horizontal line (sitting under a character).
+         */
+        Underline = 3,
+        /**
+         * As a thin vertical line (sitting between two characters).
+         */
+        LineThin = 4,
+        /**
+         * As an outlined block (sitting on top of a character).
+         */
+        BlockOutline = 5,
+        /**
+         * As a thin horizontal line (sitting under a character).
+         */
+        UnderlineThin = 6
     }
 
     /**
@@ -3002,6 +3165,8 @@ export namespace editor {
         autoFindInSelection?: 'never' | 'always' | 'multiline';
         addExtraSpaceOnTop?: boolean;
     }
+
+    export type EditorFindOptions = Readonly<Required<IEditorFindOptions>>;
 
     export type GoToLocationValues = 'peek' | 'gotoAndPeek' | 'goto';
 
@@ -3021,6 +3186,8 @@ export namespace editor {
         alternativeImplementationCommand?: string;
         alternativeReferenceCommand?: string;
     }
+
+    export type GoToLocationOptions = Readonly<Required<IGotoLocationOptions>>;
 
     /**
      * Configuration options for editor hover
@@ -3042,6 +3209,8 @@ export namespace editor {
          */
         sticky?: boolean;
     }
+
+    export type EditorHoverOptions = Readonly<Required<IEditorHoverOptions>>;
 
     /**
      * A description for the overview ruler position.
@@ -3092,10 +3261,6 @@ export namespace editor {
          */
         readonly glyphMarginWidth: number;
         /**
-         * The height of the glyph margin.
-         */
-        readonly glyphMarginHeight: number;
-        /**
          * Left position for the line numbers.
          */
         readonly lineNumbersLeft: number;
@@ -3103,10 +3268,6 @@ export namespace editor {
          * The width of the line numbers.
          */
         readonly lineNumbersWidth: number;
-        /**
-         * The height of the line numbers.
-         */
-        readonly lineNumbersHeight: number;
         /**
          * Left position for the line decorations.
          */
@@ -3116,10 +3277,6 @@ export namespace editor {
          */
         readonly decorationsWidth: number;
         /**
-         * The height of the line decorations.
-         */
-        readonly decorationsHeight: number;
-        /**
          * Left position for the content (actual text)
          */
         readonly contentLeft: number;
@@ -3127,10 +3284,6 @@ export namespace editor {
          * The width of the content (actual text)
          */
         readonly contentWidth: number;
-        /**
-         * The height of the content (actual height)
-         */
-        readonly contentHeight: number;
         /**
          * The position for the minimap
          */
@@ -3172,6 +3325,8 @@ export namespace editor {
         enabled?: boolean;
     }
 
+    export type EditorLightbulbOptions = Readonly<Required<IEditorLightbulbOptions>>;
+
     /**
      * Configuration options for editor minimap
      */
@@ -3207,6 +3362,8 @@ export namespace editor {
         scale?: number;
     }
 
+    export type EditorMinimapOptions = Readonly<Required<IEditorMinimapOptions>>;
+
     /**
      * Configuration options for parameter hints
      */
@@ -3223,6 +3380,8 @@ export namespace editor {
         cycle?: boolean;
     }
 
+    export type InternalParameterHintOptions = Readonly<Required<IEditorParameterHintOptions>>;
+
     /**
      * Configuration options for quick suggestions
      */
@@ -3232,7 +3391,22 @@ export namespace editor {
         strings: boolean;
     }
 
+    export type ValidQuickSuggestionsOptions = boolean | Readonly<Required<IQuickSuggestionsOptions>>;
+
     export type LineNumbersType = 'on' | 'off' | 'relative' | 'interval' | ((lineNumber: number) => string);
+
+    export enum RenderLineNumbersType {
+        Off = 0,
+        On = 1,
+        Relative = 2,
+        Interval = 3,
+        Custom = 4
+    }
+
+    export interface InternalEditorRenderLineNumbersOptions {
+        readonly renderType: RenderLineNumbersType;
+        readonly renderFn: ((lineNumber: number) => string) | null;
+    }
 
     /**
      * Configuration options for editor scrollbars
@@ -3298,6 +3472,21 @@ export namespace editor {
          * Defaults to `horizontalScrollbarSize`.
          */
         horizontalSliderSize?: number;
+    }
+
+    export interface InternalEditorScrollbarOptions {
+        readonly arrowSize: number;
+        readonly vertical: ScrollbarVisibility;
+        readonly horizontal: ScrollbarVisibility;
+        readonly useShadows: boolean;
+        readonly verticalHasArrows: boolean;
+        readonly horizontalHasArrows: boolean;
+        readonly handleMouseWheel: boolean;
+        readonly alwaysConsumeMouseWheel: boolean;
+        readonly horizontalScrollbarSize: number;
+        readonly horizontalSliderSize: number;
+        readonly verticalScrollbarSize: number;
+        readonly verticalSliderSize: number;
     }
 
     /**
@@ -3436,7 +3625,275 @@ export namespace editor {
          * Show snippet-suggestions.
          */
         showSnippets?: boolean;
+        /**
+         * Controls the visibility of the status bar at the bottom of the suggest widget.
+         */
+        hideStatusBar?: boolean;
     }
+
+    export type InternalSuggestOptions = Readonly<Required<ISuggestOptions>>;
+
+    /**
+     * Describes how to indent wrapped lines.
+     */
+    export enum WrappingIndent {
+        /**
+         * No indentation => wrapped lines begin at column 1.
+         */
+        None = 0,
+        /**
+         * Same => wrapped lines get the same indentation as the parent.
+         */
+        Same = 1,
+        /**
+         * Indent => wrapped lines get +1 indentation toward the parent.
+         */
+        Indent = 2,
+        /**
+         * DeepIndent => wrapped lines get +2 indentation toward the parent.
+         */
+        DeepIndent = 3
+    }
+
+    export interface EditorWrappingInfo {
+        readonly isDominatedByLongLines: boolean;
+        readonly isWordWrapMinified: boolean;
+        readonly isViewportWrapping: boolean;
+        readonly wrappingColumn: number;
+    }
+
+    export enum EditorOption {
+        acceptSuggestionOnCommitCharacter = 0,
+        acceptSuggestionOnEnter = 1,
+        accessibilitySupport = 2,
+        accessibilityPageSize = 3,
+        ariaLabel = 4,
+        autoClosingBrackets = 5,
+        autoClosingOvertype = 6,
+        autoClosingQuotes = 7,
+        autoIndent = 8,
+        automaticLayout = 9,
+        autoSurround = 10,
+        codeLens = 11,
+        colorDecorators = 12,
+        comments = 13,
+        contextmenu = 14,
+        copyWithSyntaxHighlighting = 15,
+        cursorBlinking = 16,
+        cursorSmoothCaretAnimation = 17,
+        cursorStyle = 18,
+        cursorSurroundingLines = 19,
+        cursorSurroundingLinesStyle = 20,
+        cursorWidth = 21,
+        disableLayerHinting = 22,
+        disableMonospaceOptimizations = 23,
+        dragAndDrop = 24,
+        emptySelectionClipboard = 25,
+        extraEditorClassName = 26,
+        fastScrollSensitivity = 27,
+        find = 28,
+        fixedOverflowWidgets = 29,
+        folding = 30,
+        foldingStrategy = 31,
+        foldingHighlight = 32,
+        fontFamily = 33,
+        fontInfo = 34,
+        fontLigatures = 35,
+        fontSize = 36,
+        fontWeight = 37,
+        formatOnPaste = 38,
+        formatOnType = 39,
+        glyphMargin = 40,
+        gotoLocation = 41,
+        hideCursorInOverviewRuler = 42,
+        highlightActiveIndentGuide = 43,
+        hover = 44,
+        inDiffEditor = 45,
+        letterSpacing = 46,
+        lightbulb = 47,
+        lineDecorationsWidth = 48,
+        lineHeight = 49,
+        lineNumbers = 50,
+        lineNumbersMinChars = 51,
+        links = 52,
+        matchBrackets = 53,
+        minimap = 54,
+        mouseStyle = 55,
+        mouseWheelScrollSensitivity = 56,
+        mouseWheelZoom = 57,
+        multiCursorMergeOverlapping = 58,
+        multiCursorModifier = 59,
+        multiCursorPaste = 60,
+        occurrencesHighlight = 61,
+        overviewRulerBorder = 62,
+        overviewRulerLanes = 63,
+        parameterHints = 64,
+        peekWidgetDefaultFocus = 65,
+        quickSuggestions = 66,
+        quickSuggestionsDelay = 67,
+        readOnly = 68,
+        renderControlCharacters = 69,
+        renderIndentGuides = 70,
+        renderFinalNewline = 71,
+        renderLineHighlight = 72,
+        renderValidationDecorations = 73,
+        renderWhitespace = 74,
+        revealHorizontalRightPadding = 75,
+        roundedSelection = 76,
+        rulers = 77,
+        scrollbar = 78,
+        scrollBeyondLastColumn = 79,
+        scrollBeyondLastLine = 80,
+        selectionClipboard = 81,
+        selectionHighlight = 82,
+        selectOnLineNumbers = 83,
+        showFoldingControls = 84,
+        showUnused = 85,
+        snippetSuggestions = 86,
+        smoothScrolling = 87,
+        stopRenderingLineAfter = 88,
+        suggest = 89,
+        suggestFontSize = 90,
+        suggestLineHeight = 91,
+        suggestOnTriggerCharacters = 92,
+        suggestSelection = 93,
+        tabCompletion = 94,
+        useTabStops = 95,
+        wordSeparators = 96,
+        wordWrap = 97,
+        wordWrapBreakAfterCharacters = 98,
+        wordWrapBreakBeforeCharacters = 99,
+        wordWrapColumn = 100,
+        wordWrapMinified = 101,
+        wrappingIndent = 102,
+        wrappingStrategy = 103,
+        editorClassName = 104,
+        pixelRatio = 105,
+        tabFocusMode = 106,
+        layoutInfo = 107,
+        wrappingInfo = 108
+    }
+    export const EditorOptions: {
+        acceptSuggestionOnCommitCharacter: IEditorOption<EditorOption.acceptSuggestionOnCommitCharacter, boolean>;
+        acceptSuggestionOnEnter: IEditorOption<EditorOption.acceptSuggestionOnEnter, 'on' | 'off' | 'smart'>;
+        accessibilitySupport: IEditorOption<EditorOption.accessibilitySupport, AccessibilitySupport>;
+        accessibilityPageSize: IEditorOption<EditorOption.accessibilityPageSize, number>;
+        ariaLabel: IEditorOption<EditorOption.ariaLabel, string>;
+        autoClosingBrackets: IEditorOption<EditorOption.autoClosingBrackets, EditorAutoClosingStrategy>;
+        autoClosingOvertype: IEditorOption<EditorOption.autoClosingOvertype, EditorAutoClosingOvertypeStrategy>;
+        autoClosingQuotes: IEditorOption<EditorOption.autoClosingQuotes, EditorAutoClosingStrategy>;
+        autoIndent: IEditorOption<EditorOption.autoIndent, EditorAutoIndentStrategy>;
+        automaticLayout: IEditorOption<EditorOption.automaticLayout, boolean>;
+        autoSurround: IEditorOption<EditorOption.autoSurround, EditorAutoSurroundStrategy>;
+        codeLens: IEditorOption<EditorOption.codeLens, boolean>;
+        colorDecorators: IEditorOption<EditorOption.colorDecorators, boolean>;
+        comments: IEditorOption<EditorOption.comments, EditorCommentsOptions>;
+        contextmenu: IEditorOption<EditorOption.contextmenu, boolean>;
+        copyWithSyntaxHighlighting: IEditorOption<EditorOption.copyWithSyntaxHighlighting, boolean>;
+        cursorBlinking: IEditorOption<EditorOption.cursorBlinking, TextEditorCursorBlinkingStyle>;
+        cursorSmoothCaretAnimation: IEditorOption<EditorOption.cursorSmoothCaretAnimation, boolean>;
+        cursorStyle: IEditorOption<EditorOption.cursorStyle, TextEditorCursorStyle>;
+        cursorSurroundingLines: IEditorOption<EditorOption.cursorSurroundingLines, number>;
+        cursorSurroundingLinesStyle: IEditorOption<EditorOption.cursorSurroundingLinesStyle, 'default' | 'all'>;
+        cursorWidth: IEditorOption<EditorOption.cursorWidth, number>;
+        disableLayerHinting: IEditorOption<EditorOption.disableLayerHinting, boolean>;
+        disableMonospaceOptimizations: IEditorOption<EditorOption.disableMonospaceOptimizations, boolean>;
+        dragAndDrop: IEditorOption<EditorOption.dragAndDrop, boolean>;
+        emptySelectionClipboard: IEditorOption<EditorOption.emptySelectionClipboard, boolean>;
+        extraEditorClassName: IEditorOption<EditorOption.extraEditorClassName, string>;
+        fastScrollSensitivity: IEditorOption<EditorOption.fastScrollSensitivity, number>;
+        find: IEditorOption<EditorOption.find, EditorFindOptions>;
+        fixedOverflowWidgets: IEditorOption<EditorOption.fixedOverflowWidgets, boolean>;
+        folding: IEditorOption<EditorOption.folding, boolean>;
+        foldingStrategy: IEditorOption<EditorOption.foldingStrategy, 'auto' | 'indentation'>;
+        foldingHighlight: IEditorOption<EditorOption.foldingHighlight, boolean>;
+        fontFamily: IEditorOption<EditorOption.fontFamily, string>;
+        fontInfo: IEditorOption<EditorOption.fontInfo, FontInfo>;
+        fontLigatures2: IEditorOption<EditorOption.fontLigatures, string>;
+        fontSize: IEditorOption<EditorOption.fontSize, number>;
+        fontWeight: IEditorOption<EditorOption.fontWeight, string>;
+        formatOnPaste: IEditorOption<EditorOption.formatOnPaste, boolean>;
+        formatOnType: IEditorOption<EditorOption.formatOnType, boolean>;
+        glyphMargin: IEditorOption<EditorOption.glyphMargin, boolean>;
+        gotoLocation: IEditorOption<EditorOption.gotoLocation, GoToLocationOptions>;
+        hideCursorInOverviewRuler: IEditorOption<EditorOption.hideCursorInOverviewRuler, boolean>;
+        highlightActiveIndentGuide: IEditorOption<EditorOption.highlightActiveIndentGuide, boolean>;
+        hover: IEditorOption<EditorOption.hover, EditorHoverOptions>;
+        inDiffEditor: IEditorOption<EditorOption.inDiffEditor, boolean>;
+        letterSpacing: IEditorOption<EditorOption.letterSpacing, number>;
+        lightbulb: IEditorOption<EditorOption.lightbulb, EditorLightbulbOptions>;
+        lineDecorationsWidth: IEditorOption<EditorOption.lineDecorationsWidth, string | number>;
+        lineHeight: IEditorOption<EditorOption.lineHeight, number>;
+        lineNumbers: IEditorOption<EditorOption.lineNumbers, InternalEditorRenderLineNumbersOptions>;
+        lineNumbersMinChars: IEditorOption<EditorOption.lineNumbersMinChars, number>;
+        links: IEditorOption<EditorOption.links, boolean>;
+        matchBrackets: IEditorOption<EditorOption.matchBrackets, 'always' | 'never' | 'near'>;
+        minimap: IEditorOption<EditorOption.minimap, EditorMinimapOptions>;
+        mouseStyle: IEditorOption<EditorOption.mouseStyle, 'default' | 'text' | 'copy'>;
+        mouseWheelScrollSensitivity: IEditorOption<EditorOption.mouseWheelScrollSensitivity, number>;
+        mouseWheelZoom: IEditorOption<EditorOption.mouseWheelZoom, boolean>;
+        multiCursorMergeOverlapping: IEditorOption<EditorOption.multiCursorMergeOverlapping, boolean>;
+        multiCursorModifier: IEditorOption<EditorOption.multiCursorModifier, 'altKey' | 'metaKey' | 'ctrlKey'>;
+        multiCursorPaste: IEditorOption<EditorOption.multiCursorPaste, 'spread' | 'full'>;
+        occurrencesHighlight: IEditorOption<EditorOption.occurrencesHighlight, boolean>;
+        overviewRulerBorder: IEditorOption<EditorOption.overviewRulerBorder, boolean>;
+        overviewRulerLanes: IEditorOption<EditorOption.overviewRulerLanes, number>;
+        parameterHints: IEditorOption<EditorOption.parameterHints, InternalParameterHintOptions>;
+        peekWidgetDefaultFocus: IEditorOption<EditorOption.peekWidgetDefaultFocus, 'tree' | 'editor'>;
+        quickSuggestions: IEditorOption<EditorOption.quickSuggestions, ValidQuickSuggestionsOptions>;
+        quickSuggestionsDelay: IEditorOption<EditorOption.quickSuggestionsDelay, number>;
+        readOnly: IEditorOption<EditorOption.readOnly, boolean>;
+        renderControlCharacters: IEditorOption<EditorOption.renderControlCharacters, boolean>;
+        renderIndentGuides: IEditorOption<EditorOption.renderIndentGuides, boolean>;
+        renderFinalNewline: IEditorOption<EditorOption.renderFinalNewline, boolean>;
+        renderLineHighlight: IEditorOption<EditorOption.renderLineHighlight, 'all' | 'line' | 'none' | 'gutter'>;
+        renderValidationDecorations: IEditorOption<EditorOption.renderValidationDecorations, 'on' | 'off' | 'editable'>;
+        renderWhitespace: IEditorOption<EditorOption.renderWhitespace, 'all' | 'none' | 'boundary' | 'selection'>;
+        revealHorizontalRightPadding: IEditorOption<EditorOption.revealHorizontalRightPadding, number>;
+        roundedSelection: IEditorOption<EditorOption.roundedSelection, boolean>;
+        rulers: IEditorOption<EditorOption.rulers, {}>;
+        scrollbar: IEditorOption<EditorOption.scrollbar, InternalEditorScrollbarOptions>;
+        scrollBeyondLastColumn: IEditorOption<EditorOption.scrollBeyondLastColumn, number>;
+        scrollBeyondLastLine: IEditorOption<EditorOption.scrollBeyondLastLine, boolean>;
+        selectionClipboard: IEditorOption<EditorOption.selectionClipboard, boolean>;
+        selectionHighlight: IEditorOption<EditorOption.selectionHighlight, boolean>;
+        selectOnLineNumbers: IEditorOption<EditorOption.selectOnLineNumbers, boolean>;
+        showFoldingControls: IEditorOption<EditorOption.showFoldingControls, 'always' | 'mouseover'>;
+        showUnused: IEditorOption<EditorOption.showUnused, boolean>;
+        snippetSuggestions: IEditorOption<EditorOption.snippetSuggestions, 'none' | 'top' | 'bottom' | 'inline'>;
+        smoothScrolling: IEditorOption<EditorOption.smoothScrolling, boolean>;
+        stopRenderingLineAfter: IEditorOption<EditorOption.stopRenderingLineAfter, number>;
+        suggest: IEditorOption<EditorOption.suggest, InternalSuggestOptions>;
+        suggestFontSize: IEditorOption<EditorOption.suggestFontSize, number>;
+        suggestLineHeight: IEditorOption<EditorOption.suggestLineHeight, number>;
+        suggestOnTriggerCharacters: IEditorOption<EditorOption.suggestOnTriggerCharacters, boolean>;
+        suggestSelection: IEditorOption<EditorOption.suggestSelection, 'first' | 'recentlyUsed' | 'recentlyUsedByPrefix'>;
+        tabCompletion: IEditorOption<EditorOption.tabCompletion, 'on' | 'off' | 'onlySnippets'>;
+        useTabStops: IEditorOption<EditorOption.useTabStops, boolean>;
+        wordSeparators: IEditorOption<EditorOption.wordSeparators, string>;
+        wordWrap: IEditorOption<EditorOption.wordWrap, 'on' | 'off' | 'wordWrapColumn' | 'bounded'>;
+        wordWrapBreakAfterCharacters: IEditorOption<EditorOption.wordWrapBreakAfterCharacters, string>;
+        wordWrapBreakBeforeCharacters: IEditorOption<EditorOption.wordWrapBreakBeforeCharacters, string>;
+        wordWrapColumn: IEditorOption<EditorOption.wordWrapColumn, number>;
+        wordWrapMinified: IEditorOption<EditorOption.wordWrapMinified, boolean>;
+        wrappingIndent: IEditorOption<EditorOption.wrappingIndent, WrappingIndent>;
+        wrappingStrategy: IEditorOption<EditorOption.wrappingStrategy, 'simple' | 'advanced'>;
+        editorClassName: IEditorOption<EditorOption.editorClassName, string>;
+        pixelRatio: IEditorOption<EditorOption.pixelRatio, number>;
+        tabFocusMode: IEditorOption<EditorOption.tabFocusMode, boolean>;
+        layoutInfo: IEditorOption<EditorOption.layoutInfo, EditorLayoutInfo>;
+        wrappingInfo: IEditorOption<EditorOption.wrappingInfo, EditorWrappingInfo>;
+    };
+
+    type EditorOptionsType = typeof EditorOptions;
+
+    type FindEditorOptionsKeyById<T extends EditorOption> = {
+        [K in keyof EditorOptionsType]: EditorOptionsType[K]['id'] extends T ? K : never;
+    }[keyof EditorOptionsType];
+
+    type ComputedEditorOptionValue<T extends IEditorOption<any, any>> = T extends IEditorOption<any, infer R> ? R : never;
+
+    export type FindComputedEditorOptionValueById<T extends EditorOption> = NonNullable<ComputedEditorOptionValue<EditorOptionsType[FindEditorOptionsKeyById<T>]>>;
 
     /**
      * A view zone is a full horizontal rectangle that 'pushes' text down.
@@ -3731,6 +4188,14 @@ export namespace editor {
     }
 
     /**
+     * A paste event originating from the editor.
+     */
+    export interface IPasteEvent {
+        readonly range: Range;
+        readonly mode: string | null;
+    }
+
+    /**
      * A rich code editor.
      */
     export interface ICodeEditor extends IEditor {
@@ -3802,16 +4267,16 @@ export namespace editor {
         /**
          * An event emitted after composition has started.
          */
-        onCompositionStart(listener: () => void): IDisposable;
+        onDidCompositionStart(listener: () => void): IDisposable;
         /**
          * An event emitted after composition has ended.
          */
-        onCompositionEnd(listener: () => void): IDisposable;
+        onDidCompositionEnd(listener: () => void): IDisposable;
         /**
          * An event emitted when users paste text in the editor.
          * @event
          */
-        onDidPaste(listener: (range: Range) => void): IDisposable;
+        onDidPaste(listener: (e: IPasteEvent) => void): IDisposable;
         /**
          * An event emitted on a "mouseup".
          * @event
@@ -3853,6 +4318,11 @@ export namespace editor {
          */
         onDidLayoutChange(listener: (e: EditorLayoutInfo) => void): IDisposable;
         /**
+         * An event emitted when the content width or content height in the editor has changed.
+         * @event
+         */
+        onDidContentSizeChange(listener: (e: IContentSizeChangedEvent) => void): IDisposable;
+        /**
          * An event emitted when the scroll in the editor has changed.
          * @event
          */
@@ -3889,6 +4359,14 @@ export namespace editor {
          */
         setModel(model: ITextModel | null): void;
         /**
+         * Gets all the editor computed options.
+         */
+        getOptions(): IComputedEditorOptions;
+        /**
+         * Gets a specific editor option.
+         */
+        getOption<T extends EditorOption>(id: T): FindComputedEditorOptionValueById<T>;
+        /**
          * Returns the editor's configuration (without any validation or defaults).
          */
         getRawOptions(): IEditorOptions;
@@ -3906,6 +4384,11 @@ export namespace editor {
          */
         setValue(newValue: string): void;
         /**
+         * Get the width of the editor's content.
+         * This is information that is "erased" when computing `scrollWidth = Math.max(contentWidth, width)`
+         */
+        getContentWidth(): number;
+        /**
          * Get the scrollWidth of the editor's viewport.
          */
         getScrollWidth(): number;
@@ -3913,6 +4396,11 @@ export namespace editor {
          * Get the scrollLeft of the editor's viewport.
          */
         getScrollLeft(): number;
+        /**
+         * Get the height of the editor's content.
+         * This is information that is "erased" when computing `scrollHeight = Math.max(contentHeight, height)`
+         */
+        getContentHeight(): number;
         /**
          * Get the scrollHeight of the editor's viewport.
          */
@@ -3990,6 +4478,10 @@ export namespace editor {
          * Get the vertical position (top offset) for the position w.r.t. to the first line.
          */
         getTopForPosition(lineNumber: number, column: number): number;
+        /**
+         * Returns the editor's container dom node
+         */
+        getContainerDomNode(): HTMLElement;
         /**
          * Returns the editor's dom node
          */
@@ -4136,6 +4628,7 @@ export namespace editor {
         readonly typicalFullwidthCharacterWidth: number;
         readonly canUseHalfwidthRightwardsArrow: boolean;
         readonly spaceWidth: number;
+        readonly middotWidth: number;
         readonly maxDigitWidth: number;
     }
 
@@ -4156,7 +4649,6 @@ export namespace editor {
 }
 
 export namespace languages {
-
 
     /**
      * Register information about a new language.
@@ -4373,6 +4865,16 @@ export namespace languages {
      * Register a selection range provider
      */
     export function registerSelectionRangeProvider(languageId: string, provider: SelectionRangeProvider): IDisposable;
+
+    /**
+     * Register a document semantic tokens provider
+     */
+    export function registerDocumentSemanticTokensProvider(languageId: string, provider: DocumentSemanticTokensProvider): IDisposable;
+
+    /**
+     * Register a document range semantic tokens provider
+     */
+    export function registerDocumentRangeSemanticTokensProvider(languageId: string, provider: DocumentRangeSemanticTokensProvider): IDisposable;
 
     /**
      * Contains additional diagnostic information about the context in which
@@ -4695,6 +5197,25 @@ export namespace languages {
         Snippet = 25
     }
 
+    export interface CompletionItemLabel {
+        /**
+         * The function or variable. Rendered leftmost.
+         */
+        name: string;
+        /**
+         * The signature without the return type. Render after `name`.
+         */
+        signature?: string;
+        /**
+         * The fully qualified name, like package name or file path. Rendered after `signature`.
+         */
+        qualifier?: string;
+        /**
+         * The return-type of a function or type of a property/variable. Rendered rightmost.
+         */
+        type?: string;
+    }
+
     export enum CompletionItemTag {
         Deprecated = 1
     }
@@ -4721,7 +5242,7 @@ export namespace languages {
          * this is also the text that is inserted when selecting
          * this completion.
          */
-        label: string;
+        label: string | CompletionItemLabel;
         /**
          * The kind of this completion item. Based on the kind
          * an icon is chosen by the editor.
@@ -4761,7 +5282,7 @@ export namespace languages {
         preselect?: boolean;
         /**
          * A string or snippet that should be inserted in a document when selecting
-         * this completion.
+         * this completion. When `falsy` the [label](#CompletionItem.label)
          * is used.
          */
         insertText: string;
@@ -5395,25 +5916,41 @@ export namespace languages {
         constructor(value: string);
     }
 
-    export interface ResourceFileEdit {
-        oldUri?: Uri;
-        newUri?: Uri;
-        options?: {
-            overwrite?: boolean;
-            ignoreIfNotExists?: boolean;
-            ignoreIfExists?: boolean;
-            recursive?: boolean;
+    export interface WorkspaceEditMetadata {
+        needsConfirmation: boolean;
+        label: string;
+        description?: string;
+        iconPath?: {
+            id: string;
+        } | {
+            light: Uri;
+            dark: Uri;
         };
     }
 
-    export interface ResourceTextEdit {
+    export interface WorkspaceFileEditOptions {
+        overwrite?: boolean;
+        ignoreIfNotExists?: boolean;
+        ignoreIfExists?: boolean;
+        recursive?: boolean;
+    }
+
+    export interface WorkspaceFileEdit {
+        oldUri?: Uri;
+        newUri?: Uri;
+        options?: WorkspaceFileEditOptions;
+        metadata?: WorkspaceEditMetadata;
+    }
+
+    export interface WorkspaceTextEdit {
         resource: Uri;
+        edit: TextEdit;
         modelVersionId?: number;
-        edits: TextEdit[];
+        metadata?: WorkspaceEditMetadata;
     }
 
     export interface WorkspaceEdit {
-        edits: Array<ResourceTextEdit | ResourceFileEdit>;
+        edits: Array<WorkspaceTextEdit | WorkspaceFileEdit>;
     }
 
     export interface Rejection {
@@ -5475,10 +6012,15 @@ export namespace languages {
         readonly edits: SemanticTokensEdit[];
     }
 
-    export interface SemanticTokensProvider {
+    export interface DocumentSemanticTokensProvider {
         getLegend(): SemanticTokensLegend;
-        provideSemanticTokens(model: editor.ITextModel, lastResultId: string | null, ranges: Range[] | null, token: CancellationToken): ProviderResult<SemanticTokens | SemanticTokensEdits>;
-        releaseSemanticTokens(resultId: string | undefined): void;
+        provideDocumentSemanticTokens(model: editor.ITextModel, lastResultId: string | null, token: CancellationToken): ProviderResult<SemanticTokens | SemanticTokensEdits>;
+        releaseDocumentSemanticTokens(resultId: string | undefined): void;
+    }
+
+    export interface DocumentRangeSemanticTokensProvider {
+        getLegend(): SemanticTokensLegend;
+        provideDocumentRangeSemanticTokens(model: editor.ITextModel, range: Range, token: CancellationToken): ProviderResult<SemanticTokens>;
     }
 
     export interface ILanguageExtensionPoint {
@@ -5619,7 +6161,6 @@ export namespace languages {
 
 export namespace worker {
 
-
     export interface IMirrorModel {
         readonly uri: Uri;
         readonly version: number;
@@ -5639,8 +6180,7 @@ export namespace worker {
 
 }
 
-//dtsv=2
-
+//dtsv=3
 
 export namespace languages.typescript {
 
@@ -5692,6 +6232,7 @@ export namespace languages.typescript {
     interface CompilerOptions {
         allowJs?: boolean;
         allowSyntheticDefaultImports?: boolean;
+        allowUmdGlobalAccess?: boolean;
         allowUnreachableCode?: boolean;
         allowUnusedLabels?: boolean;
         alwaysStrict?: boolean;
@@ -5703,6 +6244,7 @@ export namespace languages.typescript {
         emitDeclarationOnly?: boolean;
         declarationDir?: string;
         disableSizeLimit?: boolean;
+        disableSourceOfProjectReferenceRedirect?: boolean;
         downlevelIteration?: boolean;
         emitBOM?: boolean;
         emitDecoratorMetadata?: boolean;
@@ -5754,8 +6296,10 @@ export namespace languages.typescript {
         sourceRoot?: string;
         strict?: boolean;
         strictFunctionTypes?: boolean;
+        strictBindCallApply?: boolean;
         strictNullChecks?: boolean;
         strictPropertyInitialization?: boolean;
+        stripInternal?: boolean;
         suppressExcessPropertyErrors?: boolean;
         suppressImplicitAnyIndexErrors?: boolean;
         target?: ScriptTarget;
@@ -5765,6 +6309,7 @@ export namespace languages.typescript {
         /** Paths used to compute primary types search locations */
         typeRoots?: string[];
         esModuleInterop?: boolean;
+        useDefineForClassFields?: boolean;
         [option: string]: CompilerOptionsValue | undefined;
     }
 
@@ -5775,7 +6320,69 @@ export namespace languages.typescript {
         diagnosticCodesToIgnore?: number[];
     }
 
+    interface IExtraLib {
+        content: string;
+        version: number;
+    }
+
+    interface IExtraLibs {
+        [path: string]: IExtraLib;
+    }
+
+    /**
+     * A linked list of formatted diagnostic messages to be used as part of a multiline message.
+     * It is built from the bottom up, leaving the head to be the "main" diagnostic.
+     */
+    interface DiagnosticMessageChain {
+        messageText: string;
+        /** Diagnostic category: warning = 0, error = 1, suggestion = 2, message = 3 */
+        category: 0 | 1 | 2 | 3;
+        code: number;
+        next?: DiagnosticMessageChain[];
+    }
+    interface Diagnostic extends DiagnosticRelatedInformation {
+        /** May store more in future. For now, this will simply be `true` to indicate when a diagnostic is an unused-identifier diagnostic. */
+        reportsUnnecessary?: {};
+        source?: string;
+        relatedInformation?: DiagnosticRelatedInformation[];
+    }
+    interface DiagnosticRelatedInformation {
+        /** Diagnostic category: warning = 0, error = 1, suggestion = 2, message = 3 */
+        category: 0 | 1 | 2 | 3;
+        code: number;
+        /** TypeScriptWorker removes this to avoid serializing circular JSON structures. */
+        file: undefined;
+        start: number | undefined;
+        length: number | undefined;
+        messageText: string | DiagnosticMessageChain;
+    }
+
+    interface EmitOutput {
+        outputFiles: OutputFile[];
+        emitSkipped: boolean;
+    }
+    interface OutputFile {
+        name: string;
+        writeByteOrderMark: boolean;
+        text: string;
+    }
+
     export interface LanguageServiceDefaults {
+        /**
+         * Event fired when compiler options or diagnostics options are changed.
+         */
+        readonly onDidChange: IEvent<void>;
+
+        /**
+         * Event fired when extra libraries registered with the language service change.
+         */
+        readonly onDidExtraLibsChange: IEvent<void>;
+
+        /**
+         * Get the current extra libs registered with the language service.
+         */
+        getExtraLibs(): IExtraLibs;
+
         /**
          * Add an additional source file to the language service. Use this
          * for typescript (definition) files that won't be loaded as editor
@@ -5797,9 +6404,19 @@ export namespace languages.typescript {
         setExtraLibs(libs: { content: string; filePath?: string }[]): void;
 
         /**
+         * Get current TypeScript compiler options for the language service.
+         */
+        getCompilerOptions(): CompilerOptions;
+
+        /**
          * Set TypeScript compiler options.
          */
         setCompilerOptions(options: CompilerOptions): void;
+
+        /**
+         * Get the current diagnostics options for the language service.
+         */
+        getDiagnosticsOptions(): DiagnosticsOptions;
 
         /**
          * Configure whether syntactic and/or semantic validation should
@@ -5808,10 +6425,7 @@ export namespace languages.typescript {
         setDiagnosticsOptions(options: DiagnosticsOptions): void;
 
         /**
-         * Configure when the worker shuts down. By default that is 2mins.
-         *
-         * @param value The maximum idle time in milliseconds. Values less than one
-         * mean never shut down.
+         * No-op.
          */
         setMaximumWorkerIdleTime(value: number): void;
 
@@ -5820,15 +6434,139 @@ export namespace languages.typescript {
          * to the worker on start or restart.
          */
         setEagerModelSync(value: boolean): void;
+
+        /**
+         * Get the current setting for whether all existing models should be eagerly sync'd
+         * to the worker on start or restart.
+         */
+        getEagerModelSync(): boolean;
     }
 
-    export var typescriptVersion: string;
+    export interface TypeScriptWorker {
+        /**
+         * Get diagnostic messages for any syntax issues in the given file.
+         */
+        getSyntacticDiagnostics(fileName: string): Promise<Diagnostic[]>;
 
-    export var typescriptDefaults: LanguageServiceDefaults;
-    export var javascriptDefaults: LanguageServiceDefaults;
+        /**
+         * Get diagnostic messages for any semantic issues in the given file.
+         */
+        getSemanticDiagnostics(fileName: string): Promise<Diagnostic[]>;
 
-    export var getTypeScriptWorker: () => Promise<any>;
-    export var getJavaScriptWorker: () => Promise<any>;
+        /**
+         * Get diagnostic messages for any suggestions related to the given file.
+         */
+        getSuggestionDiagnostics(fileName: string): Promise<Diagnostic[]>;
+
+        /**
+         * Get diagnostic messages related to the current compiler options.
+         * @param fileName Not used
+         */
+        getCompilerOptionsDiagnostics(fileName: string): Promise<Diagnostic[]>;
+
+        /**
+         * Get code completions for the given file and position.
+         * @returns `Promise<typescript.CompletionInfo | undefined>`
+         */
+        getCompletionsAtPosition(fileName: string, position: number): Promise<any | undefined>;
+
+        /**
+         * Get code completion details for the given file, position, and entry.
+         * @returns `Promise<typescript.CompletionEntryDetails | undefined>`
+         */
+        getCompletionEntryDetails(fileName: string, position: number, entry: string): Promise<any | undefined>;
+
+        /**
+         * Get signature help items for the item at the given file and position.
+         * @returns `Promise<typescript.SignatureHelpItems | undefined>`
+         */
+        getSignatureHelpItems(fileName: string, position: number): Promise<any | undefined>;
+
+        /**
+         * Get quick info for the item at the given position in the file.
+         * @returns `Promise<typescript.QuickInfo | undefined>`
+         */
+        getQuickInfoAtPosition(fileName: string, position: number): Promise<any | undefined>;
+
+        /**
+         * Get other ranges which are related to the item at the given position in the file (often used for highlighting).
+         * @returns `Promise<ReadonlyArray<typescript.ReferenceEntry> | undefined>`
+         */
+        getOccurrencesAtPosition(fileName: string, position: number): Promise<ReadonlyArray<any> | undefined>;
+
+        /**
+         * Get the definition of the item at the given position in the file.
+         * @returns `Promise<ReadonlyArray<typescript.DefinitionInfo> | undefined>`
+         */
+        getDefinitionAtPosition(fileName: string, position: number): Promise<ReadonlyArray<any> | undefined>;
+
+        /**
+         * Get references to the item at the given position in the file.
+         * @returns `Promise<typescript.ReferenceEntry[] | undefined>`
+         */
+        getReferencesAtPosition(fileName: string, position: number): Promise<any[] | undefined>;
+
+        /**
+         * Get outline entries for the item at the given position in the file.
+         * @returns `Promise<typescript.NavigationBarItem[]>`
+         */
+        getNavigationBarItems(fileName: string): Promise<any[]>;
+
+        /**
+         * Get changes which should be applied to format the given file.
+         * @param options `typescript.FormatCodeOptions`
+         * @returns `Promise<typescript.TextChange[]>`
+         */
+        getFormattingEditsForDocument(fileName: string, options: any): Promise<any[]>;
+
+        /**
+         * Get changes which should be applied to format the given range in the file.
+         * @param options `typescript.FormatCodeOptions`
+         * @returns `Promise<typescript.TextChange[]>`
+         */
+        getFormattingEditsForRange(fileName: string, start: number, end: number, options: any): Promise<any[]>;
+
+        /**
+         * Get formatting changes which should be applied after the given keystroke.
+         * @param options `typescript.FormatCodeOptions`
+         * @returns `Promise<typescript.TextChange[]>`
+         */
+        getFormattingEditsAfterKeystroke(fileName: string, postion: number, ch: string, options: any): Promise<any[]>;
+
+        /**
+         * Get other occurrences which should be updated when renaming the item at the given file and position.
+         * @returns `Promise<readonly typescript.RenameLocation[] | undefined>`
+         */
+        findRenameLocations(fileName: string, positon: number, findInStrings: boolean, findInComments: boolean, providePrefixAndSuffixTextForRename: boolean): Promise<readonly any[] | undefined>;
+
+        /**
+         * Get edits which should be applied to rename the item at the given file and position (or a failure reason).
+         * @param options `typescript.RenameInfoOptions`
+         * @returns `Promise<typescript.RenameInfo>`
+         */
+        getRenameInfo(fileName: string, positon: number, options: any): Promise<any>;
+
+        /**
+         * Get transpiled output for the given file.
+         * @returns `typescript.EmitOutput`
+         */
+        getEmitOutput(fileName: string): Promise<any>;
+
+        /**
+         * Get possible code fixes at the given position in the file.
+         * @param formatOptions `typescript.FormatCodeOptions`
+         * @returns `Promise<ReadonlyArray<typescript.CodeFixAction>>`
+         */
+        getCodeFixesAtPosition(fileName: string, start: number, end: number, errorCodes: number[], formatOptions: any): Promise<ReadonlyArray<any>>;
+    }
+
+    export const typescriptVersion: string;
+
+    export const typescriptDefaults: LanguageServiceDefaults;
+    export const javascriptDefaults: LanguageServiceDefaults;
+
+    export const getTypeScriptWorker: () => Promise<(...uris: Uri[]) => Promise<TypeScriptWorker>>;
+    export const getJavaScriptWorker: () => Promise<(...uris: Uri[]) => Promise<TypeScriptWorker>>;
 }
 
 /*---------------------------------------------------------------------------------------------

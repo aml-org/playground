@@ -46,6 +46,7 @@ import './r/r.contribution.js';
 import './razor/razor.contribution.js';
 import './redis/redis.contribution.js';
 import './redshift/redshift.contribution.js';
+import './restructuredtext/restructuredtext.contribution.js';
 import './ruby/ruby.contribution.js';
 import './rust/rust.contribution.js';
 import './sb/sb.contribution.js';

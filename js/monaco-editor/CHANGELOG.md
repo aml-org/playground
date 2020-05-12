@@ -1,5 +1,70 @@
 # Monaco Editor Changelog
 
+## [0.20.0] (11.02.2020)
+
+### New & Noteworthy
+* There is new API to read the editor's content width and height.
+* New editor options:
+  * `renderValidationDecorations` - render validation decorations even in read only editors
+  * `wrappingStrategy` - delegate wrapping points computation to the browser
+  * `comments.insertSpace` - insert a space around comments when running commenting commands
+  * `foldingHighlight` - highlight folded regions
+  * `peekWidgetDefaultFocus` - focus the inline editor or the tree when opening peek view
+
+### Breaking changes
+* Renamed `onCompositionStart`, `onCompositionEnd` to `onDidCompositionStart`, `onDidCompositionEnd`
+* Changed the argument passed in to `onDidPaste`
+* `WorkspaceEdit.edits` has now changed its shape such that edits must no longer be grouped by resource.
+
+### Thank you
+
+Contributions to `monaco-editor`:
+
+* [Josh Goldberg (@JoshuaKGoldberg)](https://github.com/JoshuaKGoldberg): Added section in Monarch docs for Inspect Tokens development helper [PR #1807](https://github.com/microsoft/monaco-editor/pull/1807)
+
+Contributions to `monaco-typescript`:
+
+* [Elizabeth Craig (@ecraig12345)](https://github.com/ecraig12345): Add types for TypeScriptWorker and missing LanguageServiceDefaults methods [PR #54](https://github.com/microsoft/monaco-typescript/pull/54)
+
+Contributions to `monaco-languages`:
+
+* [alan.invents (@ALANVF)](https://github.com/ALANVF): Highlight function definitions better [PR #79](https://github.com/microsoft/monaco-languages/pull/79)
+* [@nrayburn-tech](https://github.com/nrayburn-tech): Add support for multiline comments in Swift [PR #80](https://github.com/microsoft/monaco-languages/pull/80)
+
+## [0.19.3] (14.01.2020)
+
+* brings back a way to get resolved editor options - [#1734](https://github.com/microsoft/monaco-editor/issues/1734)
+
+### Thank you
+
+Contributions to `monaco-editor`:
+* [Brijesh Bittu (@brijeshb42)](https://github.com/brijeshb42): Playground: Add keyboard shortcut to run playground code [PR #1756](https://github.com/microsoft/monaco-editor/pull/1756)
+
+Contributions to `monaco-languages`:
+* [Rikki Schulte (@acao)](https://github.com/acao): add tokenizer for graphql language variables [PR #78](https://github.com/microsoft/monaco-languages/pull/78)
+
+
+## [0.19.2] (06.01.2020)
+
+* fixes issue with default value of `autoIndent` - [#1726](https://github.com/microsoft/monaco-editor/issues/1726)
+
+## [0.19.1] (06.01.2020)
+
+* fixes issue with .d.ts file in the ESM distribution - [#1729](https://github.com/microsoft/monaco-editor/issues/1729)
+* adds types for global editor options (such as `wordBasedSuggestions`) - [#1746](https://github.com/microsoft/monaco-editor/issues/1746)
+* adds support for reStructuredText.
+
+### Thank you
+
+Contributions to `monaco-editor`:
+* [Lars Hvam (@larshp)](https://github.com/larshp)
+  * Playground: add ABAP sample [PR #1737](https://github.com/microsoft/monaco-editor/pull/1737)
+  * Playground: fix codelens provider example [PR #1738](https://github.com/microsoft/monaco-editor/pull/1738)
+
+Contributions to `monaco-languages`:
+* [Changwon Choe (@qwefgh90)](https://github.com/qwefgh90): add support for reStructuredText [PR #77](https://github.com/microsoft/monaco-languages/pull/77)
+
+
 ## [0.19.0] (20.12.2019)
 
 ### New & Noteworthy
@@ -51,6 +116,7 @@ Contributions to `monaco-typescript`:
 * [Lars Hvam (@larshp)](https://github.com/larshp): fix typo [PR #45](https://github.com/microsoft/monaco-typescript/pull/45)
 * [Sebastian Pahnke (@spahnke)](https://github.com/spahnke)
   * Provide related information to diagnostics [PR #48](https://github.com/microsoft/monaco-typescript/pull/48)
+* [Alessandro Fragnani (@alefragnani)](https://github.com/alefragnani): Add Pascal samples [PR #1358](https://github.com/microsoft/monaco-editor/pull/1358)
   * Adopt monaco.MarkerTag API [PR #47](https://github.com/microsoft/monaco-typescript/pull/47)
   * Add support to ignore certain diagnostics [PR #46](https://github.com/microsoft/monaco-typescript/pull/46)
 
