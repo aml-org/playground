@@ -77,19 +77,20 @@ function customizeMonaco () {
     base: 'vs-dark', // vs, hc-black, vs-dark
     inherit: true,
     rules: [{ background: 'EDF9FA' },
-        {token : 'type', foreground: "#26d3ff"},
-        {token : 'special', foreground:'#BDB7F4'},
-        {token : 'string', foreground: '#00b3de'},
-        {token : 'keyword', foreground: '#cccccc'},
-        {token : 'number', foreground: '#bdf1a3'},
-        {token : 'syntaxTag', foreground: '#9dd288'},
-        {token : 'tag', foreground: '#9dd288'},
-        {token : 'rootComment', foreground: '#9dd288'},
-        {token : 'httpMethod', foreground: '#ffb647'}
+      {token : 'type', foreground: "#599cd3"},
+      {token : 'operators', foreground: "#599cd3"},
+      {token : 'special', foreground:'#a0a6b2'},
+      {token : 'string', foreground: '#a0a6b2'},
+      {token : 'keyword', foreground: '#599cd3'},
+      {token : 'number', foreground: '#b99b5a'},
+      {token : 'syntaxTag', foreground: '#599cd3'},
+      {token : 'tag', foreground: '#a0a6b2'}, // Tags like !include
+      {token : 'rootComment', foreground: '#599cd3'},
+      {token : 'httpMethod', foreground: '#ffb647'}
       ],
     colors: {
-      'editor.foreground': '#000000',
-      'editor.background': '#526881',
+      'editor.foreground': '#2c2c2b',
+      'editor.background': '#2c2c2b',
       'editor.lineHighlightBackground': '#4e4e4e',
       'editor.lineHighlightForeground': '#4e4e4e',
       'editor.selectionBackground': '#4e4e4e',
@@ -99,11 +100,13 @@ function customizeMonaco () {
       'editor.inactiveSelectionBackground': '#4e4e4e',
       'editor.hoverHighlightBackground': '#4e4e4e',
       'editor.hoverHighlightForeground': '#4e4e4e',
-      'editorCursor.foreground': '#8B0000',
-      'editorLineNumber.foreground': '#008800',
-      'input.background': '#FFFFFF',
-      'editorHoverWidget.background': '#F7FAFF',
-      'editorHoverWidget.border': '#4e4e4e',
+      'editorCursor.foreground': '#e0e0e0',
+      'editorLineNumber.foreground': '#5a5a5a',
+      'editorGutter.background': '#222222',
+      'scrollbarSlider.background': '#5a5a5a',
+      'scrollbarSlider.activeBackground': '#5a5a5a',
+      'scrollbarSlider.hoverBackground': '#5a5a5a',
+      'input.background': '#e0e0e0',
       'editorIndentGuide.background': '#9EAAB7'
     }
   })

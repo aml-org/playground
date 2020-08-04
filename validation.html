@@ -29,7 +29,7 @@
   <!-- Main container class -->
   <link rel="import" href="html_fragments/validation/nav.html">
   <div class="section" style="padding: 0px">
-    <div id="the-app" class="container is-marginless is-fluid">
+    <div id="the-app" class="is-marginless is-fluid">
       <div class="columns">
         <div class="column half-width">
           <link rel="import" href="html_fragments/validation/editor_dialect.html">
@@ -102,14 +102,14 @@
           require(['vs/editor/editor.main'], function() {
 
             var resize = function() {
-              var height = document.documentElement.clientHeight;
+              var height = document.documentElement.clientHeight - 102;
               var editors = ["editor-dialect-container", "editor-document-container"];
               editors.forEach(function(editor) {
                 var containerDiv = document.getElementById(editor);
                 var style = window.getComputedStyle(containerDiv);
                 var hidden = style.display == "none";
                 if (!hidden) {
-                  containerDiv.setAttribute("style", "height: " + (height - 150) + "px");
+                  containerDiv.setAttribute("style", "height: " + height + "px");
                 }
               });
             };
@@ -131,9 +131,13 @@
             var dialectEditor = monaco.editor.create(document.getElementById("editor-dialect-container"), {
               language: 'aml',
               automaticLayout: true,
-              scrollBeyondLastLine: false,
+              scrollBeyondLastLine: true,
               renderLineHighlight: "none",
               occurrencesHighlight: false,
+              renderIndentGuides: false,
+              overviewRulerBorder: false,
+              lineNumbersMinChars: 3,
+              folding: false,
               minimap: {
                 enabled: false
               }
@@ -142,9 +146,13 @@
             var documentEditor = monaco.editor.create(document.getElementById("editor-document-container"), {
               language: 'aml',
               automaticLayout: true,
-              scrollBeyondLastLine: false,
+              scrollBeyondLastLine: true,
               renderLineHighlight: "none",
               occurrencesHighlight: false,
+              renderIndentGuides: false,
+              overviewRulerBorder: false,
+              lineNumbersMinChars: 3,
+              folding: false,
               minimap: {
                 enabled: false
               }

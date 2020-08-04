@@ -29,7 +29,7 @@
   <!-- Main container class -->
   <link rel="import" href="html_fragments/visualization/nav.html">
   <div class="section" style="padding: 0px;">
-    <div id="the-app" class="container is-marginless is-fluid" style="display: flow-root;">
+    <div id="the-app" class="is-marginless is-fluid" style="display: flow-root;">
       <link rel="import" href="html_fragments/visualization/editor.html">
       <link rel="import" href="html_fragments/visualization/graph.html">
     </div>
@@ -95,15 +95,15 @@
           require(['vs/editor/editor.main'], function() {
 
             var resize = function() {
-              var height = document.documentElement.clientHeight;
+              var height = document.documentElement.clientHeight - 114;
               var containers = ["editor-container-inner", "graph-container"];
               containers.forEach(function(contId) {
                 var containerDiv = document.getElementById(contId);
                 var style = window.getComputedStyle(containerDiv);
                 var hidden = style.display == "none";
                 if (!hidden) {
-                  containerDiv.style.maxHeight = (height - 150) + "px";
-                  containerDiv.style.height = (height - 150) + "px";
+                  containerDiv.style.maxHeight = height + "px";
+                  containerDiv.style.height = height + "px";
                 }
               });
             };
@@ -126,10 +126,14 @@
               value: '',
               language: 'aml',
               automaticLayout: true,
-              scrollBeyondLastLine: false,
+              scrollBeyondLastLine: true,
               renderLineHighlight: "none",
               occurrencesHighlight: false,
               renderValidationDecorations: 'on',
+              renderIndentGuides: false,
+              overviewRulerBorder: false,
+              lineNumbersMinChars: 3,
+              folding: false,
               minimap: {
                 enabled: false
               }
