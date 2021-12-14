@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@babel/core": "^7.7.7",
+    "@babel/core": "^7.16.0",
     "amf-client-js": "^3.2.2",
     "dagre": "^0.8.5",
     "graphlib": "^2.1.8",
