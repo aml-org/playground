@@ -14,7 +14,7 @@
     "amf-client-js": "^3.2.2",
     "dagre": "^0.8.5",
     "graphlib": "^2.1.8",
-    "jointjs": "^3.1.1",
+    "jointjs": "^3.4.4",
     "jquery": "^3.4.1",
     "knockout": "^3.5.1",
     "monaco-editor": "^0.20.0",
